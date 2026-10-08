@@ -1,0 +1,158 @@
+/* ============================================================
+   Base: reinicio, tipografía, maquetación y formularios
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* Correos y códigos de pedido no tienen espacios: sin esto rompen
+     la maqueta en pantallas estrechas. */
+  overflow-wrap: break-word;
+}
+body.sin-scroll { overflow: hidden; }
+
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.12;
+  margin: 0;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(2.3rem, 5.4vw, 4.1rem); font-weight: 400; }
+h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); }
+h3 { font-size: 1.15rem; }
+h4 { font-size: 1rem; }
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; text-decoration: none; }
+img, svg, video { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+b, strong { font-weight: 500; }
+
+:focus-visible { outline: 2.5px solid var(--azul); outline-offset: 3px; border-radius: 4px; }
+/* El salto al contenido lleva el foco a <main>: no hace falta enmarcar la página entera. */
+main:focus-visible { outline: none; }
+::selection { background: var(--pastel); color: var(--tinta); }
+
+/* barra de desplazamiento discreta y a tono */
+* { scrollbar-width: thin; scrollbar-color: var(--borde-f) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--borde-f); border-radius: 99px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   MAQUETACIÓN
+   ============================================================ */
+.wrap { max-width: var(--ancho); margin: 0 auto; padding: 0 24px; width: 100%; }
+.wrap-s { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+section { padding: clamp(2.6rem, 5vw, 4rem) 0; }
+
+/* minmax(0, 1fr) en todas las rejillas: una columna «1fr» tiene
+   min-width:auto y un hijo ancho (un select, una tabla) la estiraría
+   por encima del ancho de la pantalla. */
+.cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 4vw, 3.4rem); }
+.cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.2rem, 3vw, 2rem); }
+.cols-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(1.2rem, 3vw, 2rem); }
+
+.cab-sec { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.centro { text-align: center; margin-inline: auto; }
+
+/* Rejillas de dos columnas que se apilan solas por debajo de 880 px. */
+.dos      { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);   gap: clamp(1.6rem, 4vw, 3rem);   align-items: center; }
+.dos-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .82fr); gap: clamp(2rem, 5vw, 3.5rem);   align-items: center; }
+.dos-lado { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .78fr); gap: clamp(1.8rem, 4vw, 2.8rem); align-items: center; }
+.dos-cta  { display: grid; grid-template-columns: minmax(0, 1fr) auto;             gap: 2rem;                      align-items: center; }
+.dos-arr  { align-items: start; }
+
+/* Sello flotante sobre una imagen */
+.sello { position: absolute; bottom: -26px; left: -24px; z-index: 2; }
+
+/* ============================================================
+   TIPOGRAFÍA AUXILIAR
+   ============================================================ */
+.eyebrow { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: var(--tinta-3); font-weight: 500; }
+.lead { color: var(--tinta-3); font-size: 1.05rem; max-width: 52ch; }
+.mini { font-size: .83rem; color: var(--tinta-3); }
+.mini-2 { font-size: .78rem; color: var(--tinta-4); }
+.destacado { color: var(--azul); }
+blockquote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  line-height: 1.45;
+  color: var(--tinta-2);
+  margin: 1.6rem 0 0;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--acento);
+}
+.prosa p + p { margin-top: 1rem; }
+.prosa p { hyphens: auto; }
+.prosa h3 { margin: 2rem 0 .6rem; }
+.prosa ul { margin: .6rem 0; display: grid; gap: .45rem; }
+.prosa ul li { padding-left: 1.3rem; position: relative; color: var(--tinta-3); }
+.prosa ul li::before { content: '✻'; position: absolute; left: 0; color: var(--acento); font-size: .8rem; top: .15rem; }
+.prosa a { color: var(--azul); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+label { display: block; font-size: .86rem; font-weight: 500; margin-bottom: .4rem; }
+input[type=text], input[type=email], input[type=tel], input[type=number],
+input[type=search], input[type=password], input[type=date], select, textarea {
+  width: 100%;
+  border: 1px solid var(--borde);
+  background: var(--papel);
+  border-radius: var(--radio-s);
+  padding: .78rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  color: var(--tinta);
+  outline: none;
+  transition: border-color var(--rapido), box-shadow var(--rapido);
+}
+input:hover, select:hover, textarea:hover { border-color: var(--borde-f); }
+input:focus, select:focus, textarea:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(40, 97, 143, .12); }
+input::placeholder, textarea::placeholder { color: var(--tinta-4); }
+textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+/* max-width: el ancho intrínseco de un select lo marca su opción más
+   larga, no el contenedor. */
+select {
+  max-width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%232B506E' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.6rem;
+}
+.campo { margin-bottom: 1.1rem; }
+.pista { font-size: .79rem; color: var(--tinta-3); margin-top: .4rem; }
+.error { font-size: .79rem; color: var(--rojo); margin-top: .4rem; display: none; }
+.campo.mal input, .campo.mal textarea, .campo.mal select,
+[aria-invalid="true"] { border-color: var(--rojo); }
+.campo.mal .error, .error.visible { display: block; }
+
+.check { display: flex; gap: .7rem; align-items: flex-start; font-size: .9rem; font-weight: 400; color: var(--tinta-3); cursor: pointer; margin-bottom: .7rem; }
+.check input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--azul); margin: 2px 0 0; cursor: pointer; }
+
+/* selector con aspecto de tarjeta (envío, pago) */
+.opcion { display: flex; gap: .9rem; align-items: flex-start; border: 1.5px solid var(--borde); background: var(--papel); border-radius: var(--radio-s); padding: 1rem 1.1rem; cursor: pointer; font-weight: 400; margin: 0; transition: border-color var(--rapido), background var(--rapido), transform var(--rapido); }
+.opcion:hover { border-color: var(--borde-f); transform: translateY(-1px); }
+.opcion input { margin: 2px 0 0; accent-color: var(--azul); width: 19px; height: 19px; flex: 0 0 19px; cursor: pointer; }
+.opcion:has(input:checked) { border-color: var(--azul); background: var(--pastel-cl); }
+.opcion:has(input:focus-visible) { outline: 2.5px solid var(--azul); outline-offset: 3px; }
+.opcion b { font-weight: 500; display: block; }
+
+/* buscador con lupa dentro */
+.busca { position: relative; }
+.busca input { padding-left: 2.7rem; }
+.busca svg { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); stroke: var(--tinta-3); pointer-events: none; }

@@ -1,0 +1,166 @@
+/* ============================================================
+   Páginas de contenido: taller, encargos, cuidados, envíos,
+   contacto, legal y errores. Usa los tokens y componentes
+   comunes; aquí solo va lo propio de estas páginas.
+   ============================================================ */
+
+/* ---------- Cabecera de página ---------- */
+.cab-pagina { padding: 1rem 0 2.5rem; }
+.cab-pagina h1 { margin-top: .6rem; }
+.cab-pagina .lead { margin-top: 1.2rem; }
+.cab-pagina .lead p + p { margin-top: .8rem; }
+
+/* Los titulares con ancla no quedan tapados por la cabecera pegada. */
+:where(h2, h3)[id] { scroll-margin-top: 110px; }
+
+.wrap-m { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+/* ---------- Rejillas con lateral ---------- */
+.con-lateral { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 2.6rem; align-items: start; }
+.con-lateral > aside { position: sticky; top: 96px; display: grid; gap: 1rem; }
+.con-indice { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 3rem; align-items: start; }
+
+.indice { position: sticky; top: 96px; }
+.indice .eyebrow { margin-bottom: .7rem; }
+.indice a { display: block; padding: .4rem 0 .4rem .8rem; font-size: .9rem; color: var(--tinta-3); border-left: 2px solid var(--borde); transition: color var(--rapido), border-color var(--rapido); }
+.indice a:hover { color: var(--azul); border-color: var(--azul); }
+
+@media (max-width: 900px) {
+  .con-lateral, .con-indice { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .con-lateral > aside { position: static; }
+  /* En móvil el índice es una fila de enlaces encima del texto. */
+  .indice { position: static; }
+  .indice ul { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .indice a { border: 1px solid var(--borde); border-radius: 999px; padding: .45rem .9rem; background: var(--papel); font-size: .85rem; min-height: 40px; display: inline-flex; align-items: center; }
+}
+
+/* ---------- Bandas y cajas ---------- */
+.caja-si { background: #E4EDE0; border-color: #C7D8BF; }
+.caja-si .lista-titulo { color: #3A5F4C; }
+.lista-titulo { font-size: 1.1rem; }
+.tit-bloque { margin: .4rem 0 1.2rem; }
+.subtitulo-guia { margin-top: 2rem; font-size: 1.2rem; }
+.banda-lateral { padding: 1.4rem; }
+.banda-lateral p { margin-top: .5rem; font-size: .9rem; }
+.caja-cl .mini b { color: var(--tinta); }
+.ancho-lectura { max-width: 760px; margin-inline: auto; }
+.taller-heroe { padding-top: 1rem; }
+.pastilla-listo { background: #C7D8BF; color: #3A5F4C; }
+.tabla .precio-envio { color: var(--tinta); font-weight: 500; }
+.tabla .precio-envio .mini-2 { display: block; font-weight: 400; }
+.lista-marcas { margin-top: .8rem; display: grid; gap: .55rem; }
+.lista-marcas li { display: flex; gap: .6rem; font-size: .9rem; color: var(--tinta-2); }
+.lista-marcas .marca { flex: 0 0 1rem; color: var(--tinta-4); }
+.caja-si .marca { color: #3A6B4C; font-weight: 500; }
+.caja + .caja { margin-top: 1rem; }
+
+.tarjeta-info h3 { font-size: 1.05rem; }
+.tarjeta-info p { margin-top: .5rem; }
+.tarjeta-info .ico { color: var(--azul); display: block; margin-bottom: .7rem; }
+
+/* tabla dentro de una caja sin relleno */
+.caja-tabla { padding: 0; overflow-x: auto; }
+.caja-tabla .tabla th:first-child, .caja-tabla .tabla td:first-child { padding-left: 1.3rem; }
+.caja-tabla .tabla th:last-child, .caja-tabla .tabla td:last-child { padding-right: 1.3rem; }
+.derecha, .tabla .derecha { text-align: right; }
+
+/* ---------- Foto del taller en arco ---------- */
+.arco-foto { position: relative; aspect-ratio: 4 / 5; max-width: 460px; width: 100%; margin-inline: auto; }
+.arco-foto > .arco { position: absolute; inset: 0; }
+.arco-foto .sello { left: -18px; bottom: -18px; }
+.sello-texto { background: var(--papel); border-radius: 999px; box-shadow: var(--sombra); padding: .7rem 1.1rem; font-size: .85rem; color: var(--tinta-2); display: flex; gap: .5rem; align-items: center; }
+@media (max-width: 880px) {
+  .arco-foto { max-width: 400px; }
+  .arco-foto .sello { left: 0; }
+}
+
+/* ---------- Formularios ---------- */
+.formulario fieldset { margin-inline: 0; margin-bottom: 0; min-width: 0; }
+.formulario > * + * { margin-top: 1.2rem; }
+.caja-titulo { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; padding: 0; float: left; width: 100%; margin-bottom: 1.3rem; }
+.caja-titulo + * { clear: both; }
+.caja-intro { margin: -.8rem 0 1rem; clear: both; }
+.aclaracion { font-weight: 400; color: var(--tinta-3); font-size: .86em; }
+.formulario .check a { color: var(--azul); text-decoration: underline; text-underline-offset: 3px; }
+.formulario-pie { display: grid; gap: .7rem; justify-items: start; }
+.formulario-pie .btn { gap: .6rem; }
+.formulario .caja > .campo:last-child { margin-bottom: 0; }
+
+
+/* zona de subida de fotos */
+.subida { display: grid; justify-items: center; gap: .3rem; border: 2px dashed var(--borde-f); border-radius: var(--radio); padding: 2rem 1.2rem; text-align: center; background: var(--papel); cursor: pointer; font-weight: 400; margin: 0; color: var(--tinta); transition: border-color var(--rapido), background var(--rapido); }
+.subida svg { color: var(--azul); margin-bottom: .4rem; }
+.subida:hover, .subida.encima { border-color: var(--azul); background: var(--pastel-cl); }
+.campo:has(.subida-input:focus-visible) .subida { outline: 2.5px solid var(--azul); outline-offset: 3px; }
+.campo.mal .subida { border-color: var(--rojo); }
+.subida-titulo { font-weight: 500; font-size: .95rem; }
+.previas { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+.previa { width: 84px; height: 84px; border-radius: 10px; overflow: hidden; position: relative; background: var(--sup); }
+.previa img { width: 100%; height: 100%; object-fit: cover; }
+.previa button { position: absolute; top: 0; right: 0; width: 44px; height: 44px; display: grid; place-items: center; }
+.previa button svg { box-sizing: content-box; padding: 5px; border-radius: 50%; background: rgba(21, 44, 65, .78); color: #FFFFFF; }
+.previa button:hover svg { background: var(--tinta); }
+
+/* confirmación tras enviar */
+.confirmacion { text-align: center; padding: 3rem 2rem; display: grid; justify-items: center; gap: 1rem; }
+.confirmacion h2:focus { outline: none; }
+.confirmacion .lead { margin-inline: auto; }
+.confirmacion-ico { width: 56px; height: 56px; border-radius: 50%; background: #E4EDE0; color: var(--verde-osc); display: grid; place-items: center; }
+.confirmacion-texto { display: grid; gap: .8rem; justify-items: center; }
+.confirmacion-acciones { display: flex; gap: .7rem; justify-content: center; flex-wrap: wrap; margin-top: .6rem; }
+
+/* ---------- Encargos ---------- */
+.ejemplo { padding: 0; overflow: hidden; }
+.ejemplo .foto { position: relative; aspect-ratio: 4 / 3; background: var(--sup); }
+.ejemplo .foto img { object-fit: cover; }
+.ejemplo-cuerpo { padding: 1.3rem; }
+.ejemplo-cuerpo h3 { font-size: 1.05rem; }
+.ejemplo-cuerpo p { margin-top: .5rem; }
+.ejemplo-dato { color: var(--azul) !important; font-weight: 500; }
+
+/* ---------- Guías largas (cuidados, legal) ---------- */
+.guia h2 { margin: 3rem 0 1rem; font-size: clamp(1.5rem, 2.8vw, 2rem); }
+.guia > h2:first-of-type, .guia .aviso + h2 { margin-top: 0; }
+.guia .aviso { margin-bottom: 2.5rem; }
+.guia p, .guia li { color: var(--tinta-2); }
+.guia .cols-2 { margin: 1.6rem 0; }
+.guia .caja-tabla { margin: 1rem 0 1.4rem; }
+.guia code { font-size: .85em; background: var(--sup); border-radius: 4px; padding: .1rem .35rem; }
+
+/* datos inventados del titular, marcados como tales */
+.ficticio { background: #FAEEDA; color: #7A4A0C; padding: 0 .3rem; border-radius: 3px; }
+.aviso-ficticio { background: #FAEEDA; color: #6E430B; margin-bottom: 2.5rem; }
+.aviso-ficticio svg { stroke: #9A5F10; }
+
+
+/* ---------- Tablas ---------- */
+.tabla th[scope="row"] { text-transform: none; letter-spacing: 0; font-size: inherit; color: var(--tinta); font-weight: 500; padding: .85rem 1rem .85rem 0; border-bottom: 1px solid var(--borde); vertical-align: top; }
+/* Las tablas de dos columnas del lateral caben enteras en el móvil. */
+.tabla.tabla-corta { min-width: 0; }
+
+/* Las listas de sí y no llevan su propia marca, no la de .prosa. */
+.prosa .lista-marcas li { padding-left: 0; color: var(--tinta-2); }
+.prosa .lista-marcas li::before { content: none; }
+
+/* ---------- Contacto ---------- */
+.vias { margin-top: 1rem; display: grid; gap: 1rem; }
+.vias li { display: flex; gap: .8rem; align-items: flex-start; }
+.vias svg { flex: 0 0 22px; color: var(--azul); margin-top: 2px; }
+.vias b { display: block; font-weight: 500; font-size: .92rem; }
+.vias a { display: inline-block; }
+
+
+.pasos-lateral { margin-top: 1.1rem; }
+.tabla-corta td.derecha { white-space: nowrap; padding-left: .8rem; }
+
+/* Al recibir el foco tras enviar, que no queden bajo la cabecera pegada. */
+.resumen-errores, .confirmacion { scroll-margin-top: 110px; }
+
+/* En móvil, dos sugerencias bastan: cuatro tarjetas a lo ancho alargan
+   demasiado una página de error. */
+@media (max-width: 620px) {
+  .sugerencias-error > :nth-child(n+3) { display: none; }
+}
+
+/* Más de 75 caracteres por línea se leen peor. */
+.guia { max-width: 74ch; }

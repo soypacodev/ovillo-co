@@ -1,0 +1,135 @@
+/* ============================================================
+   Adaptación a pantallas
+   Va al final para ganar a las reglas base con la misma
+   especificidad. Los bloques van de ancho a estrecho y después
+   los casos especiales (táctil, pantallas bajas, impresión).
+   ============================================================ */
+
+/* ---------- Escritorio ancho ---------- */
+@media (min-width: 1600px) {
+  .rejilla { gap: 2.2rem 1.6rem; }
+}
+@media (min-width: 2000px) {
+  body { font-size: 17px; }
+}
+
+/* ---------- Tablets: el catálogo cabe en dos columnas cómodas ---------- */
+@media (min-width: 621px) and (max-width: 900px) {
+  .rejilla, .rejilla-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .cols-2, .cols-3, .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .menu { display: none; }
+  .hamburguesa { display: grid; }
+}
+
+@media (max-width: 880px) {
+  .dos, .dos-hero, .dos-lado, .dos-cta { grid-template-columns: minmax(0, 1fr); }
+  .sello { left: auto; right: 0; bottom: -20px; }
+}
+
+@media (max-width: 820px) {
+  .pie-rej { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .ventajas { grid-template-columns: minmax(0, 1fr); gap: .9rem; }
+}
+
+/* ---------- Móvil en general ---------- */
+@media (max-width: 620px) {
+  .cols-2, .cols-3, .cols-4 { grid-template-columns: minmax(0, 1fr); }
+  .par { grid-template-columns: minmax(0, 1fr); }
+  /* tres cifras cortas caben en una fila incluso en móvil */
+  .cifras dd { font-size: 1.6rem; }
+  .pie-web { padding-top: 2.6rem; }
+  /* la polaroid central sube un poco para no tapar el pie de la derecha */
+  .polaroids .p3 { top: 16%; }
+}
+
+/* ---------- Tablas de datos: ancho cómodo y la caja se desplaza ---------- */
+@media (max-width: 560px) {
+  .tabla { min-width: 420px; font-size: .88rem; }
+}
+
+@media (max-width: 520px) {
+  .pie-rej { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- Cabecera en pantallas muy estrechas ----------
+   Con cuatro iconos, el logo y el globito no caben en 320 px. Buscar y
+   Mi cuenta están también en el menú, así que aquí se esconden. */
+@media (max-width: 430px) {
+  .cinta-demo .largo { display: none; }
+  .cinta-demo .corto { display: inline; }
+  .acciones .solo-ancho { display: none; }
+  .logo { font-size: 1.2rem; gap: .45rem; }
+  .logo svg { width: 26px; height: 26px; }
+  .icono { width: 40px; height: 40px; }
+  .nav { gap: .5rem; }
+}
+
+/* ---------- Móviles pequeños ---------- */
+@media (max-width: 400px) {
+  .wrap, .wrap-s { padding: 0 18px; }
+  h1 { font-size: clamp(1.95rem, 8.5vw, 2.4rem); }
+  h2 { font-size: clamp(1.5rem, 6.5vw, 1.9rem); }
+  .lead { font-size: 1rem; }
+  .btn { padding: .8rem 1.25rem; font-size: .92rem; }
+  .btn-g { padding: .9rem 1.5rem; font-size: .95rem; }
+  .banda, .banda-osc { padding: 1.4rem; }
+  .caja, .caja-cl { padding: 1.25rem; }
+  .cajon-cab, .cajon-cuerpo, .cajon-pie { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .linea { grid-template-columns: 56px minmax(0, 1fr) auto; gap: .7rem; }
+  .num { flex-basis: 24px; width: 24px; height: 24px; }
+  blockquote { font-size: 1.1rem; padding-left: .9rem; }
+  .menu-movil { padding-inline: 18px; }
+}
+
+/* ---------- Pantalla táctil ----------
+   Sin ratón no hay hover: lo que solo aparecía al pasar por encima
+   tiene que estar siempre visible, y las zonas de toque suben a 44 px. */
+@media (pointer: coarse) {
+  /* Los selectores llevan [type] para igualar la especificidad de la
+     regla base. Por debajo de 16 px iOS hace zoom al enfocar. */
+  input[type=text], input[type=email], input[type=tel], input[type=number],
+  input[type=search], input[type=password], input[type=date],
+  select, textarea { font-size: 16px; }
+  .icono { width: 46px; height: 46px; }
+  .contador button { width: 44px; height: 44px; }
+  .contador-g button { width: 48px; height: 50px; }
+  .corazon { opacity: 1; transform: none; width: 44px; height: 44px; }
+  .rapido { opacity: 1; transform: none; min-height: 44px; }
+  .chip { padding: .55rem 1rem; min-height: 44px; }
+  .btn-p { padding: .7rem 1.2rem; min-height: 44px; }
+  .btn-4 { padding: .65rem .5rem; }
+  .boton-texto { min-height: 44px; padding-inline: .3rem; }
+  summary { padding-block: .55rem; min-height: 44px; }
+  .menu-movil a:not(.logo) { padding: .75rem 0; }
+  .sw { width: 52px; height: 52px; }
+  .pie-web ul { gap: 0; }
+  .pie-web ul a { display: inline-flex; align-items: center; min-height: 44px; }
+  /* el zoom de la foto al pasar el ratón no puede ocurrir */
+  .tarjeta:hover .marco img { transform: none; }
+}
+@media (pointer: coarse) and (max-width: 430px) {
+  .icono { width: 44px; height: 44px; }
+}
+
+/* ---------- Pantallas bajas (móvil apaisado, portátiles pequeños) ---------- */
+@media (max-height: 560px) {
+  .menu-movil a:not(.logo) { font-size: 1.4rem; padding: .4rem 0; }
+  .menu-movil ul { margin-top: 1.2rem; }
+}
+@media (max-height: 420px) and (pointer: coarse) {
+  /* en apaisado la cinta roba un tercio del alto útil */
+  .cinta { display: none; }
+  .cabecera .nav { padding: .5rem 0; }
+}
+
+/* ---------- Impresión: que un pedido salga limpio en papel ---------- */
+@media print {
+  .cinta, .cinta-demo, .cabecera, .menu-movil, .pie-web, .cajon, .velo, .brindis, .btn { display: none !important; }
+  body { background: #FFFFFF; }
+}

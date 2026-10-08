@@ -1,0 +1,122 @@
+/* ============================================================
+   Cuenta: entrar, registro, contraseñas y área de cliente.
+   Usa los tokens y componentes comunes; aquí solo va lo propio.
+   ============================================================ */
+
+/* ---------- Acceso: formulario a un lado, ventajas al otro ---------- */
+.cuenta-acceso { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: clamp(2rem, 5vw, 4.5rem); align-items: start; padding: clamp(2rem, 5vw, 3.5rem) 0 1rem; }
+.cuenta-formulario { max-width: 440px; width: 100%; margin-inline: auto; }
+.cuenta-titulo { font-size: clamp(1.9rem, 3.6vw, 2.5rem); }
+.cuenta-entradilla { margin-top: 1rem; font-size: 1rem; }
+.cuenta-lateral { position: sticky; top: 96px; }
+.cuenta-ventajas-titulo { font-size: 1.5rem; }
+.cuenta-ventajas { margin-top: 1.3rem; display: grid; gap: 1.05rem; }
+.cuenta-ventajas li { display: flex; gap: .85rem; align-items: flex-start; font-size: .88rem; color: var(--azul-osc); line-height: 1.5; }
+.cuenta-ventajas svg { flex: 0 0 22px; margin-top: 1px; }
+.cuenta-ventajas b { display: block; font-size: .95rem; }
+.cuenta-demo .btn { gap: .5rem; }
+
+/* Pestañas entrar / crear cuenta: enlaces con aspecto de pestaña. */
+.pestanas { display: flex; gap: .3rem; margin-top: 1.4rem; padding: .3rem; background: var(--sup); border-radius: 999px; width: fit-content; }
+.pestanas a { padding: .55rem 1.1rem; border-radius: 999px; font-size: .9rem; font-weight: 500; color: var(--tinta-3); min-height: 40px; display: inline-flex; align-items: center; transition: background var(--rapido), color var(--rapido); }
+.pestanas a:hover { color: var(--azul); }
+.pestanas a[aria-current="page"] { background: var(--papel); color: var(--tinta); box-shadow: var(--sombra-s); }
+
+.formulario-cuenta { margin-top: 1.6rem; display: grid; gap: .1rem; }
+.formulario-cuenta > .aviso { margin-bottom: 1.1rem; }
+.formulario-cuenta > .btn { justify-self: start; margin-top: .4rem; }
+.formulario-cuenta > .btn-bloque { justify-self: stretch; }
+.formulario-cuenta .acciones-fila { margin-top: .4rem; }
+.olvido { margin: -.5rem 0 1rem; text-align: right; }
+.separador-o { display: flex; align-items: center; gap: 1rem; margin: 1.8rem 0 .2rem; color: var(--tinta-4); font-size: .8rem; }
+.separador-o::before, .separador-o::after { content: ''; flex: 1; border-top: 1px solid var(--borde); }
+
+/* ---------- Área de cliente ---------- */
+.cuenta-cab { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem 2rem; flex-wrap: wrap; padding: clamp(1.8rem, 4vw, 2.8rem) 0 1.4rem; }
+.cuenta-cab-acciones { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+.cuenta-cab-acciones .btn { gap: .45rem; }
+
+.nav-cuenta { border-bottom: 1px solid var(--borde); overflow-x: auto; scrollbar-width: none; }
+.nav-cuenta::-webkit-scrollbar { display: none; }
+.nav-cuenta ul { display: flex; gap: 1.6rem; min-width: max-content; }
+.nav-cuenta a { display: inline-flex; align-items: center; min-height: 46px; font-size: .93rem; color: var(--tinta-3); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color var(--rapido), border-color var(--rapido); }
+.nav-cuenta a:hover { color: var(--azul); }
+.nav-cuenta a[aria-current="page"] { color: var(--tinta); border-bottom-color: var(--azul); font-weight: 500; }
+
+.cuenta-cuerpo { padding: 2rem 0 1rem; min-height: 40vh; }
+.cuenta-seccion { font-size: clamp(1.35rem, 2.4vw, 1.6rem); margin-bottom: 1.1rem; }
+.cuenta-seccion-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.cuenta-vacia { max-width: 560px; }
+
+.cuenta-atajos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding-block: 2rem 0; }
+.atajo { display: flex; gap: .9rem; align-items: flex-start; padding: 1.2rem 1.3rem; background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio); transition: border-color var(--rapido), transform var(--rapido); }
+.atajo:hover { border-color: var(--azul); transform: translateY(-2px); }
+.atajo svg { flex: 0 0 22px; color: var(--azul); }
+.atajo b { display: block; font-size: 1rem; }
+.atajo .mini { display: block; }
+
+/* Tarjeta de pedido en la lista */
+.lista-pedidos { display: grid; gap: .8rem; }
+.tarjeta-pedido { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 1rem 1.2rem; align-items: center; padding: 1rem 1.2rem; background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio); transition: border-color var(--rapido); }
+.tarjeta-pedido:hover { border-color: var(--borde-f); }
+.tarjeta-pedido h3 { font-family: var(--sans); font-size: 1rem; font-weight: 500; }
+.tarjeta-pedido .mini { margin-top: .15rem; }
+/* Toda la tarjeta es clicable, pero el enlace sigue siendo solo el título. */
+.tarjeta-pedido-enlace::after { content: ''; position: absolute; inset: 0; border-radius: var(--radio); }
+.tarjeta-pedido-enlace:hover { color: var(--azul); }
+.tarjeta-pedido-fotos { display: flex; }
+.tarjeta-pedido-fotos .mini-foto + .mini-foto { margin-left: -14px; }
+.tarjeta-pedido-lado { display: grid; justify-items: end; gap: .35rem; }
+
+/* Detalle de un pedido */
+.pedido-cuenta-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin: .6rem 0 1.4rem; }
+.pedido-cuenta-cab .cuenta-seccion { margin-bottom: .2rem; }
+.pedido-cuenta-rejilla { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.pedido-cuenta-rejilla > :nth-child(3) { grid-column: 1 / -1; }
+
+.seguimiento { margin-top: 1.2rem; display: grid; }
+.seguimiento-paso { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: .9rem; position: relative; padding-bottom: 1.3rem; }
+.seguimiento-paso:last-child { padding-bottom: 0; }
+.seguimiento-paso::before { content: ''; position: absolute; left: 14px; top: 30px; bottom: 0; width: 2px; background: var(--borde); }
+.seguimiento-paso:last-child::before { display: none; }
+.seguimiento-paso.hecho::before { background: var(--verde-osc); }
+.seguimiento-bolita { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--sup); color: var(--tinta-3); font-size: .78rem; font-weight: 500; z-index: 1; }
+.hecho .seguimiento-bolita { background: var(--verde-osc); color: #FFFFFF; }
+.ahora .seguimiento-bolita { background: var(--azul); color: #FFFFFF; box-shadow: 0 0 0 4px var(--pastel-cl); }
+.ahora.torcido .seguimiento-bolita { background: var(--rojo); box-shadow: 0 0 0 4px #F4E4E1; }
+.seguimiento-titulo { font-weight: 500; line-height: 30px; }
+.pendiente .seguimiento-titulo { color: var(--tinta-3); }
+
+
+/* Direcciones */
+.lista-direcciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.direccion-tarjeta { display: grid; gap: .7rem; align-content: start; }
+.direccion-tarjeta.predeterminada { border-color: var(--azul); }
+.direccion-cab { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+.direccion-cab h3 { font-family: var(--sans); font-size: 1rem; font-weight: 500; }
+.direccion-acciones { display: flex; flex-wrap: wrap; gap: .4rem 1rem; padding-top: .4rem; border-top: 1px solid var(--borde); }
+
+/* Datos y borrar la cuenta */
+.cuenta-datos { display: grid; gap: 1rem; max-width: 760px; }
+.datos-acceso dt { font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-4); }
+.datos-acceso dd { margin: .15rem 0 0; }
+.zona-peligro { border-color: #EBC3BD; }
+.borrar-detalles { margin-top: 1rem; border: 0; padding: 0; }
+.borrar-detalles summary { color: var(--rojo); justify-content: flex-start; }
+.campo-corto { max-width: 220px; }
+
+@media (max-width: 900px) {
+  .cuenta-acceso { grid-template-columns: minmax(0, 1fr); }
+  .cuenta-lateral { position: static; max-width: 560px; width: 100%; margin-inline: auto; }
+  .pedido-cuenta-rejilla { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .cuenta-atajos { grid-template-columns: minmax(0, 1fr); }
+  .tarjeta-pedido { grid-template-columns: minmax(0, 1fr) auto; }
+  .tarjeta-pedido-fotos { display: none; }
+}
+
+@media (pointer: coarse) {
+  .nav-cuenta a { min-height: 48px; }
+}

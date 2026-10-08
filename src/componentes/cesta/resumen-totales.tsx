@@ -1,0 +1,45 @@
+import type { Totales } from '@/lib/cesta/tipos';
+import { eur, eurMenos } from '@/lib/formato';
+import { tipografia } from '@/lib/tipografia';
+
+export interface PropsResumen {
+  totales: Totales;
+  cupon: string | null;
+  /** Texto del envío cuando aún no se ha elegido método. */
+  etiquetaEnvio?: string;
+}
+
+/** Filas de importes: subtotal, rebajas, cupón, envío y total. */
+export function ResumenTotales({ totales: t, cupon, etiquetaEnvio = 'Envío' }: PropsResumen) {
+  return (
+    <>
+      <div className="fila">
+        <span>Subtotal</span>
+        <span>{eur(t.subtotal)}</span>
+      </div>
+      {t.rebajasAuto.map((r) => (
+        <div className="fila" key={r.nombre}>
+          <span>{tipografia(r.nombre)}</span>
+          <span className="rebaja">{eurMenos(r.importe)}</span>
+        </div>
+      ))}
+      {t.rebajaCupon > 0 && (
+        <div className="fila">
+          <span>Código {cupon}</span>
+          <span className="rebaja">{eurMenos(t.rebajaCupon)}</span>
+        </div>
+      )}
+      <div className="fila">
+        <span>
+          {etiquetaEnvio}
+          {t.envioGratisCupon && ` (código ${cupon})`}
+        </span>
+        <span>{t.envio === 0 ? 'Gratis' : eur(t.envio)}</span>
+      </div>
+      <div className="fila total">
+        <span>Total</span>
+        <span>{eur(t.total)}</span>
+      </div>
+    </>
+  );
+}

@@ -1,0 +1,74 @@
+/* ============================================================
+   Portada
+   ============================================================ */
+
+/* ---------- Héroe ---------- */
+.heroe { padding: clamp(2.5rem, 5vw, 4.5rem) 0 3rem; }
+.heroe h1 { margin-top: .7rem; }
+.heroe .puntada { display: block; margin-top: .15rem; color: var(--acento); max-width: 60%; height: auto; }
+.heroe-texto { margin-top: 1.3rem; }
+.heroe-botones { display: flex; gap: .8rem; margin-top: 2rem; flex-wrap: wrap; }
+.heroe-ventajas { margin-top: 2.2rem; }
+.heroe-foto { position: relative; max-width: 460px; width: 100%; justify-self: end; }
+.heroe-arco { aspect-ratio: 4 / 5; }
+/* El cervatillo queda a la izquierda del centro de la foto. */
+.heroe-arco img { object-position: 38% 50%; }
+.heroe-sello { padding: .75rem 1rem; display: flex; align-items: center; gap: .7rem; max-width: 230px; }
+.heroe-sello .mini { line-height: 1.35; }
+.heroe-sello b { color: var(--tinta); }
+
+@media (max-width: 880px) {
+  .heroe { padding-top: 1.6rem; }
+  .heroe-foto { justify-self: center; max-width: 420px; margin-top: .5rem; }
+}
+
+/* ---------- Títulos de sección ---------- */
+.tit-lead { margin-top: .7rem; }
+.centro .tit-lead { margin-inline: auto; }
+
+/* ---------- Categorías en arco ---------- */
+.tira-cats { padding-top: .5rem; }
+.tira-cats > li { width: 158px; }
+@media (max-width: 520px) {
+  /* que asome la tercera para que se note que la tira se desliza */
+  .tira-cats > li { width: 136px; }
+}
+.cat-arco { display: block; text-align: center; border-radius: 12px; }
+.cat-foto { position: relative; display: block; border-radius: 120px 120px 16px 16px; overflow: hidden; aspect-ratio: 5 / 6; background: var(--sup); transition: transform var(--medio) var(--curva), box-shadow var(--medio); }
+.cat-foto img { object-fit: cover; }
+.cat-arco:hover .cat-foto, .cat-arco:focus-visible .cat-foto { transform: translateY(-6px) rotate(-1.5deg); box-shadow: var(--sombra); }
+.cat-nombre { display: block; margin-top: .65rem; font-size: .95rem; font-weight: 500; }
+.cat-arco:hover .cat-nombre { color: var(--azul); }
+.cat-arco .mini-2 { display: block; }
+/* En escritorio caben las cinco: se reparten el ancho en lugar de
+   quedarse amontonadas a la izquierda. */
+@media (min-width: 901px) {
+  .tira-cats { overflow: visible; }
+  .tira-cats > li { flex: 1 1 0; width: auto; max-width: 240px; }
+}
+
+/* ---------- Taller ---------- */
+.taller-texto { margin-top: 1.1rem; }
+.taller-boton { margin-top: 1.8rem; }
+
+/* ---------- Cómo funciona ---------- */
+.pasos-portada { margin-top: 2.5rem; }
+.pasos-portada .num { margin-bottom: .8rem; }
+.pasos-portada h3 { font-size: 1.05rem; }
+.pasos-portada .mini { margin-top: .5rem; }
+
+/* ---------- Opiniones ---------- */
+.opinion { margin: 0; height: 100%; display: flex; flex-direction: column; }
+.estrellas { color: var(--azul); letter-spacing: .15em; font-size: .9rem; }
+.opinion blockquote { border: 0; padding: 0; margin: .7rem 0 0; font-size: 1.04rem; flex: 1; }
+.opinion figcaption { margin-top: 1rem; }
+.opinion figcaption b { color: var(--tinta); }
+
+/* ---------- Encargos ---------- */
+.encargo-texto { margin-top: 1rem; }
+.encargo-boton { margin-top: 1.8rem; }
+
+/* ---------- Boletín ---------- */
+.boletin { max-width: 540px; }
+.boletin-ovillo { margin: 0 auto 1rem; }
+.boletin .form-correo, .boletin .aviso { margin-top: 1.5rem; text-align: left; }

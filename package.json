@@ -1,0 +1,51 @@
+{
+  "name": "ovillo-co",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tienda online de demostración de un taller de crochet: catálogo, pago con Stripe en modo prueba, cuentas y panel del dueño. Next.js, Supabase y TypeScript.",
+  "license": "MIT",
+  "author": "Paco López <soypacodev@gmail.com> (https://github.com/soypacodev)",
+  "homepage": "https://github.com/soypacodev/ovillo-co#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soypacodev/ovillo-co.git"
+  },
+  "bugs": {
+    "url": "https://github.com/soypacodev/ovillo-co/issues"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:vigilar": "vitest",
+    "db:semilla": "node --no-warnings scripts/generar-semilla.mjs",
+    "db:probar": "bash scripts/probar-bd.sh",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "stripe": "^23.0.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "typescript": "^5",
+    "vitest": "^5.0.3"
+  }
+}

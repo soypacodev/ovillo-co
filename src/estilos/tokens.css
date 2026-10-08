@@ -1,0 +1,70 @@
+/* ============================================================
+   Ovillo & Co. — Variables del sistema de diseño
+   Paleta azul y melocotón sobre crudo cálido. Los nombres son
+   neutros a propósito: si cambia un color, el nombre sigue siendo
+   verdad. Cambiar de paleta es tocar solo este archivo.
+   ============================================================ */
+
+:root {
+  /* superficies */
+  --fondo: #F8F6F2;
+  --sup: #EFEAE2;
+  --sup-2: #E5DED3;
+  --papel: #FFFDFA;
+
+  /* marca */
+  --azul: #28618F;
+  --azul-osc: #1C4869;
+  --pastel: #C6DCEC;
+  --pastel-cl: #E2EEF6;
+  --verde: #B8CDB0;
+  --verde-osc: #3E6B57;
+  --acento: #E39B7B;
+  --rojo: #A32D2D;
+
+  /* texto */
+  --tinta: #152C41;
+  --tinta-2: #2B506E;
+  --tinta-3: #50687F;
+  /* El tono más tenue lo usan el texto pequeño y los placeholders:
+     tiene que pasar 4,5:1 incluso sobre la superficie más oscura. */
+  --tinta-4: #59636C;
+
+  /* líneas */
+  --borde: #DED6C9;
+  --borde-f: #C9BFAE;
+
+  /* tipografía (las variables de las fuentes las pone next/font) */
+  --serif: var(--f-titulos), Georgia, serif;
+  --sans: var(--f-texto), system-ui, -apple-system, sans-serif;
+  /* Fraunces ya viene con SOFT y WONK fijados (ver src/fuentes): ese
+     redondeo es lo que la separa de una plantilla genérica. */
+
+  /* geometría */
+  --radio: 18px;
+  --radio-s: 12px;
+  --radio-xl: 26px;
+  --arco: 180px 180px 20px 20px;
+  --ancho: 1180px;
+
+  /* profundidad */
+  --sombra-s: 0 1px 2px rgba(21, 44, 65, .05);
+  --sombra: 0 1px 2px rgba(21, 44, 65, .05), 0 10px 30px -12px rgba(21, 44, 65, .16);
+  --sombra-g: 0 2px 4px rgba(21, 44, 65, .06), 0 24px 50px -20px rgba(21, 44, 65, .28);
+
+  /* ritmo */
+  --rapido: .18s;
+  --medio: .32s;
+  --lento: .6s;
+  --curva: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* A partir de 1600 px la caja central crece en lugar de dejar dos
+   franjas vacías. El texto no crece con ella: más de 75 caracteres
+   por línea se leen peor. */
+@media (min-width: 1600px) {
+  :root { --ancho: 1320px; }
+}
+@media (min-width: 2000px) {
+  :root { --ancho: 1440px; }
+}

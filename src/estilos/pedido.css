@@ -1,0 +1,18 @@
+/* ============================================================
+   Piezas de un pedido que comparten la cuenta del cliente y el
+   panel del taller: líneas, totales, dirección y miniaturas.
+   ============================================================ */
+
+.mini-foto { position: relative; display: block; width: 52px; aspect-ratio: 4 / 5; border-radius: 10px; overflow: hidden; background: var(--sup); border: 2px solid var(--papel); flex: 0 0 auto; }
+.mini-foto img { object-fit: cover; }
+.volver { display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; color: var(--tinta-3); }
+.volver:hover { color: var(--azul); }
+.codigo { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; letter-spacing: .02em; }
+.lineas-pedido { display: grid; gap: .9rem; margin-top: 1rem; }
+.lineas-pedido li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .9rem; align-items: center; }
+.lineas-pedido li > span:nth-child(2) { display: grid; gap: .1rem; }
+.linea-nom { font-weight: 500; font-size: .95rem; }
+a.linea-nom:hover { color: var(--azul); }
+.totales-pedido { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--borde); display: grid; gap: .45rem; }
+.totales-pedido dd { margin: 0; }
+.direccion { font-style: normal; font-size: .93rem; line-height: 1.6; }

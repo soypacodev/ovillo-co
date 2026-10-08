@@ -1,0 +1,193 @@
+/* ============================================================
+   Flujo de compra: cesta completa, pago y confirmación
+   ============================================================ */
+
+.compra-cab { padding: .6rem 0 2rem; }
+.compra-cab h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); }
+.compra-cab .lead { margin-top: .7rem; }
+.compra-cab-centro { text-align: center; padding: 2.4rem 0 2rem; }
+.compra-cab-centro h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+
+/* Dos columnas: contenido y resumen pegado a la derecha */
+.layout-compra { display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 2.6rem; align-items: start; padding-bottom: clamp(3rem, 6vw, 5rem); }
+.resumen-lado { position: sticky; top: 96px; display: grid; gap: 1rem; }
+.resumen-lado .caja { display: grid; gap: .6rem; }
+.resumen-lado h2 { font-size: 1.25rem; }
+.resumen-lado .cupon { margin-top: .4rem; padding-top: 1rem; border-top: 1px solid var(--borde); }
+.resumen-lado .progreso p { margin-bottom: .45rem; }
+.resumen-lado .conseguido { color: var(--verde-osc); font-weight: 500; }
+.pago-seguro { text-align: center; }
+.cab-resumen { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+
+/* ---------- Líneas de la cesta completa ---------- */
+.filas-cesta { border-top: 1px solid var(--borde); }
+.fila-art { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 1.2rem; padding: 1.4rem 0; border-bottom: 1px solid var(--borde); align-items: start; }
+.fila-foto { position: relative; display: block; border-radius: var(--radio-s); overflow: hidden; aspect-ratio: 4 / 5; background: var(--sup); }
+.fila-foto img { object-fit: cover; transition: transform var(--lento) var(--curva); }
+.fila-foto:hover img { transform: scale(1.05); }
+.fila-nom { font-size: 1.05rem; }
+.fila-nom a:hover { color: var(--azul); }
+.fila-art .listo { color: var(--verde-osc); }
+.fila-acciones { display: flex; gap: 1rem; align-items: center; margin-top: .8rem; flex-wrap: wrap; }
+.precio-col { text-align: right; display: grid; gap: .15rem; justify-items: end; }
+.acciones-cesta { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 1.6rem; }
+
+/* Sugerencias bajo la cesta: en el móvil, dos por fila */
+.sugerencias { padding: 0 0 clamp(3rem, 6vw, 5rem); }
+
+/* ---------- Selector de envío ---------- */
+.envios { border: 0; padding: 0; margin: 0; display: grid; gap: .6rem; min-width: 0; }
+.envios legend { font-size: .86rem; font-weight: 500; margin-bottom: .5rem; padding: 0; }
+.opcion-envio { align-items: center; }
+.opcion-envio .opcion-txt { flex: 1; min-width: 0; }
+.opcion-envio .precio { flex: 0 0 auto; }
+.envios-compacto .opcion { padding: .7rem .9rem; gap: .7rem; }
+.envios-compacto .opcion b { font-size: .9rem; }
+
+/* ---------- Garantías ---------- */
+.garantias { display: grid; gap: .7rem; }
+.garantias li { display: flex; gap: .7rem; align-items: center; font-size: .88rem; color: var(--tinta-3); }
+.garantias svg { flex: 0 0 22px; color: var(--azul); }
+
+/* ---------- Diálogo de confirmación ---------- */
+.dialogo { border: 0; border-radius: var(--radio); padding: 0; max-width: min(420px, calc(100vw - 32px)); background: var(--papel); color: var(--tinta); box-shadow: var(--sombra-g); }
+.dialogo-caja { padding: 1.8rem; }
+.dialogo::backdrop { background: rgba(21, 44, 65, .42); backdrop-filter: blur(2px); }
+.dialogo[open] { animation: sube .35s var(--curva) both; }
+.dialogo h2 { font-size: 1.4rem; }
+.dialogo p { margin-top: .6rem; color: var(--tinta-3); }
+.dialogo-botones { display: flex; gap: .6rem; justify-content: flex-end; flex-wrap: wrap; margin-top: 1.5rem; }
+
+/* ---------- Estados vacío y de carga ---------- */
+.compra-vacia { text-align: center; padding: 2rem 1rem 5rem; }
+.compra-vacia .lead { margin: .8rem auto 1.8rem; }
+.compra-vacia h2:focus { outline: none; }
+.botones-centro { display: flex; gap: .7rem; justify-content: center; flex-wrap: wrap; }
+.favoritos-vacia { margin-top: 4rem; padding-bottom: 0; text-align: left; }
+.plazo-cesta { margin: -1.3rem 0 2rem; }
+.tit-sugerencias { font-size: 1.5rem; }
+.compra-vacia .ovillo-vacio { margin-bottom: 1.4rem; }
+.check-acepta { margin: 1.2rem 0 0; }
+.esqueleto { display: grid; gap: 1rem; padding-bottom: 4rem; }
+.esqueleto .hueso { height: 120px; }
+
+/* ---------- Pago: pasos ---------- */
+.pasos-pago { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .35rem .9rem; font-size: .88rem; color: var(--tinta-4); margin-top: 1.1rem; }
+.pasos-pago li { display: flex; align-items: center; gap: .9rem; }
+.pasos-pago li + li::before { content: '·'; color: var(--borde-f); }
+.pasos-pago b { font-weight: 500; }
+.pasos-pago [aria-current="step"] { color: var(--azul); font-weight: 500; }
+.pasos-pago .hecho { color: var(--verde-osc); }
+.pasos-pago button { color: inherit; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
+.pasos-pago button:hover { color: var(--azul); }
+.aviso-demo { display: inline-flex; gap: .5rem; align-items: center; margin-top: 1rem; font-size: .8rem; color: var(--tinta-3); background: var(--pastel-cl); border-radius: 999px; padding: .4rem .95rem; max-width: 100%; text-align: left; }
+.aviso-demo svg { flex: 0 0 16px; width: 16px; height: 16px; stroke: var(--azul); }
+.aviso-demo b { font-weight: 500; color: var(--tinta-2); white-space: nowrap; }
+
+.paso-pago { display: grid; gap: 1.2rem; animation: sube .45s var(--curva) both; }
+.paso-pago h2 { font-size: 1.3rem; }
+.paso-pago h2:focus { outline: none; }
+.paso-pago .caja > .mini:first-of-type { margin-top: .3rem; }
+.paso-pago .caja > .campo:first-of-type, .paso-pago .caja > .par:first-of-type, .paso-pago .caja > .envios { margin-top: 1.3rem; }
+.par-cp { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); }
+.opcional { font-weight: 400; color: var(--tinta-3); font-size: .83rem; }
+.contador-letras { display: block; text-align: right; }
+.botones-paso { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: center; }
+.botones-paso .btn-1 { margin-left: auto; }
+.error-general { display: flex; gap: .75rem; align-items: flex-start; background: #F7E3E0; color: #7A2121; border-radius: var(--radio-s); padding: .9rem 1.1rem; font-size: .9rem; }
+.error-general svg { flex: 0 0 20px; margin-top: 2px; stroke: currentColor; }
+.error-general .boton-texto { color: inherit; margin-top: .3rem; }
+.caja-pago { background: var(--sup); border-radius: var(--radio-s); padding: 1.1rem 1.2rem; margin-top: 1rem; font-size: .9rem; color: var(--tinta-2); display: grid; gap: .45rem; }
+.tarjeta-prueba { font-variant-numeric: tabular-nums; letter-spacing: .06em; font-weight: 500; color: var(--tinta); white-space: nowrap; }
+
+/* Revisión antes de pagar */
+.revision { display: grid; gap: 1rem; margin-top: 1.1rem; }
+.revision > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--borde); }
+.revision > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.revision dt { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); }
+.revision dt { grid-row: 1; }
+.revision dd { margin: 0; grid-column: 1 / -1; grid-row: 2; font-size: .93rem; }
+.revision .boton-texto { grid-column: 2; grid-row: 1; align-self: center; }
+
+/* Resumen lateral del pago */
+.lineas-resumen { display: grid; gap: .9rem; margin-top: .5rem; }
+.linea-resumen { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: .8rem; align-items: center; }
+.miniatura { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 4 / 5; background: var(--sup); }
+.miniatura img { object-fit: cover; }
+.linea-resumen .nom { font-size: .9rem; font-weight: 500; line-height: 1.3; }
+.totales-resumen { display: grid; gap: .55rem; margin-top: .6rem; padding-top: 1rem; border-top: 1px solid var(--borde); }
+.boton-cargando { display: inline-flex; align-items: center; gap: .6rem; }
+
+/* ---------- Confirmación ---------- */
+.gracias-cab { position: relative; text-align: center; padding: 3.5rem 0 2rem; }
+.gracias-cab h1 { margin-top: .6rem; }
+.gracias-cab .lead { margin: 1rem auto 0; }
+.gracias-cab .aviso { max-width: 560px; margin: 1.4rem auto 0; text-align: left; }
+.gracias-cab .botones-centro { margin-top: 2rem; }
+.confeti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.layout-gracias { padding-bottom: clamp(3rem, 6vw, 5rem); }
+.ovillo-gracias { margin: 0 auto 1.4rem; }
+.columna-gracias, .lateral-gracias { display: grid; gap: 1.2rem; align-content: start; }
+.lateral-gracias { gap: 1rem; }
+.tit-favor { font-size: 1.3rem; }
+.texto-favor { margin-top: .5rem; max-width: 54ch; }
+.sep-corto { margin: 1.2rem 0; }
+.esqueleto-gracias { padding-top: 3rem; }
+.sin-pedido { padding-top: 3.5rem; }
+.sin-pedido h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.layout-gracias .caja h2 { font-size: 1.3rem; }
+.hitos { margin-top: 1.4rem; }
+.hito { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 1rem; position: relative; padding-bottom: 1.6rem; }
+.hito:last-child { padding-bottom: 0; }
+.hito::before { content: ''; position: absolute; left: 16px; top: 34px; bottom: 0; width: 2px; background: var(--borde); }
+.hito:last-child::before { display: none; }
+.bolita { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--sup); color: var(--tinta-3); font-size: .8rem; font-weight: 500; z-index: 1; }
+.hito.hecho .bolita { background: var(--verde-osc); color: #FFFFFF; }
+.hito.ahora .bolita { background: var(--azul); color: #FFFFFF; }
+.hito-tit { font-weight: 500; }
+.lineas-gracias { display: grid; gap: 1rem; margin-top: 1.2rem; }
+.lineas-gracias .linea-resumen { grid-template-columns: 60px minmax(0, 1fr) auto; gap: .9rem; }
+.datos-pedido { display: grid; gap: 1rem; }
+.datos-pedido dt { font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-4); }
+.datos-pedido dd { margin: .15rem 0 0; font-size: .93rem; }
+.numero-pedido { font-family: var(--serif); font-size: 1.6rem; margin-top: .3rem; line-height: 1.2; }
+
+/* ---------- Pantallas ---------- */
+@media (max-width: 900px) {
+  .layout-compra { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .resumen-lado { position: static; }
+}
+
+@media (max-width: 880px) {
+  /* el número de pedido, lo primero que se busca, sube en el móvil */
+  .layout-gracias > aside { order: -1; }
+}
+
+@media (max-width: 620px) {
+  .fila-art { grid-template-columns: 76px minmax(0, 1fr); gap: .5rem 1rem; }
+  .precio-col { grid-column: 2; justify-items: start; text-align: left; }
+  .par-cp { grid-template-columns: minmax(0, 1fr); }
+  .botones-paso { flex-direction: column-reverse; align-items: stretch; }
+  .botones-paso .btn { width: 100%; margin-left: 0; }
+  .acciones-cesta .btn { flex: 1 1 auto; }
+  .sugerencias .rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem .9rem; }
+  .sugerencias .tarjeta h3 { font-size: .95rem; }
+  .sugerencias .tarjeta .mini { display: none; }
+  .aviso-demo { border-radius: var(--radio-s); }
+  .aviso-demo b { white-space: normal; }
+}
+
+@media (pointer: coarse) {
+  .pasos-pago button { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confeti { display: none; }
+}
+
+@media print {
+  .confeti, .acciones-gracias, .favor-foto { display: none !important; }
+  .layout-gracias { display: block; }
+  .layout-gracias aside { margin-top: 1.2rem; }
+  .caja { box-shadow: none; break-inside: avoid; }
+}
