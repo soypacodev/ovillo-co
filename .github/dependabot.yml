@@ -7,7 +7,11 @@ updates:
       day: monday
       timezone: Europe/Madrid
     open-pull-requests-limit: 5
-    # Las menores y los parches llegan juntos en una sola PR; las mayores, una a una.
+    # Las versiones mayores se actualizan a mano: suelen traer cambios que rompen.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    # Las menores y los parches llegan juntos en una sola PR.
     groups:
       dependencias:
         update-types: [minor, patch]

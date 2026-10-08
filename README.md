@@ -19,7 +19,6 @@
 </p>
 
 <p align="center">
-  <!-- Cambia esta URL cuando la demo esté publicada en su dominio definitivo. -->
   <a href="https://ovillo-co.vercel.app"><strong>Ver la demo online</strong></a> ·
   <a href="#qué-incluye">Qué incluye</a> ·
   <a href="#seguridad">Seguridad</a> ·

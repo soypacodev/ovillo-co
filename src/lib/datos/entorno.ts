@@ -49,7 +49,12 @@ export function configuracionSupabase(): ConfiguracionSupabase | null {
   return { url: e.NEXT_PUBLIC_SUPABASE_URL, claveAnonima: e.NEXT_PUBLIC_SUPABASE_ANON_KEY };
 }
 
-/** URL pública del sitio, sin barra final. */
+/**
+ * URL pública del sitio, sin barra final. Si no está configurada, en Vercel se
+ * usa el dominio de producción del proyecto, que Vercel expone en el entorno.
+ */
 export function urlSitio(): string {
-  return (entornoPublico().NEXT_PUBLIC_SITIO_URL ?? 'http://localhost:3000').replace(/\/+$/, '');
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const url = entornoPublico().NEXT_PUBLIC_SITIO_URL ?? (vercel ? `https://${vercel}` : 'http://localhost:3000');
+  return url.replace(/\/+$/, '');
 }
