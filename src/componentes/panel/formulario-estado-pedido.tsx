@@ -18,7 +18,7 @@ interface PropsFormulario {
 }
 
 /** Cambio de estado y datos de envío. Solo ofrece los estados a los que
- *  se puede pasar desde el actual, igual que el trigger de la base de datos. */
+ *  se puede pasar desde el actual, igual que el disparador de la base de datos. */
 export function FormularioEstadoPedido({ id, estado, transportista, seguimiento, nota, conEnvio, bloqueado }: PropsFormulario) {
   const [resultado, enviar, enviando] = useActionState(cambiarEstadoPedido, PANEL_INICIAL);
   const [elegido, setElegido] = useState<EstadoPedido>(estado);

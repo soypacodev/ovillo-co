@@ -54,6 +54,7 @@ const CODIGOS_ERROR = [
 
 export type CodigoError = (typeof CODIGOS_ERROR)[number];
 
+/** Distingue un error de negocio conocido de cualquier otro mensaje de la base de datos. */
 export function esCodigoError(x: unknown): x is CodigoError {
   return typeof x === 'string' && (CODIGOS_ERROR as readonly string[]).includes(x);
 }

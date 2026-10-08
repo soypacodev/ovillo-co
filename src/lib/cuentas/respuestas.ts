@@ -10,7 +10,9 @@ export const SIN_BD = 'En esta demostración las cuentas necesitan conectar la b
 export const FALLO = 'Algo ha fallado de nuestro lado. Vuelve a intentarlo en un momento.';
 
 let intentos = 0;
+/** Estado de éxito. `intento` cambia en cada respuesta para que el aviso vuelva a recibir el foco. */
 export const ok = (mensaje: string): EstadoAccion => ({ estado: 'ok', mensaje, intento: ++intentos });
+/** Estado de error con mensajes por campo y lo escrito, para no perderlo. */
 export const error = <C extends string>(
   mensaje: string,
   errores: Partial<Record<C, string>> = {},

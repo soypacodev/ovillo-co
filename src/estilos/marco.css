@@ -82,7 +82,7 @@
 .linea .contador { margin-top: .5rem; }
 .linea-precio { text-align: right; display: grid; justify-items: end; gap: .3rem; }
 
-/* cupón dentro del cajón y de la cesta */
+/* Cupón dentro del cajón y de la cesta */
 .cupon { border: 0; padding: 0; }
 .cupon:last-of-type { border: 0; }
 .cupon summary { font-size: .88rem; color: var(--tinta-2); font-weight: 500; justify-content: flex-start; gap: .4rem; }

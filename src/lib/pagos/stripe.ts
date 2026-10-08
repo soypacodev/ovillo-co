@@ -19,6 +19,7 @@ export function stripeConfigurado(): boolean {
 
 let cliente: Stripe | undefined;
 
+/** Cliente de Stripe compartido. Lanza si la clave no es de prueba. */
 export function clienteStripe(): Stripe {
   cliente ??= new Stripe(entornoStripe().STRIPE_SECRET_KEY, {
     appInfo: { name: 'Ovillo & Co. (demo)' },
@@ -36,6 +37,11 @@ function imagenPublica(src: string | undefined, origen: string): string[] | unde
 
 const recorta = (texto: string, max: number) => (texto.length > max ? `${texto.slice(0, max - 1)}…` : texto);
 
+/**
+ * Crea la sesión de Stripe Checkout con los importes del servidor y
+ * devuelve su URL. Caduca a los 45 minutos. Si Stripe calcula otro
+ * total, la sesión se cancela y se lanza un error.
+ */
 export async function crearSesionPago(
   pedido: PedidoCalculado,
   datos: DatosSesion & { email: string },

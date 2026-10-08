@@ -104,6 +104,7 @@ export function normalizarCesta(dato: unknown): EstadoCesta {
   return { lineas, cupon: cupon ? cupon.toUpperCase() : null };
 }
 
+/** Lo que se escribe en localStorage, siempre con la versión actual. */
 export function serializarCesta(estado: EstadoCesta): CestaGuardada {
   return { v: VERSION_CESTA, lineas: estado.lineas, cupon: estado.cupon };
 }

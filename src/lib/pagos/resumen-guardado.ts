@@ -61,6 +61,7 @@ function esResumen(r: unknown): r is ResumenPedido {
   );
 }
 
+/** Resumen guardado en el navegador si es válido y corresponde a `numero`; si no, null. */
 export function leerResumenDemo(dato: unknown, numero: string): ResumenPedido | null {
   return esResumen(dato) && dato.numero === numero ? dato : null;
 }

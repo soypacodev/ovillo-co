@@ -7,6 +7,7 @@ import { CESTA_VACIA, type EstadoCesta, type OpcionesAnadir } from './tipos';
 
 export const FECHA = new Date('2026-07-01T12:00:00Z');
 
+/** Producto de la semilla por slug; lanza si no existe. */
 export function producto(slug: string): Producto {
   const p = PRODUCTOS.find((x) => x.slug === slug);
   if (!p) throw new Error(`No existe ${slug}`);

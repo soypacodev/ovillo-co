@@ -65,7 +65,7 @@ export type TipoPromocion = 'porcentaje' | 'fijo' | 'envio';
 export interface Promocion {
   nombre: string;
   tipo: TipoPromocion;
-  /** Porcentaje (0-100) o céntimos, según el tipo. */
+  /** Porcentaje (1-100) o céntimos, según el tipo. */
   valor: number;
   /** Sin código: se aplica sola. */
   codigo: string | null;

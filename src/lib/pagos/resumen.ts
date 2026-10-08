@@ -5,11 +5,13 @@ import type { DatosValidados } from './esquema';
 import type { DireccionPedido } from './metadatos';
 import type { EntregaResumen, PedidoCalculado, ResumenPedido } from './tipos';
 
+/** Dirección del formulario de pago; null si se recoge en el taller. */
 export function direccionDeDatos(d: DatosValidados): DireccionPedido | null {
   if (d.envio === 'recogida') return null;
   return { calle: d.calle, piso: d.piso, cp: d.cp, ciudad: d.ciudad, provincia: d.provincia };
 }
 
+/** «Calle Mayor 3, 2.º B, 29001 Málaga, Málaga», sin las partes vacías. */
 export function direccionEnLinea(d: DireccionPedido | null): string | null {
   if (!d) return null;
   return [d.calle, d.piso, `${d.cp} ${d.ciudad}`, d.provincia].filter((p) => p.trim()).join(', ');
@@ -49,6 +51,7 @@ export function direccionParaBaseDeDatos(nombre: string, telefono: string, d: Di
   };
 }
 
+/** Resumen de la confirmación en modo demostración, a partir del pedido ya recalculado. */
 export function resumenDemo(
   numero: string,
   datos: DatosValidados,

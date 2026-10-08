@@ -1,5 +1,5 @@
 // Estados de pedidos, encargos y mensajes: nombres para la interfaz y
-// caminos permitidos. Los caminos de los pedidos repiten los del trigger
+// caminos permitidos. Los caminos de los pedidos repiten los del disparador
 // controlar_estado_pedido(): así el panel solo ofrece cambios que la base
 // de datos va a aceptar, y la base de datos sigue siendo la que decide.
 
@@ -52,6 +52,7 @@ export const TRANSICIONES_PEDIDO: Record<EstadoPedido, readonly EstadoPedido[]> 
   reembolsado: [],
 };
 
+/** true si el cambio está permitido. Quedarse en el mismo estado siempre lo está (guardar datos de envío). */
 export function puedePasarA(desde: EstadoPedido, hasta: EstadoPedido): boolean {
   return desde === hasta || TRANSICIONES_PEDIDO[desde].includes(hasta);
 }

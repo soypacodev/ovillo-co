@@ -2,12 +2,16 @@
 --  Ovillo & Co. · Seguridad: permisos y RLS
 --
 --  La clave anónima viaja en el navegador y cualquiera puede leerla,
---  así que toda la protección vive aquí y no en el front:
+--  así que toda la protección vive aquí y no en el navegador:
 --    · catálogo publicado → lo lee todo el mundo
 --    · perfil, direcciones, favoritos y pedidos → solo su dueño
 --    · escribir catálogo y cambiar estados de pedido → solo admin
 --    · pedidos, stock y precios cobrados → solo el servidor
---      (rol de servicio) mediante las funciones de la migración 3
+--      (rol de servicio) mediante las funciones de 20261008120200_funciones.sql
+--
+--  En las políticas, auth.uid() y es_admin() van entre paréntesis como
+--  subconsulta: así PostgreSQL los evalúa una vez por consulta y no una
+--  vez por fila.
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -50,7 +54,7 @@ from anon;
 revoke all on public.perfiles, public.direcciones, public.favoritos from anon;
 
 -- Perfiles: nacen con la cuenta y nadie se cambia el rol desde la API.
--- El ascenso a admin se hace a mano desde el panel de Supabase.
+-- El rol se asigna fuera de la API, desde el editor SQL (asignar_rol()).
 revoke insert, update, delete on public.perfiles from authenticated;
 grant update (nombre, telefono, acepta_boletin) on public.perfiles to authenticated;
 
@@ -103,6 +107,8 @@ alter table public.avisos_stock          enable row level security;
 -- ------------------------------------------------------------
 -- 4. Perfiles y direcciones
 -- ------------------------------------------------------------
+-- Editar el propio perfil solo alcanza a las columnas concedidas en el
+-- apartado 2 (nombre, teléfono y boletín), nunca al rol.
 
 create policy "perfiles: el propio o admin"
   on public.perfiles for select to authenticated
@@ -147,6 +153,8 @@ create policy "productos: admin gestiona"
   on public.productos for all to authenticated
   using ((select public.es_admin())) with check ((select public.es_admin()));
 
+-- Una variante retirada (activa = false) desaparece de la tienda aunque
+-- su producto siga publicado; los pedidos antiguos la conservan copiada.
 create policy "variantes: de productos publicados"
   on public.variantes for select to anon, authenticated
   using (
@@ -225,6 +233,8 @@ create policy "líneas: de pedidos propios o admin"
       and (o.usuario_id = (select auth.uid()) or (select public.es_admin()))
   ));
 
+-- La clienta solo ve los eventos públicos de sus pedidos (el
+-- seguimiento); las notas internas del taller quedan para admin.
 create policy "eventos: de pedidos propios o admin"
   on public.eventos_pedido for select to authenticated
   using (
@@ -242,6 +252,8 @@ create policy "eventos: de pedidos propios o admin"
 -- 8. Formularios
 -- ------------------------------------------------------------
 
+-- Sin cuenta, usuario_id va vacío; con cuenta, solo puede ser la propia:
+-- nadie firma un encargo a nombre de otra persona.
 create policy "encargos: cualquiera envía"
   on public.encargos for insert to anon, authenticated
   with check (usuario_id is null or usuario_id = (select auth.uid()));
@@ -254,6 +266,8 @@ create policy "encargos: admin gestiona"
   on public.encargos for update to authenticated
   using ((select public.es_admin())) with check ((select public.es_admin()));
 
+-- Boletín y avisos: el alta va por funciones security definer y solo
+-- admin lee la lista.
 create policy "boletín: admin"
   on public.suscripciones_boletin for all to authenticated
   using ((select public.es_admin())) with check ((select public.es_admin()));

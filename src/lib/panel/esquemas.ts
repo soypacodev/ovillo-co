@@ -1,7 +1,7 @@
 // Esquemas de las acciones del panel. El navegador manda texto; aquí se
 // convierte (euros a céntimos, líneas a listas) y se valida con las mismas
-// reglas que los check de la base de datos, para que el error se vea junto
-// al campo y no como un fallo genérico al guardar.
+// reglas que las restricciones de la base de datos, para que el error se
+// vea junto al campo y no como un fallo genérico al guardar.
 
 import { z } from 'zod';
 import { listaImagenes } from '@/lib/acciones/esquemas';

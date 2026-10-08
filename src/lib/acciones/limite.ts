@@ -17,6 +17,7 @@ export interface Limitador {
 /** Más claves que esto y se purgan las caducadas, para no crecer sin fin. */
 const MAX_CLAVES = 5000;
 
+/** Ventana deslizante por clave: cuenta los envíos de los últimos `ventana` ms. */
 export function crearLimitador({ maximo, ventana }: OpcionesLimite): Limitador {
   const registros = new Map<string, number[]>();
 

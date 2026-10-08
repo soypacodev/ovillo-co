@@ -119,6 +119,7 @@ export function urlFoto(ruta: string, urlSupabase: string): string {
 
 const porPosicion = (a: { posicion: number }, b: { posicion: number }) => a.posicion - b.posicion;
 
+/** Fila de `categorias` → Categoria. Lanza si la fila no tiene la forma esperada. */
 export function aCategoria(fila: unknown, urlSupabase: string): Categoria {
   const f = filaCategoria.parse(fila);
   return {
@@ -129,6 +130,7 @@ export function aCategoria(fila: unknown, urlSupabase: string): Categoria {
   };
 }
 
+/** Fila de `productos` con sus variantes y fotos → Producto, todo ordenado por posición. */
 export function aProducto(fila: unknown, urlSupabase: string): Producto {
   const f = filaProducto.parse(fila);
   const fotos: Foto[] = [...f.fotos]
@@ -172,6 +174,7 @@ export function aProducto(fila: unknown, urlSupabase: string): Producto {
   return producto;
 }
 
+/** Fila de `promociones` (rebaja automática) → Promocion. */
 export function aPromocion(fila: unknown): Promocion {
   const f = filaPromocion.parse(fila);
   return {
@@ -185,6 +188,7 @@ export function aPromocion(fila: unknown): Promocion {
   };
 }
 
+/** Resultado de buscar_cupon() → Promocion. */
 export function aCupon(fila: unknown): Promocion {
   const f = filaCupon.parse(fila);
   return {
@@ -198,6 +202,7 @@ export function aCupon(fila: unknown): Promocion {
   };
 }
 
+/** Fila de `metodos_envio` → MetodoEnvio. */
 export function aMetodoEnvio(fila: unknown): MetodoEnvio {
   const f = filaEnvio.parse(fila);
   return { id: f.id, nombre: f.nombre, precio: f.precio, gratisDesde: f.gratis_desde, plazo: f.plazo };

@@ -63,7 +63,8 @@ test('ninguna página viola la política de seguridad de contenido', async ({ pa
     await page.goto(ruta, { waitUntil: 'load' });
     expect(await violaciones(), ruta).toEqual([]);
   }
-  // El pago valida en el navegador: es donde antes se colaba zod.
+  // El pago valida en el navegador, donde la CSP bloquea lo que compila
+  // código con new Function (como zod).
   await anadirBolso(page);
   await page.goto('/pago', { waitUntil: 'load' });
   await page.getByRole('button', { name: 'Continuar a la entrega' }).click();

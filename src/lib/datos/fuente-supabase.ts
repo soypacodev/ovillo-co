@@ -38,6 +38,7 @@ function filtroRangos(ids: NonNullable<FiltrosCatalogo['rangos']>): string {
     .join(',');
 }
 
+/** Fuente del catálogo sobre un cliente anónimo de Supabase. */
 export function crearFuenteSupabase(cliente: SupabaseClient, urlSupabase: string): FuenteCatalogo {
   const aProductos = (lista: unknown[]): Producto[] => lista.map((f) => aProducto(f, urlSupabase));
 

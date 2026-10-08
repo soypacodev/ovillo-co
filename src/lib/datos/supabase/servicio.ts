@@ -6,6 +6,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { configuracionSupabase } from '../entorno';
 import { claveServicioSupabase } from '../entorno-servidor';
 
+/** Cliente nuevo con la clave de servicio. Lanza si falta la configuración o la clave. */
 export function clienteServicio(): SupabaseClient {
   const config = configuracionSupabase();
   if (!config) throw new Error('Supabase no está configurado (falta NEXT_PUBLIC_SUPABASE_URL).');

@@ -88,6 +88,7 @@ export interface ValorFavoritos {
 const ContextoCesta = createContext<ValorCesta | null>(null);
 const ContextoFavoritos = createContext<ValorFavoritos | null>(null);
 
+/** Proveedor de la cesta y los favoritos para toda la tienda. */
 export function ProveedorCesta({ children }: { children: ReactNode }) {
   const avisar = useBrindis();
   const [abierta, setAbierta] = useState(false);
@@ -228,12 +229,14 @@ export function ProveedorCesta({ children }: { children: ReactNode }) {
   );
 }
 
+/** Cesta, totales y acciones. Lanza fuera de <ProveedorCesta>. */
 export function useCesta(): ValorCesta {
   const valor = useContext(ContextoCesta);
   if (!valor) throw new Error('useCesta necesita <ProveedorCesta>.');
   return valor;
 }
 
+/** Lista de favoritos y sus acciones. Lanza fuera de <ProveedorCesta>. */
 export function useFavoritos(): ValorFavoritos {
   const valor = useContext(ContextoFavoritos);
   if (!valor) throw new Error('useFavoritos necesita <ProveedorCesta>.');

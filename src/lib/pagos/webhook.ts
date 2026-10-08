@@ -85,6 +85,11 @@ async function procesarReembolso(cargo: Stripe.Charge, deps: DependenciasWebhook
   return { estado: 200, mensaje: cambiados ? 'Pedido marcado como reembolsado.' : 'Ningún pedido pendiente de marcar.' };
 }
 
+/**
+ * Registra el pedido de una sesión pagada (o lo reembolsa si no se puede
+ * servir) y refleja los reembolsos completos. Es idempotente: un evento
+ * repetido no crea otro pedido.
+ */
 export async function procesarEvento(evento: Stripe.Event, deps: DependenciasWebhook): Promise<RespuestaWebhook> {
   // La tienda solo trabaja en modo prueba: un evento real no es suyo.
   if (evento.livemode) return { estado: 200, mensaje: 'Evento en modo real ignorado.' };

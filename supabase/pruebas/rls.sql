@@ -96,12 +96,13 @@ grant execute on all functions in schema prueba to anon, authenticated, service_
 \set cliente_b '00000000-0000-4000-8000-00000000000b'
 \set admin     '00000000-0000-4000-8000-0000000000ad'
 
+-- Cliente A intenta darse el rol admin en los metadatos del registro.
 insert into auth.users (id, email, raw_user_meta_data) values
   (:'cliente_a', 'cliente.a@ovilloandco.example', '{"nombre": "Cliente A", "rol": "admin"}'),
   (:'cliente_b', 'cliente.b@ovilloandco.example', '{"nombre": "Cliente B"}'),
   (:'admin',     'taller@ovilloandco.example',    '{"nombre": "Taller"}');
 
--- El ascenso a admin se hace fuera de la API, como en el panel.
+-- El ascenso a admin se hace fuera de la API, como desde el editor SQL.
 update public.perfiles set rol = 'admin' where id = :'admin';
 
 -- Un borrador que nadie de fuera debe ver.

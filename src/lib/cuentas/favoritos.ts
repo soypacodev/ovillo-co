@@ -11,6 +11,7 @@ export interface FusionFavoritos {
   subir: string[];
 }
 
+/** Une los favoritos del navegador (`locales`) con los de la cuenta (`remotos`). */
 export function fusionarFavoritos(locales: unknown, remotos: unknown): FusionFavoritos {
   const cuenta = normalizarFavoritos(remotos);
   const enCuenta = new Set(cuenta);

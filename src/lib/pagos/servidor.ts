@@ -7,6 +7,7 @@ import { clienteServicio } from '@/lib/datos/supabase/servicio';
 import { calcularConCatalogo, calcularConSupabase, type EntradaCalculo } from './recalculo';
 import type { PedidoCalculado } from './tipos';
 
+/** Recalcula el pedido con el catálogo de esta instalación. */
 export async function recalcularPedido(entrada: EntradaCalculo): Promise<PedidoCalculado> {
   const config = configuracionSupabase();
   // `calcular_pedido` solo lo puede ejecutar el rol de servicio.

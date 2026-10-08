@@ -23,6 +23,7 @@ export type EntornoPublico = z.infer<typeof esquemaPublico>;
 
 let cache: EntornoPublico | undefined;
 
+/** Variables públicas validadas. Lanza con un mensaje claro si alguna no es válida. */
 export function entornoPublico(): EntornoPublico {
   if (cache) return cache;
   const resultado = esquemaPublico.safeParse({

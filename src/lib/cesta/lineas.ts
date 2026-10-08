@@ -12,10 +12,12 @@ import {
   type ResultadoAnadir,
 } from './tipos';
 
+/** Identificador estable de la línea: la misma pieza con otras iniciales es otra línea. */
 export function idLinea(slug: string, variante: string, personalizacion: string): string {
   return `${slug}|${variante}|${personalizacion}`;
 }
 
+/** Total de piezas de la cesta, para el contador de la cabecera. */
 export function unidades(lineas: readonly LineaCesta[]): number {
   return lineas.reduce((suma, l) => suma + l.uds, 0);
 }
@@ -63,6 +65,11 @@ function enteroPositivo(n: number | undefined, porDefecto: number): number {
   return Number.isFinite(n) ? Math.max(0, Math.floor(n as number)) : porDefecto;
 }
 
+/**
+ * Añade unidades de una variante. Si ya hay una línea igual, la suma ahí;
+ * si no caben todas por stock o por el tope por línea, añade las que
+ * caben y lo indica con `tipo: 'limitado'`.
+ */
 export function anadirProducto(
   estado: EstadoCesta,
   producto: ProductoCesta,
@@ -133,12 +140,14 @@ export function fijarUnidades(estado: EstadoCesta, id: string, uds: number): Est
   };
 }
 
+/** Suma o resta unidades (±1 en el contador) con los mismos límites que `fijarUnidades`. */
 export function cambiarUnidades(estado: EstadoCesta, id: string, delta: number): EstadoCesta {
   const linea = estado.lineas.find((l) => l.id === id);
   if (!linea) return estado;
   return fijarUnidades(estado, id, linea.uds + delta);
 }
 
+/** Quita una línea; si era la última, la cesta vuelve a estar vacía y sin cupón. */
 export function quitarLinea(estado: EstadoCesta, id: string): EstadoCesta {
   const lineas = estado.lineas.filter((l) => l.id !== id);
   if (lineas.length === estado.lineas.length) return estado;

@@ -55,6 +55,7 @@ export function normalizarTexto(texto: string): string {
     .trim();
 }
 
+/** Unidades hechas sumando todos los colores. */
 export function stockTotal(producto: Producto): number {
   return producto.variantes.reduce((suma, v) => suma + v.stock, 0);
 }
@@ -64,6 +65,7 @@ function listoParaEnviar(producto: Producto): boolean {
   return !producto.encargo && stockTotal(producto) > 0;
 }
 
+/** Rebajado: tiene precio anterior y es mayor que el actual. */
 export function enOferta(producto: Producto): boolean {
   return producto.antes !== null && producto.antes > producto.precio;
 }
@@ -128,6 +130,7 @@ function ordenarProductos(productos: readonly Producto[], orden: Orden = 'destac
   return [...productos].sort(COMPARADORES[orden]);
 }
 
+/** Filtra y ordena los productos según `filtros`. */
 export function aplicarFiltros(
   productos: readonly Producto[],
   filtros: FiltrosCatalogo,

@@ -44,14 +44,14 @@ b, strong { font-weight: 500; }
 main:focus-visible { outline: none; }
 ::selection { background: var(--pastel); color: var(--tinta); }
 
-/* barra de desplazamiento discreta y a tono */
+/* Barra de desplazamiento discreta y a tono */
 * { scrollbar-width: thin; scrollbar-color: var(--borde-f) transparent; }
 *::-webkit-scrollbar { width: 9px; height: 9px; }
 *::-webkit-scrollbar-thumb { background: var(--borde-f); border-radius: 99px; }
 *::-webkit-scrollbar-track { background: transparent; }
 
 /* ============================================================
-   MAQUETACIÓN
+   Maquetación
    ============================================================ */
 .wrap { max-width: var(--ancho); margin: 0 auto; padding: 0 24px; width: 100%; }
 .wrap-s { max-width: 760px; margin: 0 auto; padding: 0 24px; }
@@ -78,7 +78,7 @@ section { padding: clamp(2.6rem, 5vw, 4rem) 0; }
 .sello { position: absolute; bottom: -26px; left: -24px; z-index: 2; }
 
 /* ============================================================
-   TIPOGRAFÍA AUXILIAR
+   Tipografía auxiliar
    ============================================================ */
 .eyebrow { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: var(--tinta-3); font-weight: 500; }
 .lead { color: var(--tinta-3); font-size: 1.05rem; max-width: 52ch; }
@@ -104,7 +104,7 @@ blockquote {
 .prosa a { color: var(--azul); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 
 /* ============================================================
-   FORMULARIOS
+   Formularios
    ============================================================ */
 label { display: block; font-size: .86rem; font-weight: 500; margin-bottom: .4rem; }
 input[type=text], input[type=email], input[type=tel], input[type=number],
@@ -144,7 +144,7 @@ select {
 .check { display: flex; gap: .7rem; align-items: flex-start; font-size: .9rem; font-weight: 400; color: var(--tinta-3); cursor: pointer; margin-bottom: .7rem; }
 .check input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--azul); margin: 2px 0 0; cursor: pointer; }
 
-/* selector con aspecto de tarjeta (envío, pago) */
+/* Selector con aspecto de tarjeta (envío, pago) */
 .opcion { display: flex; gap: .9rem; align-items: flex-start; border: 1.5px solid var(--borde); background: var(--papel); border-radius: var(--radio-s); padding: 1rem 1.1rem; cursor: pointer; font-weight: 400; margin: 0; transition: border-color var(--rapido), background var(--rapido), transform var(--rapido); }
 .opcion:hover { border-color: var(--borde-f); transform: translateY(-1px); }
 .opcion input { margin: 2px 0 0; accent-color: var(--azul); width: 19px; height: 19px; flex: 0 0 19px; cursor: pointer; }
@@ -152,7 +152,7 @@ select {
 .opcion:has(input:focus-visible) { outline: 2.5px solid var(--azul); outline-offset: 3px; }
 .opcion b { font-weight: 500; display: block; }
 
-/* buscador con lupa dentro */
+/* Buscador con lupa dentro */
 .busca { position: relative; }
 .busca input { padding-left: 2.7rem; }
 .busca svg { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); stroke: var(--tinta-3); pointer-events: none; }

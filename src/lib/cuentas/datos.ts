@@ -63,6 +63,7 @@ const pedidoCompleto = resumenPedido.extend({
 });
 export type PedidoCuenta = z.infer<typeof pedidoCompleto>;
 
+/** Pedidos de la cuenta, del más reciente al más antiguo, con sus miniaturas. */
 export async function misPedidos(usuarioId: string, limite = 50): Promise<ResumenPedidoCuenta[]> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
@@ -75,6 +76,7 @@ export async function misPedidos(usuarioId: string, limite = 50): Promise<Resume
   return z.array(resumenPedido).parse(data ?? []);
 }
 
+/** Un pedido de la cuenta por su número, con líneas y seguimiento; null si no es suyo. */
 export async function miPedido(usuarioId: string, numero: string): Promise<PedidoCuenta | null> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
@@ -110,6 +112,7 @@ const filaDireccion = z.object({
   predeterminada: z.boolean(),
 });
 
+/** Direcciones de la cuenta, con la predeterminada primero. */
 export async function misDirecciones(usuarioId: string): Promise<Direccion[]> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
@@ -125,6 +128,7 @@ export async function misDirecciones(usuarioId: string): Promise<Direccion[]> {
     .map((d) => ({ ...d, etiqueta: d.etiqueta ?? '', linea2: d.linea2 ?? '', telefono: d.telefono ?? '' }));
 }
 
+/** Número de favoritos guardados en la cuenta (0 si falla la consulta). */
 export async function cuantosFavoritos(usuarioId: string): Promise<number> {
   const supabase = await clienteServidor();
   const { count } = await supabase.from('favoritos').select('producto_id', { count: 'exact', head: true }).eq('usuario_id', usuarioId);

@@ -196,6 +196,10 @@ function errorDeBaseDeDatos(error: ErrorPostgrest): Error {
   return new Error(`La base de datos no pudo calcular el pedido: ${error.message}`);
 }
 
+/**
+ * Recalcula con `calcular_pedido` en la base de datos. Los errores de
+ * negocio llegan como ErrorPedido; cualquier otro fallo, como Error.
+ */
 export async function calcularConSupabase(
   cliente: SupabaseClient,
   urlSupabase: string,

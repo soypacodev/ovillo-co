@@ -41,6 +41,7 @@ function trocear(texto: string): string[] {
   return trozos;
 }
 
+/** Metadatos de la sesión de Stripe: datos de entrega y líneas troceadas en claves `PREFIJO_LINEAS + n`. */
 export function aMetadatos(d: DatosSesion): Record<string, string> {
   const lineas = JSON.stringify(d.lineas.map((l) => [l.slug, l.variante, l.cantidad, l.personalizacion]));
   const metadatos: Record<string, string> = {

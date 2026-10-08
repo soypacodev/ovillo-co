@@ -33,7 +33,7 @@ const CLIENTES = [
 type Linea = [producto: string, variante: string, cantidad: number, personalizacion?: string];
 type Envio = MetodoEnvio['id'];
 
-//  n, días, hora, cliente, estado, envío, cupón, líneas
+// n, días atrás, hora, cliente, estado, envío, cupón, líneas
 const PEDIDOS: [number, number, number, number, EstadoPedido, Envio, string | null, Linea[]][] = [
   [1, 58, 10, 0, 'entregado', 'ordinario', null, [['pulpito-reversible', 'Gris perla', 1]]],
   [2, 55, 18, 1, 'entregado', 'ordinario', 'HOLA10', [['cojin-relieve', 'Crudo y beis', 1]]],
@@ -217,7 +217,7 @@ function generarEncargos(ahora: Date): FichaEncargo[] {
   }));
 }
 
-// n, motivo, pedido (n del pedido) , cliente, mensaje, estado, nota, horas
+// n, motivo, pedido (su n), cliente, mensaje, estado, nota, horas atrás
 const MENSAJES: [number, string, number | null, number, string, EstadoMensaje, string | null, number][] = [
   [1, 'Estado de un pedido que ya hice', 21, 4, '¡Hola! Quería saber si el gorro llegará antes del fin de semana que viene. ¡Gracias!', 'nuevo', null, 5],
   [2, 'Duda sobre un producto', null, 1, '¿La manta estrella se puede hacer en gris perla? No la veo entre los colores.', 'nuevo', null, 26],
@@ -255,6 +255,7 @@ export interface DatosDemo {
   suscriptores: number;
 }
 
+/** Pedidos, encargos y mensajes ficticios con fechas relativas a `ahora`. */
 export function generarDatosDemo(ahora: Date): DatosDemo {
   const pedidos = generarPedidos(ahora);
   return {

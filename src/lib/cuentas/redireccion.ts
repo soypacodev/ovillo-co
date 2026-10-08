@@ -4,6 +4,7 @@
 
 const BASE = 'http://interno.invalid';
 
+/** Ruta interna a la que volver, o `porDefecto` si el valor no es una ruta propia. */
 export function destinoSeguro(valor: unknown, porDefecto = '/cuenta'): string {
   if (typeof valor !== 'string' || valor === '') return porDefecto;
   // «//otra.web» y «/\otra.web» los navegadores los leen como otro dominio.

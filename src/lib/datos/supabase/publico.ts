@@ -7,6 +7,7 @@ import { configuracionSupabase } from '../entorno';
 
 let cliente: SupabaseClient | undefined;
 
+/** Cliente anónimo compartido. Lanza si Supabase no está configurado. */
 export function clientePublico(): SupabaseClient {
   if (cliente) return cliente;
   const config = configuracionSupabase();

@@ -14,6 +14,7 @@ function origenSupabase(): string | null {
   }
 }
 
+/** Cabecera CSP completa para una respuesta con ese `nonce`. */
 export function politicaSeguridad(nonce: string, desarrollo: boolean, https: boolean): string {
   const supabase = origenSupabase();
 

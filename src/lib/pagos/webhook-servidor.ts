@@ -45,7 +45,7 @@ function dependencias(): DependenciasWebhook {
       if (error) throw new Error(error.message);
     },
     async marcarReembolsado(pagoId) {
-      // El trigger de estados valida el cambio y deja constancia en el historial.
+      // El disparador de estados valida el cambio y deja constancia en el historial.
       const { data, error } = await bd()
         .from('pedidos')
         .update({ estado: 'reembolsado' })
@@ -63,6 +63,11 @@ const responder = (estado: number, mensaje: string) => Response.json({ mensaje }
 /** Los eventos de Stripe ocupan unos pocos KB; más que esto no es suyo. */
 const MAX_CUERPO_WEBHOOK = 256 * 1024;
 
+/**
+ * Punto de entrada de la ruta del webhook: limita el tamaño del cuerpo,
+ * comprueba la firma de Stripe y delega en `procesarEvento`. Un 5xx pide
+ * a Stripe que reintente.
+ */
 export async function manejarWebhook(peticion: Request): Promise<Response> {
   if (!stripeConfigurado()) return responder(503, 'Stripe no está configurado.');
 

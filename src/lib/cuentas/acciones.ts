@@ -24,6 +24,7 @@ import { MAX_DIRECCIONES, type EstadoAccion } from './tipos';
 
 type CampoDatos = 'nombre' | 'telefono' | 'boletin';
 
+/** Guarda nombre, teléfono y la suscripción al boletín de la cuenta. */
 export async function guardarDatos(_previo: EstadoAccion<CampoDatos>, formulario: FormData): Promise<EstadoAccion<CampoDatos>> {
   const perfil = await perfilActual();
   if (!perfil) return error('Tu sesión ha caducado. Vuelve a entrar.');
@@ -47,7 +48,7 @@ export async function guardarDatos(_previo: EstadoAccion<CampoDatos>, formulario
 }
 
 /** El alta va por la función pública; la baja solo la puede marcar el
- *  servidor, porque la tabla del boletín no la lee ni la cambia nadie más. */
+ *  servidor, porque RLS no deja a la clienta leer ni cambiar el boletín. */
 async function cambiarBoletin(email: string, alta: boolean): Promise<void> {
   if (alta) {
     const { error: e } = await clientePublico().rpc('suscribir_boletin', { p_email: email, p_origen: 'cuenta' });
@@ -61,6 +62,10 @@ async function cambiarBoletin(email: string, alta: boolean): Promise<void> {
   }
 }
 
+/**
+ * Borra la cuenta de una clienta tras escribir la palabra de confirmación.
+ * Necesita la clave de servicio; las cuentas admin y demo no se borran aquí.
+ */
 export async function borrarCuenta(_previo: EstadoAccion<'confirmacion'>, formulario: FormData): Promise<EstadoAccion<'confirmacion'>> {
   const perfil = await perfilActual();
   if (!perfil) return error('Tu sesión ha caducado. Vuelve a entrar.');
@@ -91,6 +96,7 @@ export async function borrarCuenta(_previo: EstadoAccion<'confirmacion'>, formul
 
 type CampoDireccion = keyof z.input<typeof esquemaDireccion>;
 
+/** Crea o edita una dirección propia, con un máximo de MAX_DIRECCIONES por cuenta. */
 export async function guardarDireccion(
   _previo: EstadoAccion<CampoDireccion>,
   formulario: FormData,
@@ -139,6 +145,7 @@ async function quitarPredeterminada(supabase: Awaited<ReturnType<typeof clienteS
   await supabase.from('direcciones').update({ predeterminada: false }).eq('usuario_id', usuarioId).eq('predeterminada', true);
 }
 
+/** Borra una dirección; si no es de quien llama, no hace nada. */
 export async function borrarDireccion(formulario: FormData): Promise<void> {
   const id = idDireccion(formulario);
   const usuario = await usuarioActual();
@@ -148,6 +155,7 @@ export async function borrarDireccion(formulario: FormData): Promise<void> {
   revalidatePath(rutas.cuentaDirecciones);
 }
 
+/** Marca una dirección propia como la predeterminada. */
 export async function predeterminarDireccion(formulario: FormData): Promise<void> {
   const id = idDireccion(formulario);
   const usuario = await usuarioActual();

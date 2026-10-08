@@ -24,6 +24,7 @@ interface DatosPagina {
   imagen?: { url: string; alt: string };
 }
 
+/** Título, descripción, canónica y Open Graph completos de una página. */
 export function metadatosPagina({ titulo, descripcion, ruta, tipo = 'website', imagen }: DatosPagina): Metadata {
   return {
     title: titulo,

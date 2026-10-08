@@ -12,6 +12,12 @@ export interface Almacen<T> {
   inicial: T;
 }
 
+/**
+ * Crea un almacén persistido en la clave `clave`. `normalizar` limpia lo
+ * que se lee (puede venir corrupto o de otra versión) y `serializar`
+ * decide qué se escribe. El escucha de `storage` solo vive mientras hay
+ * suscriptores.
+ */
 export function crearAlmacen<T>(
   clave: string,
   inicial: T,

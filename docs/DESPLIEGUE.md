@@ -80,6 +80,8 @@ npx supabase db push                             # aplica las migraciones en ord
    | 5 | `20261009120000_rol_demo.sql` | Rol de solo lectura para la demostración |
    | 6 | `20261009120100_panel.sql` | Funciones del panel, mensajes y fotos de encargos |
    | 7 | `20261010120000_panel_escritura.sql` | Guardado de productos desde el panel |
+   | 8 | `20261011120000_encargos_solo_servidor.sql` | Los encargos solo entran por el servidor |
+   | 9 | `20261012120000_demo_sin_fugas.sql` | Más datos ocultos a demo y contraseña de demo fija |
 
 > **No los juntes en una sola consulta.** La quinta añade un valor a un tipo y PostgreSQL no permite usarlo en la misma transacción en que se crea; por eso va sola.
 >
@@ -176,6 +178,8 @@ Es la que usa el botón público **Ver el panel de demostración**: cualquiera q
    ```
 
 3. Guarda ese correo y esa contraseña: serán `DEMO_PANEL_EMAIL` y `DEMO_PANEL_PASSWORD`. Solo los lee el servidor y nunca llegan al navegador.
+
+Mientras la cuenta tenga el rol `demo`, nadie puede cambiarle la contraseña ni el correo, ni siquiera desde el panel de Supabase: así quien entra con el botón no deja fuera a los demás. Para renovar la contraseña, pásala antes a `cliente` con `asignar_rol()`, cámbiala en **Authentication → Users** y vuelve a nombrarla `demo`.
 
 Para devolver a alguien a cliente normal: `select public.asignar_rol('correo', 'cliente');`. La función se niega a quitar el rol al último admin, para que la tienda nunca se quede sin dueño.
 

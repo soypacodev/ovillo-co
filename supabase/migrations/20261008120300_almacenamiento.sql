@@ -2,9 +2,9 @@
 --  Ovillo & Co. · Fotos en Supabase Storage
 --
 --  Bucket público «productos»: las fotos se sirven por URL pública
---  sin pasar por RLS, así que no hace falta política de lectura (y
---  sin ella nadie puede listar el bucket). Solo admin sube, cambia o
---  borra ficheros.
+--  sin pasar por RLS, así que la tienda no necesita política de
+--  lectura. Solo admin la tiene (para listar y gestionar el bucket);
+--  nadie más puede listarlo. Solo admin sube, cambia o borra ficheros.
 -- ============================================================
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

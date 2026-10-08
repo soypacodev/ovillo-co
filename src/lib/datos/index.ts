@@ -10,6 +10,7 @@ import { clientePublico } from './supabase/publico';
 
 let fuente: FuenteCatalogo | undefined;
 
+/** Fuente del catálogo de esta instalación; se elige una vez y se reutiliza. */
 export function catalogo(): FuenteCatalogo {
   if (fuente) return fuente;
   const config = configuracionSupabase();

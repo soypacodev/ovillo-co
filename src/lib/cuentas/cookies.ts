@@ -13,6 +13,7 @@ export function esCookieDeSesion(nombre: string): boolean {
   return COOKIE_SESION.test(nombre);
 }
 
+/** true si hay cookie de sesión no vacía. Es solo una pista: no la valida. */
 export async function haySesionProbable(): Promise<boolean> {
   if (!configuracionSupabase()) return false;
   const almacen = await cookies();

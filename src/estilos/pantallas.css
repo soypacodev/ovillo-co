@@ -13,7 +13,7 @@
   body { font-size: 17px; }
 }
 
-/* ---------- Tablets: el catálogo cabe en dos columnas cómodas ---------- */
+/* ---------- Tabletas: el catálogo cabe en dos columnas cómodas ---------- */
 @media (min-width: 621px) and (max-width: 900px) {
   .rejilla, .rejilla-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -41,10 +41,10 @@
 @media (max-width: 620px) {
   .cols-2, .cols-3, .cols-4 { grid-template-columns: minmax(0, 1fr); }
   .par { grid-template-columns: minmax(0, 1fr); }
-  /* tres cifras cortas caben en una fila incluso en móvil */
+  /* Tres cifras cortas caben en una fila incluso en móvil. */
   .cifras dd { font-size: 1.6rem; }
   .pie-web { padding-top: 2.6rem; }
-  /* la polaroid central sube un poco para no tapar el pie de la derecha */
+  /* La polaroid central sube un poco para no tapar el pie de la derecha. */
   .polaroids .p3 { top: 16%; }
 }
 
@@ -58,8 +58,9 @@
 }
 
 /* ---------- Cabecera en pantallas muy estrechas ----------
-   Con cuatro iconos, el logo y el globito no caben en 320 px. Buscar y
-   Mi cuenta están también en el menú, así que aquí se esconden. */
+   Con cuatro iconos, el logo y el globito no caben hasta 320 px. Buscar
+   y Mi cuenta están también en el menú, así que aquí se esconden, y la
+   cinta de demostración pasa a su texto corto. */
 @media (max-width: 430px) {
   .cinta-demo .largo { display: none; }
   .cinta-demo .corto { display: inline; }
@@ -110,7 +111,7 @@
   .sw { width: 52px; height: 52px; }
   .pie-web ul { gap: 0; }
   .pie-web ul a { display: inline-flex; align-items: center; min-height: 44px; }
-  /* el zoom de la foto al pasar el ratón no puede ocurrir */
+  /* El zoom de la foto al pasar el ratón no puede ocurrir. */
   .tarjeta:hover .marco img { transform: none; }
 }
 @media (pointer: coarse) and (max-width: 430px) {
@@ -123,7 +124,7 @@
   .menu-movil ul { margin-top: 1.2rem; }
 }
 @media (max-height: 420px) and (pointer: coarse) {
-  /* en apaisado la cinta roba un tercio del alto útil */
+  /* En apaisado la cinta roba un tercio del alto útil. */
   .cinta { display: none; }
   .cabecera .nav { padding: .5rem 0; }
 }

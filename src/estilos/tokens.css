@@ -6,13 +6,13 @@
    ============================================================ */
 
 :root {
-  /* superficies */
+  /* Superficies */
   --fondo: #F8F6F2;
   --sup: #EFEAE2;
   --sup-2: #E5DED3;
   --papel: #FFFDFA;
 
-  /* marca */
+  /* Marca */
   --azul: #28618F;
   --azul-osc: #1C4869;
   --pastel: #C6DCEC;
@@ -22,7 +22,7 @@
   --acento: #E39B7B;
   --rojo: #A32D2D;
 
-  /* texto */
+  /* Texto */
   --tinta: #152C41;
   --tinta-2: #2B506E;
   --tinta-3: #50687F;
@@ -30,29 +30,29 @@
      tiene que pasar 4,5:1 incluso sobre la superficie más oscura. */
   --tinta-4: #59636C;
 
-  /* líneas */
+  /* Líneas */
   --borde: #DED6C9;
   --borde-f: #C9BFAE;
 
-  /* tipografía (las variables de las fuentes las pone next/font) */
+  /* Tipografía (las variables de las fuentes las pone next/font) */
   --serif: var(--f-titulos), Georgia, serif;
   --sans: var(--f-texto), system-ui, -apple-system, sans-serif;
   /* Fraunces ya viene con SOFT y WONK fijados (ver src/fuentes): ese
      redondeo es lo que la separa de una plantilla genérica. */
 
-  /* geometría */
+  /* Geometría */
   --radio: 18px;
   --radio-s: 12px;
   --radio-xl: 26px;
   --arco: 180px 180px 20px 20px;
   --ancho: 1180px;
 
-  /* profundidad */
+  /* Profundidad */
   --sombra-s: 0 1px 2px rgba(21, 44, 65, .05);
   --sombra: 0 1px 2px rgba(21, 44, 65, .05), 0 10px 30px -12px rgba(21, 44, 65, .16);
   --sombra-g: 0 2px 4px rgba(21, 44, 65, .06), 0 24px 50px -20px rgba(21, 44, 65, .28);
 
-  /* ritmo */
+  /* Ritmo */
   --rapido: .18s;
   --medio: .32s;
   --lento: .6s;

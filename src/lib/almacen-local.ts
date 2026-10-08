@@ -5,6 +5,7 @@
 const PREFIJO = 'ovillo.';
 const memoria = new Map<string, string>();
 
+/** Lee y descodifica una clave; null si no existe o no es JSON válido. */
 export function leerLocal(clave: string): unknown {
   let texto: string | null = null;
   try {
@@ -15,6 +16,7 @@ export function leerLocal(clave: string): unknown {
   return interpretar(texto);
 }
 
+/** Guarda el valor como JSON. Si localStorage falla, queda solo en memoria. */
 export function guardarLocal(clave: string, valor: unknown): void {
   const texto = JSON.stringify(valor);
   memoria.set(clave, texto);

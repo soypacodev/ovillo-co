@@ -35,6 +35,7 @@ export function validarCupon(
   return { ok: true, codigo: c, promocion, mensaje: `Código «${c}» aplicado: ${promocion.nombre}.` };
 }
 
+/** Valida el código y, si vale, lo deja guardado en la cesta. */
 export function aplicarCupon(
   estado: EstadoCesta,
   codigo: string,

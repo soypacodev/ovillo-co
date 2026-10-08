@@ -9,7 +9,7 @@ export const texto = () => z.preprocess((v) => (typeof v === 'string' ? v : ''),
 /** Una casilla marcada llega como «on»; sin marcar, no llega. */
 export const casilla = () => z.preprocess((v) => v === 'on' || v === 'true', z.boolean());
 
-/** Mismo patrón que los check de correo de la base de datos. */
+/** Mismo patrón que las restricciones de correo de la base de datos. */
 export const PATRON_CORREO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /** Correo en minúsculas y sin espacios, con el mensaje para cuando falta. */

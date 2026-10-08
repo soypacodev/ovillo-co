@@ -2,7 +2,7 @@
 // pago llaman a la misma función y no pueden discrepar. Todo en céntimos.
 //
 // Orden: subtotal → rebaja automática por categoría → cupón sobre lo que
-// queda → envío (gratis si lo que queda supera el umbral).
+// queda → envío (gratis si lo que queda llega al umbral).
 
 import type { MetodoEnvio, Promocion } from '@/lib/catalogo/tipos';
 import { ENVIO_GRATIS_DESDE, ENVIOS, PROMOCIONES } from '@/datos/semilla';
@@ -17,10 +17,12 @@ export function promocionVigente(promocion: Promocion, fecha: Date = new Date())
   return diaMadrid(fecha) <= promocion.hasta;
 }
 
+/** Los códigos se comparan sin espacios y en mayúsculas. */
 export function normalizarCodigo(codigo: string | null | undefined): string {
   return (codigo ?? '').trim().toUpperCase();
 }
 
+/** Promoción con ese código si está vigente; no comprueba el mínimo. */
 export function buscarCupon(
   codigo: string | null | undefined,
   promociones: readonly Promocion[] = PROMOCIONES,
@@ -35,6 +37,11 @@ function porcentaje(importe: number, valor: number): number {
   return Math.round((importe * valor) / 100);
 }
 
+/**
+ * Subtotal, rebajas, cupón, envío y total de una cesta, en céntimos. Un
+ * cupón que no existe o no llega al mínimo no rompe el cálculo: se
+ * ignora y se indica en el resultado.
+ */
 export function totales(
   lineas: readonly LineaCesta[],
   cupon: string | null,

@@ -17,6 +17,7 @@ export interface Usuario {
   email: string;
 }
 
+/** Usuario de la sesión validado con Supabase Auth, o null (también sin base de datos). */
 export const usuarioActual = cache(async (): Promise<Usuario | null> => {
   if (!configuracionSupabase()) return null;
   const supabase = await clienteServidor();
@@ -27,6 +28,7 @@ export const usuarioActual = cache(async (): Promise<Usuario | null> => {
 
 const ROLES: readonly RolCuenta[] = ['cliente', 'admin', 'demo'];
 
+/** Usuario con su perfil de la tienda. Un rol desconocido cuenta como «cliente». */
 export const perfilActual = cache(async (): Promise<Perfil | null> => {
   const usuario = await usuarioActual();
   if (!usuario) return null;

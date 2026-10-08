@@ -106,11 +106,30 @@ select prueba.ok(
 -- ------------------------------------------------------------
 -- 1. Nombrar roles
 -- ------------------------------------------------------------
-insert into auth.users (id, email, raw_user_meta_data)
-values (:'demo', 'demo@ovilloandco.example', '{"nombre": "Taller de demostración"}');
+insert into auth.users (id, email, encrypted_password, raw_user_meta_data)
+values (:'demo', 'demo@ovilloandco.example', 'hash-original', '{"nombre": "Taller de demostración"}');
 
 select public.asignar_rol('DEMO@ovilloandco.example', 'demo');
 select prueba.ok((select rol from public.perfiles where id = :'demo') = 'demo', 'asignar_rol() nombra la cuenta de demostración');
+
+-- Quien entra con el botón público tiene la sesión de demo y podría
+-- pedir a Supabase Auth un cambio de contraseña o de correo.
+update auth.users
+set encrypted_password = 'hash-intruso', email = 'intruso@ejemplo.com', email_change = 'intruso@ejemplo.com'
+where id = :'demo';
+select prueba.ok(
+  (select encrypted_password = 'hash-original' and email = 'demo@ovilloandco.example' and email_change = ''
+   from auth.users where id = :'demo'),
+  'nadie cambia la contraseña ni el correo de la cuenta de demostración');
+update auth.users set encrypted_password = 'hash-nuevo' where id = :'cliente_a';
+select prueba.ok((select encrypted_password from auth.users where id = :'cliente_a') = 'hash-nuevo',
+  'una clienta sí cambia su contraseña');
+-- Para renovarla, el dueño la pasa a cliente, la cambia y la vuelve a nombrar.
+select public.asignar_rol('demo@ovilloandco.example', 'cliente');
+update auth.users set encrypted_password = 'hash-renovado' where id = :'demo';
+select public.asignar_rol('demo@ovilloandco.example', 'demo');
+select prueba.ok((select encrypted_password from auth.users where id = :'demo') = 'hash-renovado',
+  'el dueño puede renovar la contraseña de demo quitándole antes el rol');
 select prueba.falla($$select public.asignar_rol('nadie@ovilloandco.example', 'admin')$$,
   'USUARIO_NO_ENCONTRADO', 'asignar_rol() exige que la cuenta exista');
 select prueba.falla($$select public.asignar_rol('taller@ovilloandco.example', 'cliente')$$,
@@ -191,6 +210,13 @@ select prueba.ok(
   (select not public from storage.buckets where id = 'encargos'),
   'el bucket de encargos es privado');
 
+-- Nota interna y seguimiento de un pedido real: el número de Correos
+-- lleva a la localidad y la fecha de entrega.
+update public.pedidos
+set nota_admin = 'Llamar a Cliente A al 600 000 000 antes de enviar.', transportista = 'Correos',
+    numero_seguimiento = 'PK123456789ES'
+where email = 'cliente.a@ovilloandco.example';
+
 -- Datos de referencia calculados como superusuario.
 select id as pedido_real from public.pedidos where email = 'cliente.a@ovilloandco.example' \gset
 select count(*) as pedidos_totales from public.pedidos \gset
@@ -239,6 +265,9 @@ select prueba.ok(
   and (:'ficha'::jsonb -> 'telefono') = 'null'::jsonb
   and (:'ficha'::jsonb -> 'nota_cliente') = 'null'::jsonb,
   'en la ficha de un pedido real demo no ve correo, teléfono ni notas');
+select prueba.ok(
+  (:'ficha'::jsonb -> 'nota_admin') = 'null'::jsonb and (:'ficha'::jsonb -> 'numero_seguimiento') = 'null'::jsonb,
+  'ni la nota interna del taller ni el número de seguimiento');
 select prueba.ok(jsonb_array_length(:'ficha'::jsonb -> 'lineas') = 1 and jsonb_array_length(:'ficha'::jsonb -> 'eventos') >= 1,
   'pero sí las líneas y el seguimiento');
 select prueba.ok(public.panel_pedido('00000000-0000-0000-0000-000000000000') is null, 'un pedido inexistente devuelve null');
@@ -347,6 +376,10 @@ select prueba.como('authenticated', :'admin');
 select prueba.ok(
   (public.panel_pedido(:'pedido_real') ->> 'email') = 'cliente.a@ovilloandco.example',
   'admin ve el correo real en la ficha');
+select prueba.ok(
+  (public.panel_pedido(:'pedido_real') ->> 'nota_admin') like 'Llamar a Cliente A%'
+  and (public.panel_pedido(:'pedido_real') ->> 'numero_seguimiento') = 'PK123456789ES',
+  'admin ve su nota interna y el seguimiento');
 select prueba.ok((select count(*) from public.panel_pedidos(p_busqueda => 'cliente.a')) = 1, 'admin busca por correo');
 select prueba.ok(
   (select cardinality(fotos) from public.panel_encargos(p_limite => 200) where id = :'encargo_real') = 2,

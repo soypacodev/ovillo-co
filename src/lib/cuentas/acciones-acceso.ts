@@ -16,11 +16,11 @@ import { rutas } from '@/lib/rutas';
 import { esquemaEnlace, esquemaEntrar, esquemaNuevaContrasena, esquemaRecuperar, esquemaRegistro } from './esquemas';
 import { conSiguiente, destinoSeguro } from './redireccion';
 import { FALLO, SIN_BD, error, ok, validar } from './respuestas';
-import { usuarioActual } from './sesion';
+import { perfilActual } from './sesion';
 import type { EstadoAccion } from './tipos';
 
-// Frena a quien prueba contraseñas en bucle desde una misma conexión. El
-// límite de verdad lo pone también Supabase Auth en su lado.
+// Frena a quien prueba contraseñas en bucle desde una misma conexión.
+// Supabase Auth aplica además su propio límite.
 const limitador = crearLimitador({ maximo: 10, ventana: 10 * 60 * 1000 });
 
 async function demasiadosIntentos(): Promise<boolean> {
@@ -29,6 +29,7 @@ async function demasiadosIntentos(): Promise<boolean> {
 
 type CampoEntrar = 'correo' | 'contrasena';
 
+/** Entra con correo y contraseña y vuelve a `siguiente` (solo rutas internas). */
 export async function entrar(_previo: EstadoAccion<CampoEntrar>, formulario: FormData): Promise<EstadoAccion<CampoEntrar>> {
   if (!configuracionSupabase()) return error(SIN_BD);
   const v = validar<typeof esquemaEntrar, CampoEntrar>(esquemaEntrar, formulario);
@@ -53,6 +54,7 @@ export async function entrar(_previo: EstadoAccion<CampoEntrar>, formulario: For
   redirect(destinoSeguro(siguiente));
 }
 
+/** Manda un enlace mágico para entrar sin contraseña. No crea cuentas. */
 export async function enviarEnlace(_previo: EstadoAccion<'correo'>, formulario: FormData): Promise<EstadoAccion<'correo'>> {
   if (!configuracionSupabase()) return error(SIN_BD);
   const v = validar<typeof esquemaEnlace, 'correo'>(esquemaEnlace, formulario);
@@ -81,6 +83,10 @@ export async function enviarEnlace(_previo: EstadoAccion<'correo'>, formulario: 
 
 type CampoRegistro = 'nombre' | 'correo' | 'contrasena' | 'acepta' | 'boletin';
 
+/**
+ * Crea la cuenta y manda el correo de confirmación. Si el correo ya
+ * tiene cuenta, responde lo mismo que si no la tuviera.
+ */
 export async function registrarse(
   _previo: EstadoAccion<CampoRegistro>,
   formulario: FormData,
@@ -123,6 +129,7 @@ export async function registrarse(
   );
 }
 
+/** Manda el enlace para elegir una contraseña nueva, con la misma respuesta haya cuenta o no. */
 export async function recuperarContrasena(_previo: EstadoAccion<'correo'>, formulario: FormData): Promise<EstadoAccion<'correo'>> {
   if (!configuracionSupabase()) return error(SIN_BD);
   const v = validar<typeof esquemaRecuperar, 'correo'>(esquemaRecuperar, formulario);
@@ -142,6 +149,7 @@ export async function recuperarContrasena(_previo: EstadoAccion<'correo'>, formu
 
 type CampoContrasena = 'contrasena' | 'repetida';
 
+/** Cambia la contraseña de la sesión abierta (la del enlace de recuperación o la normal). */
 export async function cambiarContrasena(
   _previo: EstadoAccion<CampoContrasena>,
   formulario: FormData,
@@ -149,7 +157,11 @@ export async function cambiarContrasena(
   if (!configuracionSupabase()) return error(SIN_BD);
   const v = validar<typeof esquemaNuevaContrasena, CampoContrasena>(esquemaNuevaContrasena, formulario);
   if ('fallo' in v) return v.fallo;
-  if (!(await usuarioActual())) return error('El enlace ha caducado. Pide otro desde «He olvidado la contraseña».');
+  const perfil = await perfilActual();
+  if (!perfil) return error('El enlace ha caducado. Pide otro desde «He olvidado la contraseña».');
+  // La cuenta de demostración la comparte cualquiera que pulse el botón del
+  // panel: si alguien le cambiara la contraseña, dejaría fuera a los demás.
+  if (perfil.rol === 'demo') return error('La contraseña de la cuenta de demostración no se puede cambiar.');
 
   const supabase = await clienteServidor();
   const { error: fallo } = await supabase.auth.updateUser({ password: v.datos.contrasena });
@@ -162,6 +174,7 @@ export async function cambiarContrasena(
   return ok('Contraseña cambiada. La próxima vez entra con la nueva.');
 }
 
+/** Cierra la sesión solo en este navegador y vuelve a la portada. */
 export async function cerrarSesion(): Promise<void> {
   if (configuracionSupabase()) {
     const supabase = await clienteServidor();

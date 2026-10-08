@@ -1,5 +1,5 @@
 -- ============================================================
---  Ovillo & Co. · Lo que le faltaba al panel para escribir
+--  Ovillo & Co. · Ficha de encargo y edición de productos del panel
 --
 --  · panel_encargo(): ficha de un encargo, con la nota interna y la
 --    misma máscara que panel_encargos().

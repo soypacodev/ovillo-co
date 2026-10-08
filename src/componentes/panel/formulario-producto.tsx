@@ -1,7 +1,7 @@
 'use client';
 
 // Alta y edición de un producto con sus variantes. El servidor vuelve a
-// validarlo todo (y la base de datos, con sus check); aquí solo se ayuda:
+// validarlo todo (y la base de datos, con sus restricciones); aquí solo se ayuda:
 // porcentaje de rebaja en vivo, dirección sugerida a partir del nombre y
 // filas de variantes que se añaden sin recargar.
 

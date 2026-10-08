@@ -159,7 +159,7 @@
 }
 
 @media (max-width: 880px) {
-  /* el número de pedido, lo primero que se busca, sube en el móvil */
+  /* El número de pedido, lo primero que se busca, sube en el móvil. */
   .layout-gracias > aside { order: -1; }
 }
 

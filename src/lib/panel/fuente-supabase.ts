@@ -104,6 +104,7 @@ function aFicha(fila: unknown, urlSupabase: string): FichaProductoPanel {
   };
 }
 
+/** Fuente del panel sobre el cliente con la sesión de quien mira. */
 export function crearFuenteSupabase(bd: SupabaseClient, urlSupabase: string): FuentePanel {
   return {
     modo: 'supabase',

@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { formularioAObjeto } from '@/lib/acciones/esquemas';
 import { EXTENSION_IMAGEN, tipoDeImagen } from '@/lib/acciones/fotos';
+import { sinMetadatos } from '@/lib/acciones/metadatos-imagen';
 import { configuracionSupabase } from '@/lib/datos/entorno';
 import { credencialesDemoPanel } from '@/lib/datos/entorno-servidor';
 import { clienteServidor } from '@/lib/datos/supabase/servidor';
@@ -94,6 +95,7 @@ export async function entrarPanelDemo(): Promise<void> {
    Pedidos
    ------------------------------------------------------------------ */
 
+/** Cambia el estado y los datos de envío de un pedido, solo por los caminos permitidos. */
 export async function cambiarEstadoPedido(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaEstadoPedido.safeParse(formularioAObjeto(formulario));
   if (!r.success) return resumenErrores(r.error);
@@ -132,6 +134,7 @@ export async function cambiarEstadoPedido(_previo: ResultadoPanel, formulario: F
    Encargos y mensajes
    ------------------------------------------------------------------ */
 
+/** Cambia el estado y la nota interna de un encargo. */
 export async function cambiarEstadoEncargo(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaEstadoEncargo.safeParse(formularioAObjeto(formulario));
   if (!r.success) return resumenErrores(r.error);
@@ -149,6 +152,7 @@ export async function cambiarEstadoEncargo(_previo: ResultadoPanel, formulario: 
   return ok('Encargo guardado.');
 }
 
+/** Marca un mensaje de contacto como sin leer, respondido o archivado. */
 export async function cambiarEstadoMensaje(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaEstadoMensaje.safeParse(formularioAObjeto(formulario));
   if (!r.success) return resumenErrores(r.error);
@@ -179,6 +183,10 @@ const ERRORES_PRODUCTO: Record<string, [string, string]> = {
   variantes_sku_key: ['variantes', 'Ese SKU ya lo usa otra variante.'],
 };
 
+/**
+ * Crea o edita un producto con sus variantes en una sola transacción.
+ * Si cambia la dirección (o es nuevo), lleva a la ficha en su URL nueva.
+ */
 export async function guardarProducto(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaProducto.safeParse(leerFormularioProducto(formulario));
   if (!r.success) return resumenErrores(r.error);
@@ -205,6 +213,7 @@ export async function guardarProducto(_previo: ResultadoPanel, formulario: FormD
   return ok('Producto guardado.');
 }
 
+/** Publica u oculta un producto. La primera publicación fija `publicado_en`. */
 export async function cambiarVisibilidad(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaVisibilidad.safeParse(formularioAObjeto(formulario));
   if (!r.success) return resumenErrores(r.error);
@@ -227,6 +236,10 @@ export async function cambiarVisibilidad(_previo: ResultadoPanel, formulario: Fo
   return ok(r.data.estado === 'publicado' ? 'Ya se ve en la tienda.' : 'Oculto en la tienda.');
 }
 
+/**
+ * Sube fotos al bucket «productos» y las añade al final de la galería.
+ * Si una falla, las anteriores se quedan guardadas.
+ */
 export async function subirFotosProducto(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = await esquemaSubidaFotos.safeParseAsync(formularioAObjeto(formulario, ['fotos']));
   if (!r.success) return resumenErrores(r.error);
@@ -249,10 +262,12 @@ export async function subirFotosProducto(_previo: ResultadoPanel, formulario: Fo
     // El tipo que se guarda es el de los primeros bytes, no el que declara
     // el navegador; el esquema ya ha descartado lo que no es imagen.
     const tipo = tipoDeImagen(bytes);
-    if (!tipo) return error('Una de las fotos no es una imagen válida.');
+    // El bucket es público y sirve el original: sin GPS ni datos del móvil.
+    const limpia = tipo && sinMetadatos(bytes, tipo);
+    if (!tipo || !limpia) return error('Una de las fotos no es una imagen válida.');
     // Nombre propio y aleatorio: el del archivo puede llevar datos personales.
     const ruta = `${producto_id}/${crypto.randomUUID()}.${EXTENSION_IMAGEN[tipo]}`;
-    const subida = await supabase.storage.from('productos').upload(ruta, bytes, { contentType: tipo, upsert: false });
+    const subida = await supabase.storage.from('productos').upload(ruta, limpia, { contentType: tipo, upsert: false });
     if (subida.error) {
       console.error('No se pudo subir una foto:', subida.error.message);
       return error('No se ha podido subir una de las fotos. Las anteriores sí se han guardado.');
@@ -269,9 +284,10 @@ export async function subirFotosProducto(_previo: ResultadoPanel, formulario: Fo
   return ok(fotos.length === 1 ? 'Foto añadida.' : `${fotos.length} fotos añadidas.`);
 }
 
-/** Las rutas que empiezan por «/» o http no están en Storage (son de public/). */
+/** Las rutas que empiezan por «/» o por http no están en Storage (son de public/ o de otro dominio). */
 const enStorage = (ruta: string) => !ruta.startsWith('/') && !/^https?:\/\//.test(ruta);
 
+/** Quita una foto del producto y, si está en Storage, borra también el archivo. */
 export async function quitarFoto(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaFoto.safeParse(formularioAObjeto(formulario));
   if (!r.success) return resumenErrores(r.error);
@@ -296,6 +312,7 @@ export async function quitarFoto(_previo: ResultadoPanel, formulario: FormData):
   return ok('Foto quitada.');
 }
 
+/** Pone una foto la primera de la galería y corre las demás un puesto. */
 export async function hacerFotoPrincipal(_previo: ResultadoPanel, formulario: FormData): Promise<ResultadoPanel> {
   const r = esquemaFoto.safeParse(formularioAObjeto(formulario));
   if (!r.success) return resumenErrores(r.error);

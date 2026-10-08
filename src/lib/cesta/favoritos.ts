@@ -7,6 +7,10 @@ export function esFavorito(favoritos: readonly string[], slug: string): boolean 
   return favoritos.includes(slug);
 }
 
+/**
+ * Guarda o quita un favorito. Por encima de MAX_FAVORITOS se descartan
+ * los más antiguos.
+ */
 export function alternarFavorito(
   favoritos: readonly string[],
   slug: string,

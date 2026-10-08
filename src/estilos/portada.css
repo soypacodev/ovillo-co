@@ -30,7 +30,7 @@
 .tira-cats { padding-top: .5rem; }
 .tira-cats > li { width: 158px; }
 @media (max-width: 520px) {
-  /* que asome la tercera para que se note que la tira se desliza */
+  /* Que asome la tercera para que se note que la tira se desliza. */
   .tira-cats > li { width: 136px; }
 }
 .cat-arco { display: block; text-align: center; border-radius: 12px; }

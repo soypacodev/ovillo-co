@@ -469,7 +469,7 @@ create trigger pedidos_anotar_evento
   after insert or update of estado on public.pedidos
   for each row execute function public.anotar_evento_pedido();
 
--- Las funciones de trigger no se invocan directamente.
+-- Las funciones de los disparadores no se invocan directamente.
 revoke all on function public.crear_perfil()             from public, anon, authenticated;
 revoke all on function public.controlar_estado_pedido()  from public, anon, authenticated;
 revoke all on function public.anotar_evento_pedido()     from public, anon, authenticated;

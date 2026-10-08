@@ -34,6 +34,11 @@ const CAMPOS_PEDIDO = new Set(['lineas', 'cupon', 'totalVisto']);
 // se frena a quien lo lance en bucle desde una misma conexión.
 const limitador = crearLimitador({ maximo: 20, ventana: 10 * 60 * 1000 });
 
+/**
+ * Valida y recalcula el pedido; si el total coincide con `totalVisto`,
+ * devuelve la URL de Stripe o, en modo demostración, la confirmación
+ * con su resumen. Cualquier discrepancia vuelve como error, sin cobrar.
+ */
 export async function confirmarPedido(entrada: unknown): Promise<ResultadoConfirmar> {
   const validado = esquemaPedido.safeParse(entrada);
   if (!validado.success) {

@@ -44,6 +44,11 @@ async function guardar(datos: DatosContacto): Promise<boolean> {
   return true;
 }
 
+/**
+ * Acción del formulario de contacto: descarta robots, valida, aplica el
+ * límite de envíos y guarda el mensaje. Sin base de datos responde como
+ * enviado, con `guardado: false`.
+ */
 export async function enviarContacto(_previo: EstadoContacto, formulario: FormData): Promise<EstadoContacto> {
   const crudo = formularioAObjeto(formulario);
 

@@ -14,6 +14,7 @@ import {
   type DatosEncargo,
 } from './esquemas';
 import { EXTENSION_IMAGEN, tipoDeImagen } from './fotos';
+import { sinMetadatos } from './metadatos-imagen';
 import { esRobot } from './formulario';
 import { crearLimitador, origenPeticion } from './limite';
 import type { EstadoFormulario } from './tipos';
@@ -38,15 +39,17 @@ async function guardar(datos: DatosEncargo): Promise<boolean> {
     const bytes = new Uint8Array(await foto.arrayBuffer());
     // El tipo que vale es el de los primeros bytes, no el que dice el navegador.
     const tipo = tipoDeImagen(bytes);
-    if (!tipo) continue;
+    // Al taller le basta la foto: no necesita saber dónde ni con qué móvil se hizo.
+    const limpia = tipo && sinMetadatos(bytes, tipo);
+    if (!tipo || !limpia) continue;
     const ruta = `${id}/${i + 1}.${EXTENSION_IMAGEN[tipo]}`;
-    const { error } = await bd.storage.from('encargos').upload(ruta, bytes, { contentType: tipo, upsert: false });
+    const { error } = await bd.storage.from('encargos').upload(ruta, limpia, { contentType: tipo, upsert: false });
     if (error) {
       console.error('No se ha podido subir una foto de encargo:', error.message);
       await borrarFotos(subidas.map((f) => f.ruta));
       return false;
     }
-    subidas.push({ ruta, tipo_mime: tipo, bytes: bytes.byteLength });
+    subidas.push({ ruta, tipo_mime: tipo, bytes: limpia.byteLength });
   }
 
   const { error } = await bd.rpc('registrar_encargo', {
@@ -77,6 +80,11 @@ async function borrarFotos(rutas: string[]): Promise<void> {
   if (error) console.error('Quedan fotos de encargo sin borrar:', rutas.join(', '), error.message);
 }
 
+/**
+ * Acción del formulario de encargos: descarta robots, valida datos y
+ * fotos, aplica el límite de envíos y registra el encargo. Sin base de
+ * datos responde como enviado, con `guardado: false`.
+ */
 export async function enviarEncargo(_previo: EstadoEncargo, formulario: FormData): Promise<EstadoEncargo> {
   const crudo = formularioAObjeto(formulario, ['fotos']);
 

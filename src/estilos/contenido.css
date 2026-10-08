@@ -58,7 +58,7 @@
 .tarjeta-info p { margin-top: .5rem; }
 .tarjeta-info .ico { color: var(--azul); display: block; margin-bottom: .7rem; }
 
-/* tabla dentro de una caja sin relleno */
+/* Tabla dentro de una caja sin relleno */
 .caja-tabla { padding: 0; overflow-x: auto; }
 .caja-tabla .tabla th:first-child, .caja-tabla .tabla td:first-child { padding-left: 1.3rem; }
 .caja-tabla .tabla th:last-child, .caja-tabla .tabla td:last-child { padding-right: 1.3rem; }
@@ -87,7 +87,7 @@
 .formulario .caja > .campo:last-child { margin-bottom: 0; }
 
 
-/* zona de subida de fotos */
+/* Zona de subida de fotos */
 .subida { display: grid; justify-items: center; gap: .3rem; border: 2px dashed var(--borde-f); border-radius: var(--radio); padding: 2rem 1.2rem; text-align: center; background: var(--papel); cursor: pointer; font-weight: 400; margin: 0; color: var(--tinta); transition: border-color var(--rapido), background var(--rapido); }
 .subida svg { color: var(--azul); margin-bottom: .4rem; }
 .subida:hover, .subida.encima { border-color: var(--azul); background: var(--pastel-cl); }
@@ -101,7 +101,7 @@
 .previa button svg { box-sizing: content-box; padding: 5px; border-radius: 50%; background: rgba(21, 44, 65, .78); color: #FFFFFF; }
 .previa button:hover svg { background: var(--tinta); }
 
-/* confirmación tras enviar */
+/* Confirmación tras enviar */
 .confirmacion { text-align: center; padding: 3rem 2rem; display: grid; justify-items: center; gap: 1rem; }
 .confirmacion h2:focus { outline: none; }
 .confirmacion .lead { margin-inline: auto; }
@@ -127,7 +127,7 @@
 .guia .caja-tabla { margin: 1rem 0 1.4rem; }
 .guia code { font-size: .85em; background: var(--sup); border-radius: 4px; padding: .1rem .35rem; }
 
-/* datos inventados del titular, marcados como tales */
+/* Datos inventados del titular, marcados como tales. */
 .ficticio { background: #FAEEDA; color: #7A4A0C; padding: 0 .3rem; border-radius: 3px; }
 .aviso-ficticio { background: #FAEEDA; color: #6E430B; margin-bottom: 2.5rem; }
 .aviso-ficticio svg { stroke: #9A5F10; }

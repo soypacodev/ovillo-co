@@ -27,6 +27,7 @@ function validar<T extends z.ZodType>(esquema: T, valores: Record<string, string
   return resultado.data;
 }
 
+/** Clave de servicio de Supabase. Lanza si falta: quien la pide no puede seguir sin ella. */
 export function claveServicioSupabase(): string {
   return validar(esquemaServidor, {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -35,6 +36,7 @@ export function claveServicioSupabase(): string {
 
 export type EntornoStripe = z.infer<typeof esquemaStripe>;
 
+/** Claves de Stripe en modo prueba. Lanza si faltan o si no son de prueba. */
 export function entornoStripe(): EntornoStripe {
   return validar(esquemaStripe, {
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,

@@ -8,6 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { configuracionSupabase } from '../entorno';
 
+/** Cliente con la sesión de las cookies de esta petición. Lanza si Supabase no está configurado. */
 export async function clienteServidor(): Promise<SupabaseClient> {
   const config = configuracionSupabase();
   if (!config) throw new Error('Supabase no está configurado (faltan NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY).');

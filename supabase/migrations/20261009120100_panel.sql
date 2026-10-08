@@ -13,6 +13,8 @@
 -- ------------------------------------------------------------
 -- 1. Quién es quién
 -- ------------------------------------------------------------
+-- security definer por lo mismo que es_admin(): las políticas las
+-- consultan y leer perfiles desde ellas no debe volver a pasar por RLS.
 
 create function public.es_cuenta_demo()
 returns boolean
@@ -460,7 +462,7 @@ grant execute on function public.registrar_encargo(
 -- 9. Enmascarado
 -- ------------------------------------------------------------
 
--- «lucia.garcia@gmail.com» → «l•••@g•••.com»
+-- «lucia.garcia@ejemplo.com» → «l•••@e•••.com»
 create function public.enmascarar_email(p_email text)
 returns text
 language sql
