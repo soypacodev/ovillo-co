@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: fotosSupabase(),
   },
+  // Las tarjetas para compartir de cada pieza se generan al pedirlas y leen
+  // la foto y la tipografía del disco: se incluyen en la función aunque el
+  // análisis de dependencias no las vea.
+  outputFileTracingIncludes: {
+    '/**/opengraph-image*': ['./public/fotos/**/*.jpg', './src/fuentes/fraunces-og.woff'],
+  },
   experimental: {
     // El formulario de encargos y el panel admiten fotos (8 MB entre todas,
     // ver LIMITES_FOTOS y LIMITES_FOTOS_PRODUCTO); el resto, solo texto.

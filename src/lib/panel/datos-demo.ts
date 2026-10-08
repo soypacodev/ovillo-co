@@ -5,6 +5,7 @@
 // Con el mismo `ahora` el resultado es siempre idéntico.
 
 import { PRODUCTOS } from '@/datos/semilla';
+import { fotoVariante } from '@/lib/catalogo/precio';
 import type { MetodoEnvio } from '@/lib/catalogo/tipos';
 import type { LineaCesta } from '@/lib/cesta/tipos';
 import { totales } from '@/lib/cesta/totales';
@@ -35,31 +36,31 @@ type Envio = MetodoEnvio['id'];
 
 // n, días atrás, hora, cliente, estado, envío, cupón, líneas
 const PEDIDOS: [number, number, number, number, EstadoPedido, Envio, string | null, Linea[]][] = [
-  [1, 58, 10, 0, 'entregado', 'ordinario', null, [['pulpito-reversible', 'Gris perla', 1]]],
+  [1, 58, 10, 0, 'entregado', 'ordinario', null, [['osita-vestido-lila', 'Beis y lila', 1]]],
   [2, 55, 18, 1, 'entregado', 'ordinario', 'HOLA10', [['cojin-relieve', 'Crudo y beis', 1]]],
   [3, 52, 12, 2, 'entregado', 'express', null, [['bolso-red-mercado', 'Crudo', 2]]],
   [4, 49, 20, 3, 'reembolsado', 'ordinario', null, [['cesta-ovillos', 'Zigzag', 1]]],
-  [5, 46, 9, 4, 'entregado', 'ordinario', null, [['set-recien-nacido', 'Gris azulado', 1]]],
+  [5, 46, 9, 4, 'entregado', 'ordinario', null, [['set-recien-nacido', '0–3 meses', 1]]],
   [6, 43, 16, 5, 'entregado', 'recogida', null, [['pack-cocina', 'Salvia, coral y crema', 1]]],
-  [7, 40, 11, 6, 'cancelado', 'ordinario', null, [['gorro-pompon', 'Azul', 1]]],
-  [8, 37, 19, 7, 'entregado', 'ordinario', 'PRIMERA5', [['bolso-red-mercado', 'Rosa palo', 1], ['pulpito-reversible', 'Verde salvia', 1]]],
+  [7, 40, 11, 6, 'cancelado', 'ordinario', null, [['gorro-pompon', 'Niño (2–6 años)', 1]]],
+  [8, 37, 19, 7, 'entregado', 'ordinario', 'PRIMERA5', [['bolso-red-mercado', 'Rosa palo', 1], ['cervatillo-dormilon', 'Crudo y rosa', 1]]],
   [9, 34, 13, 0, 'entregado', 'ordinario', null, [['manta-estrella', 'Menta', 1, 'L.M.']]],
   [10, 31, 17, 8, 'entregado', 'express', null, [['cojin-relieve', 'Crudo y beis', 2]]],
   [11, 28, 10, 9, 'entregado', 'ordinario', 'ENVIOGRATIS', [['pack-cocina', 'Gris', 1]]],
-  [12, 25, 21, 10, 'entregado', 'ordinario', null, [['gorro-pompon', 'Gris perla', 1], ['bolso-red-mercado', 'Crudo', 1]]],
-  [13, 22, 12, 11, 'entregado', 'ordinario', null, [['pulpito-reversible', 'Gris perla', 2]]],
-  [14, 19, 9, 1, 'entregado', 'recogida', null, [['cesta-ovillos', 'Blanca', 2]]],
-  [15, 16, 18, 3, 'cancelado', 'ordinario', null, [['set-recien-nacido', 'Gris azulado', 1]]],
-  [16, 14, 15, 5, 'enviado', 'ordinario', 'HOLA10', [['manta-estrella', 'Rosa', 1], ['guirnalda-corazones', 'Crudo', 1]]],
+  [12, 25, 21, 10, 'entregado', 'ordinario', null, [['gorro-pompon', 'Adulto', 1], ['bolso-red-mercado', 'Crudo', 1]]],
+  [13, 22, 12, 11, 'entregado', 'ordinario', null, [['cervatillo-dormilon', 'Crudo y rosa', 2]]],
+  [14, 19, 9, 1, 'entregado', 'recogida', null, [['cesta-ovillos', 'Pareja blanca', 2]]],
+  [15, 16, 18, 3, 'cancelado', 'ordinario', null, [['set-recien-nacido', '3–6 meses', 1]]],
+  [16, 14, 15, 5, 'enviado', 'ordinario', 'HOLA10', [['manta-estrella', 'Rosa', 1], ['cervatillo-dormilon', 'Crudo y rosa', 1]]],
   [17, 12, 11, 2, 'entregado', 'express', null, [['bolso-red-mercado', 'Rosa palo', 1]]],
   [18, 10, 20, 6, 'enviado', 'ordinario', null, [['pack-cocina', 'Salvia, coral y crema', 2]]],
-  [19, 8, 10, 7, 'enviado', 'ordinario', null, [['cojin-relieve', 'Crudo y beis', 1], ['cesta-ovillos', 'Blanca', 1]]],
-  [20, 6, 13, 8, 'en_preparacion', 'ordinario', null, [['set-recien-nacido', 'Gris azulado', 1]]],
-  [21, 5, 17, 4, 'en_preparacion', 'express', 'PRIMERA5', [['gorro-pompon', 'Azul', 1]]],
+  [19, 8, 10, 7, 'enviado', 'ordinario', null, [['cojin-relieve', 'Crudo y beis', 1], ['cesta-ovillos', 'Pareja blanca', 1]]],
+  [20, 6, 13, 8, 'en_preparacion', 'ordinario', null, [['set-recien-nacido', '3–6 meses', 1]]],
+  [21, 5, 17, 4, 'en_preparacion', 'express', 'PRIMERA5', [['gorro-pompon', 'Adulto', 1]]],
   [22, 3, 9, 9, 'en_preparacion', 'ordinario', null, [['manta-estrella', 'Menta', 1, 'A.T.']]],
-  [23, 2, 19, 10, 'pagado', 'ordinario', null, [['pulpito-reversible', 'Verde salvia', 1], ['bolso-red-mercado', 'Crudo', 1]]],
+  [23, 2, 19, 10, 'pagado', 'ordinario', null, [['osita-vestido-lila', 'Beis y lila', 1], ['bolso-red-mercado', 'Crudo', 1]]],
   [24, 1, 12, 11, 'pagado', 'recogida', null, [['cesta-ovillos', 'Zigzag', 1]]],
-  [25, 0, 1, 0, 'pagado', 'ordinario', 'HOLA10', [['pack-cocina', 'Gris', 1], ['pulpito-reversible', 'Gris perla', 1]]],
+  [25, 0, 1, 0, 'pagado', 'ordinario', 'HOLA10', [['pack-cocina', 'Gris', 1], ['cervatillo-dormilon', 'Crudo y rosa', 1]]],
 ];
 
 /** Identificadores fijos con forma de UUID v4, para que las rutas del panel
@@ -80,7 +81,7 @@ function lineaCesta([slug, variante, uds, personalizacion = '']: Linea): LineaCe
     categoria: p.categoria,
     variante,
     color: v.color,
-    foto: p.fotos[0] ?? null,
+    foto: fotoVariante(p, v),
     precio: p.precio,
     encargo: p.encargo,
     dias: p.dias,
@@ -182,16 +183,16 @@ function generarPedidos(ahora: Date): FichaPedido[] {
 
 const ENCARGOS: [number, string, string, string | null, string, string, number, string | null, EstadoEncargo, string | null, number, string[]][] = [
   [1, 'Amigurumi de mascota', 'Un amigurumi de nuestro perro, un teckel marrón con una mancha blanca en el pecho. Unos 20 cm, sentado.',
-    'Para el 20 de diciembre', '25 – 50 €', 'marrón chocolate y blanco', 0, '@lucia.ejemplo', 'nuevo', null, 28, []],
-  [2, 'Manta o mantita', 'Una manta para una cuna de 60 × 120 en tonos verdes suaves, con las iniciales del bebé en una esquina.',
-    'Sin prisa', '50 – 100 €', 'verde salvia y crudo', 5, null, 'nuevo', null, 55, ['/fotos/productos/manta-estrella-1.jpg']],
+    'Para el 20 de diciembre', '25–50 €', 'marrón chocolate y blanco', 0, '@lucia.ejemplo', 'nuevo', null, 28, []],
+  [2, 'Manta o mantita', 'Una manta para el cochecito en tonos verdes suaves, con las iniciales del bebé en una esquina.',
+    'Sin prisa', '50–100 €', 'verde salvia y crudo', 5, null, 'nuevo', null, 55, ['/fotos/productos/manta-estrella-1.jpg']],
   [3, 'Pieza de bebé (gorrito, patucos, guirnalda…)', 'Guirnalda con el nombre «Martina» en letras sueltas y dos corazones a los lados, para la habitación.',
-    'Antes de febrero', '25 – 50 €', 'rosa empolvado', 3, null, 'respondido', 'Enviado presupuesto: 38 € y tres semanas.', 144,
+    'Antes de febrero', '25–50 €', 'rosa empolvado', 3, null, 'respondido', 'Enviado presupuesto: 38 € y tres semanas.', 144,
     ['/fotos/productos/guirnalda-corazones-1.jpg']],
   [4, 'Pack de regalo a medida', 'Un pack para una compañera que se jubila: cojín, paño de cocina y algo pequeño que tenga que ver con el mar.',
     '15 de noviembre', 'Más de 100 €', 'azules y crudo', 6, null, 'respondido', 'Propuestos dos packs; espera respuesta.', 264, []],
   [5, 'Amigurumi de persona', 'Una muñeca que se parezca a mi abuela: pelo blanco recogido, gafas redondas y su chaqueta de punto azul.',
-    'Para su cumpleaños, en un mes', '50 – 100 €', 'azul marino, gris y blanco', 9, '@ana.ejemplo', 'aceptado', 'Aceptado. Empezamos la semana que viene.', 432, []],
+    'Para su cumpleaños, en un mes', '50–100 €', 'azul marino, gris y blanco', 9, '@ana.ejemplo', 'aceptado', 'Aceptado. Empezamos la semana que viene.', 432, []],
   [6, 'Algo para la casa (cojín, cesta, alfombra)', 'Una alfombra redonda de trapillo de dos metros para el salón, en gris oscuro.',
     null, 'Hasta 25 €', 'gris marengo', 8, null, 'descartado', 'No llegamos con ese presupuesto; ofrecida una de 90 cm.', 648, []],
 ];
@@ -226,7 +227,7 @@ const MENSAJES: [number, string, number | null, number, string, EstadoMensaje, s
     'Le mandamos uno nuevo y nos devuelve el otro para repararlo.', 216],
   [5, 'Devolución o cambio', 4, 3, 'La cesta es más grande de lo que esperaba y no me cabe en la estantería. ¿Puedo devolverla?', 'respondido',
     'Devolución aceptada y reembolsada.', 1056],
-  [6, 'Mandaros una foto de mi pieza', null, 7, 'Os mando la foto del pulpito en la cuna: es lo primero que busca al despertarse.', 'respondido',
+  [6, 'Mandaros una foto de mi pieza', null, 7, 'Os mando la foto del cervatillo en la estantería de su cuarto: es lo primero que busca al despertarse.', 'respondido',
     'Pedido permiso para compartirla.', 504],
   [7, 'Otra cosa', null, 11, '¿Hacéis talleres para aprender ganchillo? Me gustaría apuntarme con mi hija.', 'archivado', null, 840],
 ];

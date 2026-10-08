@@ -159,7 +159,7 @@ export default async function PedidoPanel({ params }: PropsPedido) {
               )}
               <div>
                 <dt>Cuenta</dt>
-                <dd>{p.tiene_cuenta ? 'Compró con su cuenta' : 'Compró como invitado'}</dd>
+                <dd>{p.tiene_cuenta ? 'Compró con su cuenta' : 'Compró sin cuenta'}</dd>
               </div>
               <div>
                 <dt>{d ? 'Envío a' : 'Entrega'}</dt>

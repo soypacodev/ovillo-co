@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const AVISO = 'En esta demostración las cuentas necesitan conectar la base de datos.';
 
-for (const ruta of ['/entrar', '/registro', '/recuperar', '/nueva-contrasena', '/cuenta', '/cuenta/pedidos', '/cuenta/favoritos', '/cuenta/direcciones', '/cuenta/datos']) {
+for (const ruta of ['/entrar', '/registro', '/recuperar', '/nueva-contrasena', '/cuenta', '/cuenta/pedidos', '/cuenta/direcciones', '/cuenta/datos']) {
   test(`${ruta} explica que las cuentas necesitan la base de datos`, async ({ page }) => {
     const respuesta = await page.goto(ruta, { waitUntil: 'load' });
     expect(respuesta?.status()).toBe(200);
@@ -34,4 +34,20 @@ test('las páginas de cuenta no tienen fallos de accesibilidad graves', async ({
     const { violations } = await new AxeBuilder({ page }).analyze();
     expect(violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)).toEqual([]);
   }
+});
+
+test('sin base de datos, los favoritos del navegador se ven igual', async ({ page, isMobile }) => {
+  await page.goto('/tienda/osita-vestido-lila', { waitUntil: 'load' });
+  await page.getByRole('button', { name: 'Guardar en favoritos' }).click();
+  await expect(page.getByRole('button', { name: 'Guardado en favoritos' })).toBeVisible();
+  if (!isMobile) {
+    await expect(page.getByRole('link', { name: 'Tus favoritos, 1 pieza' })).toBeVisible();
+  }
+
+  // La página de la cuenta lleva a la de favoritos, que no necesita cuenta.
+  await page.goto('/cuenta/favoritos', { waitUntil: 'load' });
+  await expect(page).toHaveURL(/\/favoritos$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Tus favoritos' })).toBeVisible();
+  await expect(page.getByText('1 pieza guardada')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3, name: 'Osita con vestido lila' })).toBeVisible();
 });

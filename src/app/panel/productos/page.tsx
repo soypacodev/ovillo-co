@@ -74,8 +74,9 @@ export default async function ProductosPanel() {
                     {p.antes && <span className="antes celda-sub">{eur(p.antes)}</span>}
                   </td>
                   <td>
-                    <span className={stock === 0 && !p.encargo ? 'stock-cero' : stock <= 2 ? 'stock-uno' : undefined}>
-                      {stock === 0 ? (p.encargo ? 'Por encargo' : 'Agotado') : `${stock} uds.`}
+                    {/* Lo que se teje al pedir no tiene piezas hechas: su número es el cupo de encargos. */}
+                    <span className={p.encargo ? undefined : stock === 0 ? 'stock-cero' : stock <= 2 ? 'stock-uno' : undefined}>
+                      {p.encargo ? 'Por encargo' : stock === 0 ? 'Agotado' : `${stock} ${stock === 1 ? 'ud.' : 'uds.'}`}
                     </span>
                     <span className="puntos-variantes" aria-label={p.variantes.map((v) => `${v.nombre}: ${v.stock}`).join(', ')}>
                       {p.variantes.map((v) => (

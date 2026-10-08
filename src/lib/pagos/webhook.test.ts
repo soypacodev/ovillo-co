@@ -96,6 +96,30 @@ describe('metadatos de la sesión', () => {
     expect(deMetadatos(metadatos)?.lineas).toEqual(muchas);
   });
 
+  it('una dirección larga no se corta: se reparte y vuelve entera', () => {
+    // Las comillas se escapan en JSON y la dirección pasa de 500 caracteres.
+    const larga = {
+      calle: '"'.repeat(120),
+      piso: 'Escalera «B», puerta "4"'.padEnd(60, '"'),
+      cp: '29005',
+      ciudad: 'Ciudad con un nombre larguísimo'.padEnd(80, '\\'),
+      provincia: 'Santa Cruz de Tenerife',
+    };
+    expect(JSON.stringify(larga).length).toBeGreaterThan(500);
+    const datos = { ...DATOS, direccion: larga, nota: '🧶'.repeat(300), dedicatoria: 'Con cariño 💛' };
+    const metadatos = aMetadatos(datos);
+    expect(Object.values(metadatos).every((v) => Array.from(v).length <= 500)).toBe(true);
+    expect(metadatos.direccion).toBeUndefined();
+    expect(metadatos.direccion_0).toBeDefined();
+    expect(deMetadatos(metadatos)).toEqual(datos);
+  });
+
+  it('lee también una dirección guardada en una sola clave', () => {
+    const metadatos = aMetadatos(DATOS);
+    expect(metadatos.direccion).toBe(JSON.stringify(DATOS.direccion));
+    expect(deMetadatos(metadatos)?.direccion).toEqual(DATOS.direccion);
+  });
+
   it('ignora sesiones que no son de la tienda', () => {
     expect(deMetadatos({ referencia: 'x' })).toBeNull();
     expect(deMetadatos(null)).toBeNull();

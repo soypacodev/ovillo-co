@@ -17,7 +17,7 @@ export const TIPOS_ENCARGO = {
 
 export type TipoEncargo = keyof typeof TIPOS_ENCARGO;
 
-export const PRESUPUESTOS = ['Hasta 25 €', '25 – 50 €', '50 – 100 €', 'Más de 100 €'] as const;
+export const PRESUPUESTOS = ['Hasta 25 €', '25–50 €', '50–100 €', 'Más de 100 €'] as const;
 
 export const LIMITES_FOTOS = {
   cantidad: 4,

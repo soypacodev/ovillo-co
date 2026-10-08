@@ -2,8 +2,14 @@
 // pago llaman a la misma función y no pueden discrepar. Todo en céntimos.
 //
 // Orden: subtotal → rebaja automática por categoría → cupón sobre lo que
-// queda → envío (gratis si lo que queda llega al umbral).
+// queda → envío. El envío gratis se mide con lo que se paga por las piezas
+// después de rebajas y cupón: un código de descuento puede dejar la cesta
+// por debajo del umbral, y entonces se avisa (`cuponQuitaEnvioGratis`).
+//
+// La rebaja automática se redondea por unidad, igual que el precio final
+// que enseña la tienda (`precioVenta`) y que `calcular_pedido` en SQL.
 
+import { rebajaPorUnidad } from '@/lib/catalogo/precio';
 import type { MetodoEnvio, Promocion } from '@/lib/catalogo/tipos';
 import { ENVIO_GRATIS_DESDE, ENVIOS, PROMOCIONES } from '@/datos/semilla';
 import { diaMadrid } from '@/lib/fechas';
@@ -70,7 +76,7 @@ export function totales(
       if (p.categoria === l.categoria && (!mejor || p.valor > mejor.valor)) mejor = p;
     }
     if (!mejor) continue;
-    const rebaja = porcentaje(l.precio * l.uds, mejor.valor);
+    const rebaja = rebajaPorUnidad(l.precio, mejor.valor) * l.uds;
     if (rebaja <= 0) continue;
     rebajaPorLinea[l.id] = rebaja;
     porPromocion.set(mejor.nombre, (porPromocion.get(mejor.nombre) ?? 0) + rebaja);
@@ -104,6 +110,7 @@ export function totales(
   if (metodo.gratisDesde !== null && base >= metodo.gratisDesde) envio = 0;
 
   const conseguido = envioGratisCupon || base >= umbralEnvioGratis;
+  const cuponQuitaEnvioGratis = rebajaCupon > 0 && !conseguido && trasAuto >= umbralEnvioGratis;
   const faltaEnvioGratis = conseguido ? 0 : umbralEnvioGratis - base;
   const progresoEnvioGratis = conseguido
     ? 100
@@ -126,6 +133,7 @@ export function totales(
     envio,
     total: base + envio,
     faltaEnvioGratis,
+    cuponQuitaEnvioGratis,
     progresoEnvioGratis,
     plazoEncargo: dias.length ? Math.max(...dias) : null,
   };

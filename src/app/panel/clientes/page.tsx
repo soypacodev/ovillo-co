@@ -55,7 +55,7 @@ export default async function ClientesPanel({ searchParams }: { searchParams: Pa
                   <td className="derecha">{c.pedidos}</td>
                   <td className="derecha precio">{eur(c.gastado)}</td>
                   <td className="sin-salto">{fechaLarga(c.ultimo_pedido)}</td>
-                  <td>{c.tiene_cuenta ? 'Sí' : 'Invitado'}</td>
+                  <td>{c.tiene_cuenta ? 'Sí' : 'Sin cuenta'}</td>
                 </tr>
               ))}
             </tbody>

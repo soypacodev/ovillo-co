@@ -15,7 +15,17 @@ export const MAX_UDS_LINEA = 9;
  */
 export type ProductoCesta = Pick<
   Producto,
-  'slug' | 'nombre' | 'categoria' | 'precio' | 'encargo' | 'dias' | 'variantes' | 'personalizable'
+  | 'slug'
+  | 'nombre'
+  | 'categoria'
+  | 'precio'
+  | 'antes'
+  | 'rebaja'
+  | 'encargo'
+  | 'dias'
+  | 'variantes'
+  | 'etiquetaVariante'
+  | 'personalizable'
 > & { fotos: Foto[] };
 
 /**
@@ -99,6 +109,9 @@ export interface Totales {
   envio: number;
   total: number;
   faltaEnvioGratis: number;
+  /** El código de descuento deja la cesta por debajo del umbral del envío
+   *  gratis que sin él sí alcanzaba. */
+  cuponQuitaEnvioGratis: boolean;
   /** 0-100, para la barra de progreso. */
   progresoEnvioGratis: number;
   /** Días del encargo más largo, o null si todo está hecho. */

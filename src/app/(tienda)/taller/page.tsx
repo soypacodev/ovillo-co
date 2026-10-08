@@ -24,12 +24,12 @@ const MATERIALES = [
   {
     icono: <IcoEstrella />,
     nombre: 'Algodón peinado',
-    texto: 'Para amigurumis y accesorios. Aguanta lavados, no se deforma y tiene el punto justo de brillo.',
+    texto: 'Para amigurumis, mantas y accesorios. Aguanta lavados, no se deforma y tiene el punto justo de brillo.',
   },
   {
     icono: <IcoCorazonG />,
     nombre: 'Merino extrafina',
-    texto: 'Para mantas y gorros. No pica, ni siquiera en piel de bebé, y abriga muchísimo para lo poco que pesa.',
+    texto: 'Para gorros, capotas y patucos. No pica, ni siquiera en piel de bebé, y abriga muchísimo para lo poco que pesa.',
   },
   {
     icono: <IcoTijeras />,
@@ -44,7 +44,7 @@ const MATERIALES = [
   {
     icono: <IcoOk />,
     nombre: 'Ojos bordados',
-    texto: 'En todo lo de bebé los ojos van bordados, nunca de plástico. Cero piezas pequeñas que se puedan arrancar.',
+    texto: 'En los amigurumis y en todo lo de bebé, los ojos van bordados, nunca de plástico. Cero piezas pequeñas que se puedan arrancar.',
   },
   {
     icono: <IcoSobre />,
@@ -93,7 +93,8 @@ export default function PaginaTaller() {
           </h1>
           <p className="lead ent ent-3 mt-5">
             Ovillo &amp; Co. es un taller pequeño: una mesa grande, cestos de ovillos ordenados por color y la mejor luz
-            de la casa. Ni fábrica ni almacén. Todo lo que compras aquí lo tejemos a mano, de principio a fin, en Málaga.
+            de la casa. Ni fábrica ni almacén. Todo lo que compras aquí lo tejemos a mano, de principio a fin, en Málaga: casi todo a ganchillo y, cuando
+            la pieza lo pide (un gorro, una capota), a dos agujas.
           </p>
           <CifrasAnimadas cifras={CIFRAS_TALLER} className="ent ent-4" />
         </div>
@@ -119,14 +120,14 @@ export default function PaginaTaller() {
         <div className="dos dos-arr">
           <Aparece efecto="rev-izq" className="prosa">
             <p className="eyebrow">Cómo empezó</p>
-            <h2 className="tit-bloque">Un pulpito reversible y una lista de espera</h2>
+            <h2 className="tit-bloque">Un cervatillo dormilón y una lista de espera</h2>
             <p>
-              Ovillo &amp; Co. empezó en 2019 con un encargo pequeño: un pulpito reversible, contento por un lado y
-              enfurruñado por el otro, para un bebé que no había manera de que se durmiera. No sabemos si fue el pulpito
-              o la casualidad, pero funcionó.
+              Ovillo &amp; Co. empezó en 2019 con un encargo pequeño: un cervatillo de ganchillo con los ojos cerrados,
+              para un bebé que no había manera de que se durmiera. No sabemos si fue el cervatillo o la casualidad,
+              pero funcionó.
             </p>
             <p>
-              Luego vino otro pulpito, y una manta, y una lista de espera escrita a lápiz en la puerta de la nevera.
+              Luego vino otro cervatillo, y una manta, y una lista de espera escrita a lápiz en la puerta de la nevera.
               Cuando la lista dejó de caber en la puerta, montamos el taller.
             </p>
             <p>

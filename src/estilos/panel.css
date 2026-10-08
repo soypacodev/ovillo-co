@@ -44,6 +44,7 @@
 .franja-demo svg { flex: 0 0 18px; margin-top: 1px; color: #7A3A1C; }
 .franja-demo b { font-weight: 500; }
 .franja-demo-detalle { color: #6B3B22; }
+.franja-demo-contratar a { color: #4A2614; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
 
 .panel-cab { margin-bottom: 1.6rem; }
 .panel-cab .volver { margin-bottom: .4rem; }

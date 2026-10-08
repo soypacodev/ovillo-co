@@ -4,8 +4,9 @@
 // por debajo de 900 px es una capa a pantalla completa que se abre con el
 // botón «Filtros» y se comporta como un diálogo.
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { IcoCerrar, IcoLupa } from '@/componentes/iconos';
+import { ANCLA_BUSCAR, EVENTO_BUSCAR } from '@/componentes/marco/enlaces-cabecera';
 import { usePanelModal } from '@/componentes/use-panel-modal';
 import type { SlugCategoria } from '@/lib/catalogo/tipos';
 import { EXTRAS, RANGOS_PRECIO } from '@/lib/datos/filtros';
@@ -20,14 +21,45 @@ export interface CategoriaFiltro {
 }
 
 export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) {
-  const { filtros, aplicar, quitarTodo, texto, setTexto, total, pendiente, panelAbierto, cerrarPanel } = useFiltros();
+  const { filtros, aplicar, quitarTodo, texto, setTexto, total, pendiente, panelAbierto, abrirPanel, cerrarPanel } =
+    useFiltros();
   const panel = useRef<HTMLElement>(null);
   const cerrar = useRef<HTMLButtonElement>(null);
+  const entrada = useRef<HTMLInputElement>(null);
   const reloj = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const id = useId();
+  // Al llegar desde la lupa de la cabecera, el foco va al buscador.
+  const [paraBuscar, setParaBuscar] = useState(false);
 
-  usePanelModal(panelAbierto, cerrarPanel, panel, cerrar);
+  usePanelModal(panelAbierto, cerrarPanel, panel, paraBuscar ? entrada : cerrar);
   useEffect(() => () => clearTimeout(reloj.current), []);
+  // Al cerrar la capa se olvida: el botón «Filtros» la abre con el foco en «Cerrar».
+  const [abiertoVisto, setAbiertoVisto] = useState(panelAbierto);
+  if (abiertoVisto !== panelAbierto) {
+    setAbiertoVisto(panelAbierto);
+    if (!panelAbierto) setParaBuscar(false);
+  }
+
+  // La lupa de la cabecera lleva a /tienda#buscar o, si ya estamos aquí,
+  // avisa con un evento. En móvil el buscador vive dentro de la capa de
+  // filtros, así que se abre; en escritorio basta con enfocarlo.
+  useEffect(() => {
+    const enfocar = () => {
+      if (window.location.hash === `#${ANCLA_BUSCAR}`) {
+        window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+      }
+      if (window.matchMedia('(max-width: 900px)').matches) {
+        setParaBuscar(true);
+        abrirPanel();
+      } else {
+        entrada.current?.focus();
+        entrada.current?.scrollIntoView({ block: 'center' });
+      }
+    };
+    if (window.location.hash === `#${ANCLA_BUSCAR}`) enfocar();
+    window.addEventListener(EVENTO_BUSCAR, enfocar);
+    return () => window.removeEventListener(EVENTO_BUSCAR, enfocar);
+  }, [abrirPanel]);
 
   const buscar = (valor: string) => {
     setTexto(valor);
@@ -64,6 +96,7 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
         <div className="busca">
           <IcoLupa width={17} height={17} />
           <input
+            ref={entrada}
             id={`${id}-buscar`}
             type="search"
             value={texto}
@@ -76,7 +109,7 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
                 aplicar((f) => ({ ...f, busqueda: texto.trim() }));
               }
             }}
-            placeholder="manta, pulpito, cesta…"
+            placeholder="manta, osita, cesta…"
             autoComplete="off"
             enterKeyHint="search"
             maxLength={80}

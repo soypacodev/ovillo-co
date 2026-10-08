@@ -74,7 +74,8 @@ export async function borrarCuenta(_previo: EstadoAccion<'confirmacion'>, formul
   if (perfil.rol !== 'cliente') {
     return error('Las cuentas del taller y la de demostración no se borran desde aquí.');
   }
-  if (!hayClaveServicio()) return error('Borrar cuentas necesita la clave de servicio de Supabase en el servidor.');
+  // Sin la clave de servicio no se puede borrar un usuario de Auth.
+  if (!hayClaveServicio()) return error('Ahora mismo no podemos borrar la cuenta desde aquí. Escríbenos y la borramos nosotros.');
 
   // Borrar el usuario de Auth arrastra perfil, direcciones y favoritos
   // (on delete cascade). Los pedidos se quedan, sin la cuenta, porque son
@@ -125,15 +126,22 @@ export async function guardarDireccion(
     if ((count ?? 0) >= MAX_DIRECCIONES) return error(`Puedes guardar hasta ${MAX_DIRECCIONES} direcciones. Borra alguna que ya no uses.`);
   }
 
-  // El índice único solo admite una predeterminada: primero se quita la anterior.
-  if (predeterminada) await quitarPredeterminada(supabase, usuario.id);
+  // Quitar la marca es una sola escritura; ponerla la hace después la
+  // base de datos en un solo paso, junto con quitársela a la anterior.
   const consulta = id
-    ? supabase.from('direcciones').update({ ...fila, predeterminada }).eq('id', id).eq('usuario_id', usuario.id)
-    : supabase.from('direcciones').insert({ ...fila, predeterminada, usuario_id: usuario.id });
-  const { error: fallo } = await consulta;
-  if (fallo) {
-    console.error('No se pudo guardar la dirección:', fallo.code, fallo.message);
+    ? supabase.from('direcciones').update(predeterminada ? fila : { ...fila, predeterminada: false }).eq('id', id).eq('usuario_id', usuario.id).select('id').single()
+    : supabase.from('direcciones').insert({ ...fila, usuario_id: usuario.id }).select('id').single();
+  const { data: guardada, error: fallo } = await consulta;
+  if (fallo || !guardada) {
+    console.error('No se pudo guardar la dirección:', fallo?.code, fallo?.message);
     return error(FALLO);
+  }
+  if (predeterminada) {
+    const { error: falloPredeterminada } = await marcarPredeterminada(supabase, String(guardada.id));
+    if (falloPredeterminada) {
+      console.error('No se pudo marcar la dirección como predeterminada:', falloPredeterminada.message);
+      return error('La dirección está guardada, pero no hemos podido hacerla la predeterminada. Prueba de nuevo.');
+    }
   }
   revalidatePath(rutas.cuentaDirecciones);
   redirect(`${rutas.cuentaDirecciones}?guardada=1`);
@@ -141,8 +149,10 @@ export async function guardarDireccion(
 
 const idDireccion = (formulario: FormData) => z.uuid().safeParse(formulario.get('id'));
 
-async function quitarPredeterminada(supabase: Awaited<ReturnType<typeof clienteServidor>>, usuarioId: string) {
-  await supabase.from('direcciones').update({ predeterminada: false }).eq('usuario_id', usuarioId).eq('predeterminada', true);
+/** Quita la anterior y marca esta en una sola transacción (función SQL):
+ *  la cuenta nunca se queda sin predeterminada a medias. */
+function marcarPredeterminada(supabase: Awaited<ReturnType<typeof clienteServidor>>, id: string) {
+  return supabase.rpc('marcar_direccion_predeterminada', { p_id: id });
 }
 
 /** Borra una dirección; si no es de quien llama, no hace nada. */
@@ -160,16 +170,9 @@ export async function predeterminarDireccion(formulario: FormData): Promise<void
   const id = idDireccion(formulario);
   const usuario = await usuarioActual();
   if (!id.success || !usuario) return;
-  const supabase = await clienteServidor();
-  // Si la dirección no es suya o ya no existe, no se toca la que había.
-  const { count } = await supabase
-    .from('direcciones')
-    .select('id', { count: 'exact', head: true })
-    .eq('id', id.data)
-    .eq('usuario_id', usuario.id);
-  if (!count) return;
-  await quitarPredeterminada(supabase, usuario.id);
-  await supabase.from('direcciones').update({ predeterminada: true }).eq('id', id.data).eq('usuario_id', usuario.id);
+  // Si la dirección no es suya o ya no existe, la función no toca nada.
+  const { error: fallo } = await marcarPredeterminada(await clienteServidor(), id.data);
+  if (fallo) console.error('No se pudo marcar la dirección como predeterminada:', fallo.message);
   revalidatePath(rutas.cuentaDirecciones);
 }
 

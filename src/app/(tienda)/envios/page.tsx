@@ -107,7 +107,8 @@ export default async function PaginaEnvios() {
             <IcoOk />
             <p>
               <b>Envío gratis a partir de {eur(umbral)}</b> con {conUmbral.nombre.toLowerCase()}. Se aplica solo en la
-              cesta, sin código, y cuenta el importe después de descuentos.
+              cesta, sin código, y cuenta lo que pagas por las piezas después de rebajas y códigos: si un código de
+              descuento te deja por debajo, la cesta te avisa de cuánto falta.
             </p>
           </div>
         )}

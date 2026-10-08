@@ -196,7 +196,8 @@ export default function PaginaCuidados() {
             <p>
               Y algo importante que no tiene que ver con el lavado: por muy bonita que sea la manta,{' '}
               <b>no dejes nada suelto en la cuna de un bebé menor de un año mientras duerme</b>. Nuestras mantas son para
-              el cochecito, el sofá, las fotos y para arropar mientras estáis despiertos. Si tienes dudas, consulta las{' '}
+              el cochecito, el sofá, las fotos y para arropar mientras estáis despiertos, y las guirnaldas van en la pared o
+              en la estantería, fuera de su alcance. Si tienes dudas, consulta las{' '}
               <Link href={rutas.contacto}>preguntas frecuentes</Link> o escríbenos.
             </p>
 

@@ -14,6 +14,7 @@ describe('mapeo de filas de Supabase', () => {
         tipo: p.tipo,
         precio: p.precio,
         antes: p.antes,
+        variante_etiqueta: p.etiquetaVariante,
         destacado: p.destacado,
         novedad: p.novedad,
         encargo: p.encargo,
@@ -32,11 +33,34 @@ describe('mapeo de filas de Supabase', () => {
         contenido: p.contenido ?? null,
         posicion: 0,
         categoria: { slug: p.categoria },
-        variantes: p.variantes.map((v, i) => ({ ...v, posicion: i })).reverse(),
+        variantes: p.variantes
+          .map(({ foto, ...v }, i) => ({ ...v, foto_ruta: foto?.src ?? null, posicion: i }))
+          .reverse(),
         fotos: p.fotos.map((f, i) => ({ ruta: f.src, alt: f.alt, posicion: i })).reverse(),
       };
       expect(aProducto(fila, URL_SUPABASE)).toEqual(p);
     }
+  });
+
+  it('una variante con una foto que no está en la galería la describe con su nombre', () => {
+    const [p] = PRODUCTOS;
+    const fila = {
+      ...Object.fromEntries(Object.entries(p).filter(([k]) => !['variantes', 'fotos', 'personalizable', 'etiquetaVariante', 'categoria'].includes(k))),
+      variante_etiqueta: 'Talla',
+      personalizacion_etiqueta: null,
+      personalizacion_ejemplo: null,
+      personalizacion_max: null,
+      personalizacion_pista: null,
+      contenido: null,
+      posicion: 0,
+      categoria: { slug: p.categoria },
+      variantes: [{ nombre: 'Única', color: '#FFFFFF', stock: 1, foto_ruta: 'nueva/1.webp', posicion: 0 }],
+      fotos: [],
+    };
+    expect(aProducto(fila, URL_SUPABASE).variantes[0].foto).toEqual({
+      src: `${URL_SUPABASE}/storage/v1/object/public/productos/nueva/1.webp`,
+      alt: `${p.nombre}, Única`,
+    });
   });
 
   it('categorías, promociones y envíos', () => {

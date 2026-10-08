@@ -116,9 +116,25 @@ values ((select id from public.productos where slug = 'borrador-secreto'), 'Úni
 -- 0. Semilla y esquema
 -- ------------------------------------------------------------
 select prueba.ok((select count(*) from public.categorias) = 5, 'la semilla trae 5 categorías');
-select prueba.ok((select count(*) from public.productos where estado = 'publicado') = 10, 'la semilla trae 10 productos publicados');
+select prueba.ok((select count(*) from public.productos where estado = 'publicado') = 11, 'la semilla trae 11 productos publicados');
 select prueba.ok((select count(*) from public.variantes v join public.productos p on p.id = v.producto_id
-                  where p.estado = 'publicado') = 18, 'la semilla trae 18 variantes');
+                  where p.estado = 'publicado') = 17, 'la semilla trae 17 variantes');
+select prueba.ok(
+  not exists (select 1 from public.variantes v join public.productos p on p.id = v.producto_id
+              where p.estado = 'publicado' and v.foto_ruta is null),
+  'cada variante de la semilla tiene su foto'
+);
+select prueba.ok(
+  not exists (select 1 from public.variantes v
+              where v.foto_ruta is not null
+                and not exists (select 1 from public.fotos_producto f
+                                where f.producto_id = v.producto_id and f.ruta = v.foto_ruta)),
+  'la foto de cada variante es una de la galería de su producto'
+);
+select prueba.ok(
+  (select variante_etiqueta from public.productos where slug = 'set-recien-nacido') = 'Talla',
+  'el set recién nacido se elige por talla'
+);
 select prueba.ok((select count(*) from public.fotos_producto) = 18, 'la semilla trae 18 fotos');
 select prueba.ok((select count(*) from public.promociones) = 4, 'la semilla trae 4 promociones');
 select prueba.ok((select count(*) from public.metodos_envio) = 3, 'la semilla trae 3 métodos de envío');
@@ -191,19 +207,29 @@ select prueba.ok(
 select prueba.ok(
   (public.calcular_pedido('[{"producto":"manta-estrella","variante":"Menta","cantidad":1},
                             {"producto":"cojin-relieve","variante":"Crudo y beis","cantidad":1},
-                            {"producto":"cesta-ovillos","variante":"Blanca","cantidad":1}]', ' hola10 ')
+                            {"producto":"cesta-ovillos","variante":"Pareja blanca","cantidad":1}]', ' hola10 ')
    ->> 'descuento_cupon')::int = 1280,
   'cupón HOLA10 sin distinguir mayúsculas: −10 % sobre 128,00 €'
 );
 select prueba.ok(
-  (public.calcular_pedido('[{"producto":"pulpito-reversible","variante":"Gris perla","cantidad":1,"precio":1}]')
-   -> 'lineas' -> 0 ->> 'precio_unitario')::int = 1800,
+  (public.calcular_pedido('[{"producto":"osita-vestido-lila","variante":"Beis y lila","cantidad":1,"precio":1}]')
+   -> 'lineas' -> 0 ->> 'precio_unitario')::int = 2900,
   'un precio enviado desde fuera se ignora'
 );
 select prueba.ok(
-  public.calcular_pedido('[{"producto":"pulpito-reversible","variante":"Gris perla","cantidad":1}]', 'PRIMERA5')
+  public.calcular_pedido('[{"producto":"bolso-red-mercado","variante":"Crudo","cantidad":1}]', 'PRIMERA5')
   ->> 'aviso_cupon' = 'MINIMO_NO_ALCANZADO',
-  'un cupón sin el mínimo (PRIMERA5 con 18 €) se ignora y se avisa'
+  'un cupón sin el mínimo (PRIMERA5 con 18,70 € tras la rebaja) se ignora y se avisa'
+);
+select prueba.ok(
+  (public.calcular_pedido('[{"producto":"bolso-red-mercado","variante":"Crudo","cantidad":3}]') -> 'lineas' -> 0 ->> 'total')::int
+    = 3 * 1870,
+  'la rebaja automática va por unidad: tres bolsos cuestan tres veces el precio de la ficha (18,70 €)'
+);
+select prueba.ok(
+  (public.calcular_pedido('[{"producto":"bolso-red-mercado","variante":"Rosa palo","cantidad":1}]') -> 'lineas' -> 0 ->> 'foto_ruta')
+    = '/fotos/productos/bolso-red-mercado-2.jpg',
+  'la línea lleva la foto de su variante'
 );
 select prueba.ok(
   (public.calcular_pedido('[{"producto":"cojin-relieve","variante":"Crudo y beis","cantidad":1}]', 'ENVIOGRATIS')
@@ -215,15 +241,15 @@ select prueba.falla(
   'PRODUCTO_NO_DISPONIBLE', 'no se puede comprar un borrador'
 );
 select prueba.falla(
-  $$select public.calcular_pedido('[{"producto":"pulpito-reversible","variante":"Azul niebla","cantidad":1}]')$$,
+  $$select public.calcular_pedido('[{"producto":"scrunchies-degradado","variante":"Degradado rojo","cantidad":1}]')$$,
   'SIN_STOCK', 'no se puede comprar una variante agotada'
 );
 select prueba.falla(
-  $$select public.calcular_pedido('[{"producto":"pulpito-reversible","variante":"Gris perla","cantidad":1.5}]')$$,
+  $$select public.calcular_pedido('[{"producto":"osita-vestido-lila","variante":"Beis y lila","cantidad":1.5}]')$$,
   'CANTIDAD_NO_VALIDA', 'las cantidades decimales no valen'
 );
 select prueba.falla(
-  $$select public.calcular_pedido('[{"producto":"pulpito-reversible","variante":"Gris perla","cantidad":1,"personalizacion":"A. M."}]')$$,
+  $$select public.calcular_pedido('[{"producto":"osita-vestido-lila","variante":"Beis y lila","cantidad":1,"personalizacion":"A. M."}]')$$,
   'PERSONALIZACION_NO_ADMITIDA', 'no se personaliza lo que no lo admite'
 );
 select prueba.falla(
@@ -258,14 +284,14 @@ select prueba.ok(
   'los dos eventos de Stripe quedan anotados'
 );
 
--- Pedido de B: dos pulpitos y la manta rosa con iniciales, con HOLA10.
+-- Pedido de B: dos cervatillos y la manta rosa con iniciales, con HOLA10.
 select (public.calcular_pedido(
-  '[{"producto":"pulpito-reversible","variante":"Gris perla","cantidad":2},
+  '[{"producto":"cervatillo-dormilon","variante":"Crudo y rosa","cantidad":2},
     {"producto":"manta-estrella","variante":"Rosa","cantidad":1,"personalizacion":"B.B."}]', 'HOLA10'
 ) ->> 'total')::int as total_b \gset
 select public.registrar_pedido_pagado(
   'evt_b1', 'cs_test_b', 'pi_test_b', :total_b, 'cliente.b@ovilloandco.example',
-  '[{"producto":"pulpito-reversible","variante":"Gris perla","cantidad":2},
+  '[{"producto":"cervatillo-dormilon","variante":"Crudo y rosa","cantidad":2},
     {"producto":"manta-estrella","variante":"Rosa","cantidad":1,"personalizacion":"B.B."}]',
   'HOLA10', 'ordinario', :'cliente_b'
 ) as pedido_b \gset
@@ -307,9 +333,9 @@ select prueba.ok(
 -- ------------------------------------------------------------
 select prueba.como('anon');
 
-select prueba.ok((select count(*) from public.productos) = 10, 'anon lee el catálogo publicado');
+select prueba.ok((select count(*) from public.productos) = 11, 'anon lee el catálogo publicado');
 select prueba.ok((select count(*) from public.categorias) = 5, 'anon lee las categorías');
-select prueba.ok((select count(*) from public.variantes) = 18, 'anon lee las variantes y su stock');
+select prueba.ok((select count(*) from public.variantes) = 17, 'anon lee las variantes y su stock');
 select prueba.ok((select count(*) from public.fotos_producto) = 18, 'anon lee las fotos');
 select prueba.ok((select count(*) from public.metodos_envio) = 3, 'anon lee los métodos de envío');
 select prueba.ok(not exists (select 1 from public.productos where slug = 'borrador-secreto'), 'anon no ve borradores');
@@ -342,7 +368,7 @@ select public.suscribir_boletin('hola@ovilloandco.example', 'portada');
 select public.suscribir_boletin('HOLA@ovilloandco.example ', 'pie');
 select prueba.ok(true, 'anon se apunta al boletín y repetir no delata que ya estaba');
 select prueba.falla($$select public.suscribir_boletin('no-es-un-correo')$$, 'EMAIL_NO_VALIDO', 'el boletín valida el correo');
-select public.pedir_aviso_stock('pulpito-reversible', 'Azul niebla', 'aviso@ovilloandco.example');
+select public.pedir_aviso_stock('scrunchies-degradado', 'Degradado rojo', 'aviso@ovilloandco.example');
 select prueba.ok(true, 'anon pide aviso de reposición');
 
 select prueba.falla(
@@ -427,7 +453,7 @@ select prueba.falla(
 );
 
 select prueba.ok(
-  prueba.filas($$update public.productos set precio = 1 where slug = 'pulpito-reversible'$$) = 0,
+  prueba.filas($$update public.productos set precio = 1 where slug = 'osita-vestido-lila'$$) = 0,
   'cliente A no puede cambiar precios'
 );
 select prueba.ok(
@@ -473,6 +499,29 @@ select prueba.falla(
   '42501', 'cliente A no puede subir fotos'
 );
 
+-- Direcciones: cambiar la predeterminada es un solo paso, en la base de datos.
+insert into public.direcciones (usuario_id, etiqueta, destinatario, linea1, ciudad, provincia, codigo_postal, predeterminada)
+values (:'cliente_a', 'Casa', 'Ana', 'Calle de Ejemplo 1', 'Málaga', 'Málaga', '29001', true)
+returning id as direccion_casa \gset
+insert into public.direcciones (usuario_id, etiqueta, destinatario, linea1, ciudad, provincia, codigo_postal)
+values (:'cliente_a', 'Trabajo', 'Ana', 'Calle de Ejemplo 2', 'Málaga', 'Málaga', '29002')
+returning id as direccion_trabajo \gset
+select prueba.falla(
+  format($$update public.direcciones set predeterminada = true where id = %L$$, :'direccion_trabajo'),
+  '23505', 'el índice único no deja dos predeterminadas a la vez'
+);
+select prueba.ok(public.marcar_direccion_predeterminada(:'direccion_trabajo'), 'cliente A cambia su dirección predeterminada');
+select prueba.ok(
+  (select array_agg(etiqueta) from public.direcciones where predeterminada) = array['Trabajo'],
+  'queda una sola predeterminada, la nueva'
+);
+select prueba.ok(public.marcar_direccion_predeterminada(:'direccion_trabajo'), 'repetirlo no rompe nada');
+select prueba.ok(
+  not public.marcar_direccion_predeterminada('00000000-0000-4000-8000-000000000000'),
+  'una dirección que no existe no cambia nada'
+);
+select prueba.ok((select count(*) from public.direcciones where predeterminada) = 1, 'y la predeterminada sigue ahí');
+
 -- ------------------------------------------------------------
 -- 4. Cliente B
 -- ------------------------------------------------------------
@@ -484,6 +533,21 @@ select prueba.ok(
 );
 select prueba.ok((select count(*) from public.favoritos) = 0, 'cliente B no ve los favoritos de A');
 select prueba.ok((select count(*) from public.encargos) = 0, 'cliente B no ve los encargos de A');
+select prueba.ok(
+  not public.marcar_direccion_predeterminada(:'direccion_casa'),
+  'cliente B no puede marcar como predeterminada una dirección de A'
+);
+select prueba.como('authenticated', :'cliente_a');
+select prueba.ok(
+  (select array_agg(etiqueta) from public.direcciones where predeterminada) = array['Trabajo'],
+  'la dirección predeterminada de A no ha cambiado'
+);
+select prueba.como('anon');
+select prueba.falla(
+  format($$select public.marcar_direccion_predeterminada(%L)$$, :'direccion_casa'),
+  '42501', 'anon no puede marcar direcciones'
+);
+select prueba.como('authenticated', :'cliente_b');
 select prueba.ok(
   (select nombre from public.perfiles) = 'Cliente B' and (select count(*) from public.perfiles) = 1,
   'cliente B no ve el perfil de A'
@@ -503,7 +567,7 @@ select prueba.ok((select count(*) from public.promociones) = 4, 'admin ve tambi�
 select prueba.ok(exists (select 1 from public.productos where slug = 'borrador-secreto'), 'admin ve los borradores');
 
 select prueba.ok(
-  prueba.filas($$update public.productos set precio = 1900, antes = 2100 where slug = 'pulpito-reversible'$$) = 1,
+  prueba.filas($$update public.productos set precio = 2700, antes = 2900 where slug = 'osita-vestido-lila'$$) = 1,
   'admin cambia un precio'
 );
 select prueba.ok(

@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { BotonPanelDemo } from '@/componentes/cuenta/boton-panel-demo';
-import { IcoInsta, IcoPinterest } from '@/componentes/iconos';
 import { CATEGORIAS } from '@/datos/semilla';
 import { anioMadrid } from '@/lib/fechas';
 import { DEMO, rutas } from '@/lib/rutas';
@@ -34,15 +33,6 @@ export function Pie() {
             <p className="mt-3">
               <a href={`mailto:${DEMO.correo}`}>{DEMO.correo}</a>
             </p>
-            <div className="social">
-              {/* Tienda ficticia: las redes llevan a la portada de cada servicio. */}
-              <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram (enlace de ejemplo)">
-                <IcoInsta />
-              </a>
-              <a href="https://www.pinterest.es/" target="_blank" rel="noopener noreferrer" aria-label="Pinterest (enlace de ejemplo)">
-                <IcoPinterest />
-              </a>
-            </div>
           </div>
           <nav aria-labelledby="pie-tienda">
             <h2 id="pie-tienda">Tienda</h2>
@@ -78,13 +68,35 @@ export function Pie() {
             </ul>
           </nav>
         </div>
-        <div className="pie-demo">
-          <p>
-            <b>¿Tienes una tienda pequeña?</b> Mira cómo se lleva esta por dentro: pedidos, stock y encargos en un panel
-            pensado para el taller.
-          </p>
+        {/* La tienda es ficticia y no tiene redes propias: el único enlace
+            social es el del autor, y dice claramente de quién es. */}
+        <section className="pie-demo" aria-labelledby="pie-autor">
+          <div>
+            <h2 id="pie-autor">¿Quieres una tienda así para tu negocio?</h2>
+            <p>
+              Esta tienda es una demostración hecha por {DEMO.autor}: catálogo, pagos, envíos, encargos y panel para
+              el dueño. Mira cómo se lleva por dentro o escríbeme y lo hablamos.
+            </p>
+            <ul className="pie-autor-enlaces">
+              <li>
+                <a href={DEMO.contratar}>{DEMO.correoAutor}</a>
+              </li>
+              <li>
+                <a href={DEMO.instagram} target="_blank" rel="noopener noreferrer">
+                  Instagram {DEMO.usuarioInstagram}
+                  <span className="oculto-vis"> de {DEMO.autor}, autor de la demo (se abre en otra pestaña)</span>
+                </a>
+              </li>
+              <li>
+                <a href={DEMO.enlace} target="_blank" rel="noopener noreferrer">
+                  GitHub
+                  <span className="oculto-vis"> de {DEMO.autor} (se abre en otra pestaña)</span>
+                </a>
+              </li>
+            </ul>
+          </div>
           <BotonPanelDemo className="btn btn-claro btn-p" />
-        </div>
+        </section>
         <div className="legal">
           <span>© {anio} Ovillo &amp; Co. Hecho con hilo y paciencia.</span>
           <span>Pagos con Stripe (modo de prueba) · Envíos con Correos</span>

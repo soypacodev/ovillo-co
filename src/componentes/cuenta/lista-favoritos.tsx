@@ -8,7 +8,14 @@ import { rutas } from '@/lib/rutas';
 /** Las tarjetas llegan pintadas desde el servidor; aquí solo se eligen
  *  las de la lista de favoritos, que es la misma en el navegador y en la
  *  cuenta. Al quitar un corazón, la tarjeta desaparece al momento. */
-export function ListaFavoritos({ tarjetas }: { tarjetas: Record<string, ReactNode> }) {
+export function ListaFavoritos({
+  tarjetas,
+  entreDispositivos = true,
+}: {
+  tarjetas: Record<string, ReactNode>;
+  /** Con cuentas, la lista también se guarda en la cuenta. */
+  entreDispositivos?: boolean;
+}) {
   const { hidratada } = useCesta();
   const { favoritos } = useFavoritos();
   const visibles = [...favoritos].reverse().filter((slug) => tarjetas[slug]);
@@ -18,7 +25,10 @@ export function ListaFavoritos({ tarjetas }: { tarjetas: Record<string, ReactNod
     return (
       <div className="caja-cl cuenta-vacia">
         <p>Aún no has guardado nada.</p>
-        <p className="mini mt-2">Pulsa el corazón de cualquier pieza y aparecerá aquí, en este y en tus otros dispositivos.</p>
+        <p className="mini mt-2">
+          Pulsa el corazón de cualquier pieza y aparecerá aquí
+          {entreDispositivos ? ', en este y en tus otros dispositivos.' : '.'}
+        </p>
         <Link className="btn btn-1 mt-5" href={rutas.tienda}>
           Ver la tienda
         </Link>

@@ -19,17 +19,25 @@ describe('cupones', () => {
       motivo: 'no-existe',
       mensaje: 'Ese código no existe o ya no está activo.',
     });
-    const pequena = cestaCon(['pulpito-reversible']);
-    const r = validarCupon('PRIMERA5', pequena.lineas, undefined, FECHA);
+    const pequena = cestaCon(['cervatillo-dormilon'], ['bolso-red-mercado']);
+    const r = validarCupon('PRIMERA5', pequena.lineas.slice(1), undefined, FECHA);
     expect(r).toMatchObject({ ok: false, motivo: 'minimo' });
     expect(r.mensaje).toContain('20,00');
-    expect(r.mensaje).toContain('2,00');
+    expect(r.mensaje).toContain('1,30');
   });
 
   it('mide el mínimo tras la rebaja automática', () => {
     // 22,00 − 15 % = 18,70: no llega a los 20 € de PRIMERA5.
     const bolso = cestaCon(['bolso-red-mercado']);
     expect(validarCupon('PRIMERA5', bolso.lineas, undefined, FECHA).ok).toBe(false);
+  });
+
+  it('al aplicarlo avisa si hace perder el envío gratis', () => {
+    const justa = cestaCon(['cojin-relieve'], ['bolso-red-mercado']);
+    const r = validarCupon('HOLA10', justa.lineas, undefined, FECHA);
+    expect(r.ok).toBe(true);
+    expect(r.mensaje).toMatch(/Con este código te faltan 2,57\s€ para el envío gratis\./);
+    expect(validarCupon('HOLA10', cesta.lineas, undefined, FECHA).mensaje).not.toContain('envío gratis');
   });
 
   it('un código rechazado no cambia la cesta', () => {

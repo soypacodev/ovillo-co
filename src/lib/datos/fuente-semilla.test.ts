@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PRODUCTOS } from '@/datos/semilla';
+import { precioVenta } from '@/lib/catalogo/precio';
 import { filtrosAParametros, leerFiltros, normalizarTexto, stockTotal } from './filtros';
 import { fuenteSemilla as fuente } from './fuente-semilla';
 
@@ -37,18 +38,27 @@ describe('fuente de la semilla', () => {
       expect(productos).toHaveLength(4);
     });
 
-    it('por rango de precio, con los extremos incluidos', async () => {
-      const productos = await fuente.productos({ rangos: ['20-35'] });
+    it('por rango del precio final, con los extremos incluidos', async () => {
+      const productos = await fuente.productos({ rangos: ['20-30'] });
       expect(productos.length).toBeGreaterThan(0);
-      expect(productos.every((p) => p.precio >= 2000 && p.precio <= 3500)).toBe(true);
-      const caros = await fuente.productos({ rangos: ['desde-70'] });
-      expect(caros).toHaveLength(0);
+      expect(productos.map((p) => precioVenta(p).final).every((precio) => precio >= 2001 && precio <= 3000)).toBe(true);
+      // El gorro cuesta 26 € de catálogo y 22,10 € con la rebaja de accesorios.
+      expect(slugs(productos)).toContain('gorro-pompon');
+      expect(slugs(await fuente.productos({ rangos: ['hasta-20'] }))).toContain('bolso-red-mercado');
+      expect(slugs(await fuente.productos({ rangos: ['desde-50'] }))).toEqual(['manta-estrella']);
     });
 
-    it('en oferta: solo lo que tiene precio anterior', async () => {
+    it('cada rango de precio tiene alguna pieza', async () => {
+      for (const rango of ['hasta-20', '20-30', '30-50', 'desde-50'] as const) {
+        expect((await fuente.productos({ rangos: [rango] })).length).toBeGreaterThan(0);
+      }
+    });
+
+    it('en oferta: lo que tiene precio anterior y lo que tiene rebaja automática', async () => {
       const productos = await fuente.productos({ extras: ['ofertas'] });
       expect(slugs(productos).sort()).toEqual([
         'bolso-red-mercado',
+        'gorro-pompon',
         'pack-cocina',
         'scrunchies-degradado',
         'set-recien-nacido',
@@ -98,13 +108,13 @@ describe('fuente de la semilla', () => {
 
   describe('orden', () => {
     it('precio de menor a mayor y al revés', async () => {
-      const baratos = (await fuente.productos({ orden: 'barato' })).map((p) => p.precio);
+      const baratos = (await fuente.productos({ orden: 'barato' })).map((p) => precioVenta(p).final);
       expect(baratos).toEqual([...baratos].sort((a, b) => a - b));
-      const caros = (await fuente.productos({ orden: 'caro' })).map((p) => p.precio);
+      const caros = (await fuente.productos({ orden: 'caro' })).map((p) => precioVenta(p).final);
       expect(caros).toEqual([...caros].sort((a, b) => b - a));
     });
 
-    it('nombre A-Z con reglas del español', async () => {
+    it('nombre A–Z con reglas del español', async () => {
       const nombres = (await fuente.productos({ orden: 'az' })).map((p) => p.nombre);
       expect(nombres).toEqual([...nombres].sort((a, b) => a.localeCompare(b, 'es')));
       expect(nombres[0]).toBe('Bolso de red para el mercado');
@@ -129,11 +139,19 @@ describe('fuente de la semilla', () => {
       expect(await fuente.producto('')).toBeNull();
     });
 
+    it('trae la rebaja automática de su categoría y el precio final', async () => {
+      const bolso = await fuente.producto('bolso-red-mercado');
+      if (!bolso) throw new Error('Falta el bolso en la semilla');
+      expect(bolso.rebaja).toEqual({ nombre: 'Rebajas de accesorios', porcentaje: 15, hasta: null });
+      expect(precioVenta(bolso)).toMatchObject({ final: 1870, anterior: 2200, porcentaje: 15 });
+      expect((await fuente.producto('cojin-relieve'))?.rebaja).toBeNull();
+    });
+
     it('devuelve una copia: modificarla no altera la semilla', async () => {
-      const pulpito = await fuente.producto('pulpito-reversible');
-      if (!pulpito) throw new Error('Falta el pulpito en la semilla');
-      pulpito.variantes[0].stock = 999;
-      const otraVez = await fuente.producto('pulpito-reversible');
+      const osita = await fuente.producto('osita-vestido-lila');
+      if (!osita) throw new Error('Falta la osita en la semilla');
+      osita.variantes[0].stock = 999;
+      const otraVez = await fuente.producto('osita-vestido-lila');
       expect(otraVez?.variantes[0].stock).not.toBe(999);
     });
   });
@@ -144,6 +162,12 @@ describe('fuente de la semilla', () => {
       expect(relacionados).toHaveLength(4);
       expect(slugs(relacionados)).not.toContain('bolso-red-mercado');
       expect(relacionados.slice(0, 2).every((p) => p.categoria === 'accesorios')).toBe(true);
+    });
+
+    it('después de la misma categoría, solo las que la complementan', async () => {
+      const relacionados = await fuente.relacionados('osita-vestido-lila');
+      expect(relacionados[0].slug).toBe('cervatillo-dormilon');
+      expect(relacionados.every((p) => ['amigurumis', 'bebe', 'packs'].includes(p.categoria))).toBe(true);
     });
 
     it('un slug inexistente no tiene relacionados', async () => {
@@ -178,10 +202,10 @@ describe('fuente de la semilla', () => {
 describe('filtros en la URL', () => {
   it('lee los parámetros e ignora lo desconocido', () => {
     expect(
-      leerFiltros({ cat: 'accesorios,inventada', filtro: ['ofertas', 'raro'], q: ' manta ', orden: 'barato', precio: '20-35' }),
+      leerFiltros({ cat: 'accesorios,inventada', filtro: ['ofertas', 'raro'], q: ' manta ', orden: 'barato', precio: '20-30' }),
     ).toEqual({
       categorias: ['accesorios'],
-      rangos: ['20-35'],
+      rangos: ['20-30'],
       extras: ['ofertas'],
       busqueda: 'manta',
       orden: 'barato',

@@ -19,7 +19,7 @@ export function AvisoSinCuentas({ titulo = 'Tu cuenta' }: { titulo?: string }) {
               <b>En esta demostración las cuentas necesitan conectar la base de datos.</b>
             </p>
             <p className="mt-2">
-              La tienda funciona entera sin ella: puedes comprar como invitada y tus favoritos se guardan en este
+              La tienda funciona entera sin ella: puedes comprar sin cuenta y tus favoritos se guardan en este
               navegador. Lo que sí puedes ver ya es el panel del taller, con pedidos y encargos de ejemplo.
             </p>
           </div>

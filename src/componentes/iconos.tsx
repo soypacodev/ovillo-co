@@ -287,3 +287,12 @@ export function Ovillo({ width = 30, height = 30, ...props }: PropsIcono) {
     </svg>
   );
 }
+
+/** Corazón centrado y del tamaño de los demás iconos de la cabecera. */
+export function IcoFavoritos(props: PropsIcono) {
+  return (
+    <Trazo {...props}>
+      <path d="M12 20s-7.5-4.6-7.5-10.3A4.3 4.3 0 0 1 12 6.9a4.3 4.3 0 0 1 7.5 2.8C19.5 15.4 12 20 12 20Z" />
+    </Trazo>
+  );
+}

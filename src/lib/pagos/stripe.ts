@@ -35,6 +35,14 @@ function imagenPublica(src: string | undefined, origen: string): string[] | unde
   return url.protocol === 'https:' && url.hostname !== 'localhost' ? [url.href] : undefined;
 }
 
+/** Precio por unidad con la rebaja automática: la rebaja se redondea por
+ *  unidad, así que la división siempre es exacta. */
+function precioFinalUnidad(linea: { total: number; cantidad: number; slug: string }): number {
+  const unidad = linea.total / linea.cantidad;
+  if (!Number.isInteger(unidad)) throw new Error(`La línea de ${linea.slug} no se reparte por unidades.`);
+  return unidad;
+}
+
 const recorta = (texto: string, max: number) => (texto.length > max ? `${texto.slice(0, max - 1)}…` : texto);
 
 /**
@@ -48,8 +56,10 @@ export async function crearSesionPago(
   origen: string,
 ): Promise<string> {
   const stripe = clienteStripe();
-  const descuento = pedido.descuentoAutomatico + pedido.descuentoCupon;
-  const rotulo = nombreDescuento(pedido.descuentoAutomatico, pedido.descuentoCupon, pedido.codigoCupon);
+  // Las rebajas automáticas ya van en el precio de cada pieza, como en la
+  // tienda; el cupón de Stripe solo lleva el código de descuento.
+  const descuento = pedido.descuentoCupon;
+  const rotulo = nombreDescuento(0, pedido.descuentoCupon, pedido.codigoCupon);
 
   // Un cupón de un solo uso por sesión con el importe ya calculado: así
   // Stripe cobra exactamente lo que ha decidido el servidor.
@@ -77,7 +87,7 @@ export async function crearSesionPago(
       quantity: l.cantidad,
       price_data: {
         currency: 'eur',
-        unit_amount: l.precioUnitario,
+        unit_amount: precioFinalUnidad(l),
         product_data: {
           name: l.nombre,
           description: [

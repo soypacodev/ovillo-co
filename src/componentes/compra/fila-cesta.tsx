@@ -44,9 +44,15 @@ export function FilaCesta({ linea: l, max, rebaja, alCambiar, alQuitar }: PropsF
         </div>
       </div>
       <div className="precio-col">
-        <p className="precio">{eur(l.precio * l.uds)}</p>
-        {l.uds > 1 && <p className="mini-2">{eur(l.precio)} cada una</p>}
-        {rebaja > 0 && <p className="dto">−{eur(rebaja)} de rebaja</p>}
+        {/* El precio ya rebajado, como en la ficha; el tachado, el de catálogo. */}
+        <p className="precio">{eur(l.precio * l.uds - rebaja)}</p>
+        {rebaja > 0 && (
+          <p className="mini-2 antes">
+            <span className="oculto-vis">Antes </span>
+            {eur(l.precio * l.uds)}
+          </p>
+        )}
+        {l.uds > 1 && <p className="mini-2">{eur((l.precio * l.uds - rebaja) / l.uds)} cada una</p>}
       </div>
     </li>
   );

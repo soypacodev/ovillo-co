@@ -123,7 +123,7 @@ export function PasoEntrega({ datos, errores, cambiar, titulo, metodos, lineas, 
           opcional
           max={MAX_NOTA}
           rows={3}
-          placeholder="Si no estoy en casa, dejadlo en el bajo. O: me corre prisa, es para el día 20."
+          placeholder="Si no estoy en casa, dejadlo en el bajo, o “Es para el día 20”"
           valor={datos.nota}
           alCambiar={(v) => cambiar('nota', v)}
           error={errores.nota}

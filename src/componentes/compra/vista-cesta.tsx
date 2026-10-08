@@ -30,8 +30,10 @@ export interface PropsVistaCesta {
   metodos: MetodoEnvio[];
   /** Tarjetas de producto ya pintadas en el servidor, por slug. */
   tarjetas: Record<string, ReactNode>;
-  /** Slugs con stock, en el orden en que conviene sugerirlos. */
+  /** Slugs con stock: solo se sugiere lo que se puede comprar ya. */
   sugeribles: string[];
+  /** Para cada pieza, las que la acompañan bien (misma categoría o complementarias), en orden. */
+  afines: Record<string, string[]>;
 }
 
 function frasePlazo(lineas: readonly LineaCesta[], plazo: number | null): string {
@@ -41,7 +43,7 @@ function frasePlazo(lineas: readonly LineaCesta[], plazo: number | null): string
   return `${cuantas}, así que el pedido saldrá completo en unos ${plazo} días.`;
 }
 
-export function VistaCesta({ productos, metodos, tarjetas, sugeribles }: PropsVistaCesta) {
+export function VistaCesta({ productos, metodos, tarjetas, sugeribles, afines }: PropsVistaCesta) {
   const { lineas, cupon, hidratada, fijarUnidades, quitar, vaciar, maxUnidades } = useCesta();
   useSincronizarCesta(productos);
 
@@ -64,6 +66,7 @@ export function VistaCesta({ productos, metodos, tarjetas, sugeribles }: PropsVi
       metodos={metodos}
       tarjetas={tarjetas}
       sugeribles={sugeribles}
+      afines={afines}
       fijarUnidades={fijarUnidades}
       quitar={quitar}
       vaciar={vaciar}
@@ -72,7 +75,7 @@ export function VistaCesta({ productos, metodos, tarjetas, sugeribles }: PropsVi
   );
 }
 
-interface PropsConArticulos extends Pick<PropsVistaCesta, 'metodos' | 'tarjetas' | 'sugeribles'> {
+interface PropsConArticulos extends Pick<PropsVistaCesta, 'metodos' | 'tarjetas' | 'sugeribles' | 'afines'> {
   lineas: LineaCesta[];
   cupon: string | null;
   fijarUnidades: (id: string, uds: number) => void;
@@ -81,7 +84,7 @@ interface PropsConArticulos extends Pick<PropsVistaCesta, 'metodos' | 'tarjetas'
   maxUnidades: (id: string) => number;
 }
 
-function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, fijarUnidades, quitar, vaciar, maxUnidades }: PropsConArticulos) {
+function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fijarUnidades, quitar, vaciar, maxUnidades }: PropsConArticulos) {
   const avisar = useBrindis();
   // Este bloque solo se monta en el navegador, así que puede leer lo guardado.
   const [envioId, setEnvioId] = useState<IdEnvio>(leerEnvioGuardado);
@@ -89,7 +92,11 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, fijarUnida
 
   const t = calcularTotales(lineas, cupon, { envioId, envios: metodos });
   const enCesta = new Set(lineas.map((l) => l.slug));
-  const sugerencias = sugeribles.filter((s) => !enCesta.has(s) && tarjetas[s]).slice(0, 4);
+  // Lo que acompaña a cada pieza de la cesta, empezando por la primera.
+  const disponibles = new Set(sugeribles);
+  const sugerencias = [...new Set(lineas.flatMap((l) => afines[l.slug] ?? []))]
+    .filter((s) => !enCesta.has(s) && disponibles.has(s) && tarjetas[s])
+    .slice(0, 4);
 
   const elegirEnvio = useCallback((id: IdEnvio) => {
     setEnvioId(id);

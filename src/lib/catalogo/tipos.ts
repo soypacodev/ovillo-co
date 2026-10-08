@@ -22,6 +22,17 @@ export interface Variante {
   /** Color de muestra para el selector. */
   color: string;
   stock: number;
+  /** Foto que enseña esta variante. Varias variantes pueden compartirla
+   *  (dos tallas del mismo color); sin ella se usa la primera del producto. */
+  foto?: Foto;
+}
+
+/** Rebaja automática de la categoría, ya aplicada al precio que se enseña. */
+export interface RebajaProducto {
+  nombre: string;
+  porcentaje: number;
+  /** Último día (AAAA-MM-DD), o null si no caduca. */
+  hasta: string | null;
 }
 
 export interface Personalizacion {
@@ -36,10 +47,15 @@ export interface Producto {
   nombre: string;
   categoria: SlugCategoria;
   tipo: 'simple' | 'pack';
-  /** Precio actual en céntimos. */
+  /** Precio de catálogo en céntimos, antes de rebajas automáticas. */
   precio: number;
   /** Precio anterior en céntimos, si está rebajado. */
   antes: number | null;
+  /** Qué distingue a las variantes en el selector: «Color», «Talla», «Modelo». */
+  etiquetaVariante: string;
+  /** La pone la fuente de datos con las promociones vigentes; el precio
+   *  final que se paga sale de `precioVenta()`. */
+  rebaja?: RebajaProducto | null;
   destacado: boolean;
   novedad: boolean;
   /** Se teje al pedir: no hay unidades hechas. */

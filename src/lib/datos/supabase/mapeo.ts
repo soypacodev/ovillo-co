@@ -26,12 +26,12 @@ const textoONulo = z.string().nullable();
 export const SELECT_CATEGORIA = 'slug, nombre, texto, foto_ruta, foto_alt';
 
 export const SELECT_PRODUCTO = `
-  slug, nombre, tipo, precio, antes, destacado, novedad, encargo, dias, etiqueta,
+  slug, nombre, tipo, precio, antes, variante_etiqueta, destacado, novedad, encargo, dias, etiqueta,
   corto, largo, historia, materiales, cuidados, medidas,
   personalizacion_etiqueta, personalizacion_ejemplo, personalizacion_max, personalizacion_pista,
   contenido, posicion,
   categoria:categorias!productos_categoria_id_fkey!inner(slug),
-  variantes!variantes_producto_id_fkey(nombre, color, stock, posicion),
+  variantes!variantes_producto_id_fkey(nombre, color, stock, foto_ruta, posicion),
   fotos:fotos_producto!fotos_producto_producto_id_fkey(ruta, alt, posicion)
 `;
 
@@ -54,6 +54,7 @@ const filaProducto = z.object({
   tipo: z.enum(['simple', 'pack']),
   precio: entero,
   antes: entero.nullable(),
+  variante_etiqueta: z.string(),
   destacado: z.boolean(),
   novedad: z.boolean(),
   encargo: z.boolean(),
@@ -72,7 +73,9 @@ const filaProducto = z.object({
   contenido: z.array(z.string()).nullable(),
   posicion: entero,
   categoria: z.object({ slug: slugCategoria }),
-  variantes: z.array(z.object({ nombre: z.string(), color: z.string(), stock: entero, posicion: entero })),
+  variantes: z.array(
+    z.object({ nombre: z.string(), color: z.string(), stock: entero, foto_ruta: textoONulo, posicion: entero }),
+  ),
   fotos: z.array(z.object({ ruta: z.string(), alt: z.string(), posicion: entero })),
 });
 
@@ -137,6 +140,14 @@ export function aProducto(fila: unknown, urlSupabase: string): Producto {
     .sort(porPosicion)
     .map((foto) => ({ src: urlFoto(foto.ruta, urlSupabase), alt: foto.alt }));
 
+  // La foto de una variante es una de la galería (y comparte su texto
+  // alternativo); si no está en ella, se describe con el nombre.
+  const fotoVariante = (ruta: string | null, variante: string): Foto | undefined => {
+    if (!ruta) return undefined;
+    const src = urlFoto(ruta, urlSupabase);
+    return fotos.find((foto) => foto.src === src) ?? { src, alt: `${f.nombre}, ${variante}` };
+  };
+
   const producto: Producto = {
     slug: f.slug,
     nombre: f.nombre,
@@ -144,6 +155,7 @@ export function aProducto(fila: unknown, urlSupabase: string): Producto {
     tipo: f.tipo,
     precio: f.precio,
     antes: f.antes,
+    etiquetaVariante: f.variante_etiqueta,
     destacado: f.destacado,
     novedad: f.novedad,
     encargo: f.encargo,
@@ -158,7 +170,10 @@ export function aProducto(fila: unknown, urlSupabase: string): Producto {
     fotos,
     variantes: [...f.variantes]
       .sort(porPosicion)
-      .map((v) => ({ nombre: v.nombre, color: v.color, stock: v.stock })),
+      .map((v) => {
+        const foto = fotoVariante(v.foto_ruta, v.nombre);
+        return { nombre: v.nombre, color: v.color, stock: v.stock, ...(foto && { foto }) };
+      }),
   };
 
   if (f.personalizacion_etiqueta !== null && f.personalizacion_max !== null) {

@@ -8,6 +8,10 @@
 .cinta-demo a:hover { color: var(--pastel); }
 .cinta-demo a:focus-visible { outline-color: var(--pastel); }
 .cinta-demo .corto { display: none; }
+.cinta-demo a[href^="mailto:"] { font-weight: 500; }
+/* Una sola línea también en tableta: lo accesorio se cae antes que el contacto. */
+@media (max-width: 900px) { .cinta-demo .cinta-pedidos { display: none; } }
+@media (max-width: 430px) { .cinta-demo .cinta-autor { display: none; } }
 
 /* ---------- Cinta de avisos ---------- */
 .cinta { background: var(--azul); color: var(--pastel-cl); overflow: hidden; padding: .5rem 0; font-size: .76rem; line-height: 1.5; letter-spacing: .1em; text-transform: uppercase; }
@@ -21,8 +25,9 @@
 /* ---------- Cabecera ---------- */
 .cabecera { position: sticky; top: 0; z-index: 40; background: rgba(248, 246, 242, .9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color var(--medio), box-shadow var(--medio); }
 .cabecera.pegada { border-bottom-color: var(--borde); box-shadow: 0 4px 20px -14px rgba(21, 44, 65, .4); }
-.nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0; transition: padding var(--medio); }
-.cabecera.pegada .nav { padding: .55rem 0; }
+/* Solo el relleno vertical: el lateral es el de .wrap y no cambia al pegarse. */
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: .85rem; transition: padding var(--medio); }
+.cabecera.pegada .nav { padding-block: .55rem; }
 .logo { display: flex; min-height: 44px; align-items: center; gap: .6rem; font-family: var(--serif); font-size: 1.4rem; font-weight: 500; line-height: 1.2; color: var(--azul); flex: 0 0 auto; white-space: nowrap; }
 .logo svg { transition: transform var(--lento) var(--curva); }
 .logo:hover svg { transform: rotate(-18deg); }
@@ -57,10 +62,6 @@
 .pie-web a:hover { color: var(--pastel); }
 .pie-web :focus-visible { outline-color: var(--pastel); }
 .legal { border-top: 1px solid rgba(174, 196, 214, .2); margin-top: 2.4rem; padding-top: 1.2rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .81rem; color: #8FA6BA; }
-.social { display: flex; gap: .6rem; margin-top: 1.2rem; }
-.social a { width: 44px; height: 44px; border-radius: 50%; background: rgba(198, 220, 236, .14); display: grid; place-items: center; transition: background var(--rapido), transform var(--rapido); }
-.social a:hover { background: rgba(198, 220, 236, .28); transform: translateY(-2px); }
-.social svg { stroke: var(--pastel); }
 
 /* ---------- Cajón de la cesta ---------- */
 .velo { position: fixed; inset: 0; background: rgba(21, 44, 65, .42); opacity: 0; pointer-events: none; transition: opacity var(--medio); z-index: 50; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
@@ -100,4 +101,7 @@
 .pie-demo { margin-top: 2.4rem; padding: 1.2rem 1.4rem; border-radius: var(--radio); background: rgba(198, 220, 236, .08); border: 1px solid rgba(174, 196, 214, .2); display: flex; align-items: center; justify-content: space-between; gap: 1rem 1.6rem; flex-wrap: wrap; }
 .pie-demo p { max-width: 62ch; }
 .pie-demo b { color: #FFFFFF; }
+.pie-demo h2 { margin-bottom: .4rem; }
+.pie-web .pie-autor-enlaces { display: flex; flex-wrap: wrap; gap: 0 1.2rem; margin-top: .5rem; }
+.pie-autor-enlaces a { display: inline-flex; align-items: center; min-height: 44px; color: #FFFFFF; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .pie-demo .btn-claro:hover { background: #FFFFFF; }

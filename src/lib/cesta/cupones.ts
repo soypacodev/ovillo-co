@@ -32,7 +32,11 @@ export function validarCupon(
     };
   }
 
-  return { ok: true, codigo: c, promocion, mensaje: `Código «${c}» aplicado: ${promocion.nombre}.` };
+  const conCupon = totales(lineas, c, { promociones, fecha });
+  const aviso = conCupon.cuponQuitaEnvioGratis
+    ? ` Con este código te faltan ${eur(conCupon.faltaEnvioGratis)} para el envío gratis.`
+    : '';
+  return { ok: true, codigo: c, promocion, mensaje: `Código «${c}» aplicado: ${promocion.nombre}.${aviso}` };
 }
 
 /** Valida el código y, si vale, lo deja guardado en la cesta. */

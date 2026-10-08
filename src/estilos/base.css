@@ -85,9 +85,11 @@ section { padding: clamp(2.6rem, 5vw, 4rem) 0; }
 .mini { font-size: .83rem; color: var(--tinta-3); }
 .mini-2 { font-size: .78rem; color: var(--tinta-4); }
 .destacado { color: var(--azul); }
+/* Sin cursiva: con el eje «wonky» de la marca, la «h» cursiva de Fraunces
+   parece una «ƒ». La cursiva se reserva para palabras sueltas en titulares. */
 blockquote {
   font-family: var(--serif);
-  font-style: italic;
+  font-style: normal;
   font-size: clamp(1.15rem, 2.2vw, 1.4rem);
   line-height: 1.45;
   color: var(--tinta-2);
@@ -156,3 +158,6 @@ select {
 .busca { position: relative; }
 .busca input { padding-left: 2.7rem; }
 .busca svg { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); stroke: var(--tinta-3); pointer-events: none; }
+
+/* Rangos y cifras con unidad que no deben partirse («24–48 h»). */
+.sin-salto { white-space: nowrap; }

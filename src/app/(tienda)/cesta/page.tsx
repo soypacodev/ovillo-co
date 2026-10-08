@@ -4,6 +4,7 @@ import { Migas } from '@/componentes/contenido/migas';
 import { VistaCesta } from '@/componentes/compra/vista-cesta';
 import { paraCesta, stockTotal, TarjetaProducto } from '@/componentes/producto/tarjeta-producto';
 import { catalogo } from '@/lib/datos';
+import { elegirRelacionados } from '@/lib/datos/filtros';
 
 import '@/componentes/compra/compra.css';
 
@@ -33,6 +34,9 @@ export default async function PaginaCesta() {
         metodos={metodos}
         tarjetas={tarjetas}
         sugeribles={productos.filter((p) => stockTotal(p) > 0).map((p) => p.slug)}
+        afines={Object.fromEntries(
+          productos.map((p) => [p.slug, elegirRelacionados(productos, p.slug, 8).map((r) => r.slug)]),
+        )}
       />
     </div>
   );

@@ -2,23 +2,36 @@
 
 // Galería de la ficha. Todas las fotos están apiladas dentro del arco y
 // solo cambia cuál se ve: el cambio es un fundido y no hay salto mientras
-// se descarga la siguiente.
+// se descarga la siguiente. Al elegir otra variante pasa a su foto.
 
 import Image from 'next/image';
 import { useState } from 'react';
 import type { Foto } from '@/lib/catalogo/tipos';
+import { useVariante } from './variante-ficha';
 
 const TAMANOS_FOTO_FICHA = '(max-width: 940px) min(92vw, 560px), (max-width: 1600px) 600px, 680px';
 
 export interface PropsGaleria {
   fotos: Foto[];
+  /** Posición en `fotos` de la foto de cada variante (−1 si no tiene). */
+  fotoDeVariante: number[];
   nombre: string;
   encargo: boolean;
   descuento: number;
 }
 
-export function GaleriaProducto({ fotos, nombre, encargo, descuento }: PropsGaleria) {
-  const [actual, setActual] = useState(0);
+export function GaleriaProducto({ fotos, fotoDeVariante, nombre, encargo, descuento }: PropsGaleria) {
+  const { indice } = useVariante();
+  const fotoDe = (variante: number) => Math.max(0, fotoDeVariante[variante] ?? 0);
+  const [actual, setActual] = useState(() => fotoDe(indice));
+
+  // Al cambiar de variante se enseña su foto; las miniaturas siguen
+  // dejando ver cualquier otra.
+  const [varianteVista, setVarianteVista] = useState(indice);
+  if (varianteVista !== indice) {
+    setVarianteVista(indice);
+    if ((fotoDeVariante[indice] ?? -1) >= 0) setActual(fotoDe(indice));
+  }
 
   return (
     <div className="galeria">
@@ -30,7 +43,7 @@ export function GaleriaProducto({ fotos, nombre, encargo, descuento }: PropsGale
             alt={foto.alt}
             fill
             sizes={TAMANOS_FOTO_FICHA}
-            loading={i === 0 ? 'eager' : 'lazy'}
+            loading={i === actual || i === 0 ? 'eager' : 'lazy'}
             fetchPriority={i === 0 ? 'high' : undefined}
             className={i === actual ? 'foto-ficha visible' : 'foto-ficha'}
             aria-hidden={i === actual ? undefined : true}

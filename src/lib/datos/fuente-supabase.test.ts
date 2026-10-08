@@ -16,6 +16,7 @@ const filaProducto = (p: (typeof PRODUCTOS)[number], posicion: number) => ({
   tipo: p.tipo,
   precio: p.precio,
   antes: p.antes,
+  variante_etiqueta: p.etiquetaVariante,
   destacado: p.destacado,
   novedad: p.novedad,
   encargo: p.encargo,
@@ -34,7 +35,7 @@ const filaProducto = (p: (typeof PRODUCTOS)[number], posicion: number) => ({
   contenido: p.contenido ?? null,
   posicion,
   categoria: { slug: p.categoria },
-  variantes: p.variantes.map((v, i) => ({ ...v, posicion: i })),
+  variantes: p.variantes.map(({ foto, ...v }, i) => ({ ...v, foto_ruta: foto?.src ?? null, posicion: i })),
   fotos: p.fotos.map((f, i) => ({ ruta: f.src, alt: f.alt, posicion: i })),
 });
 
@@ -103,18 +104,21 @@ describe('fuente de Supabase', () => {
     const { fuente, peticiones } = preparar();
     await fuente.productos({
       categorias: ['accesorios', 'hogar'],
-      rangos: ['hasta-20', 'desde-70'],
+      rangos: ['hasta-20', 'desde-50'],
       extras: ['ofertas', 'encargo', 'novedades'],
     });
-    const consulta = peticiones[0].searchParams;
-    expect(peticiones[0].pathname).toBe('/rest/v1/productos');
+    const productos = peticiones.find((u) => u.pathname === '/rest/v1/productos');
+    if (!productos) throw new Error('No se pidieron los productos');
+    const consulta = productos.searchParams;
     expect(consulta.get('estado')).toBe('eq.publicado');
     expect(consulta.get('categoria.slug')).toBe('in.(accesorios,hogar)');
-    expect(consulta.get('or')).toBe('(and(precio.gte.0,precio.lte.1999),precio.gte.7001)');
-    expect(consulta.get('antes')).toBe('not.is.null');
     expect(consulta.get('encargo')).toBe('eq.true');
     expect(consulta.get('novedad')).toBe('eq.true');
     expect(consulta.get('select')).toContain('categoria:categorias!productos_categoria_id_fkey!inner(slug)');
+    // Precio y ofertas van con la rebaja automática aplicada: no se filtran en la base de datos.
+    expect(consulta.get('or')).toBeNull();
+    expect(consulta.get('antes')).toBeNull();
+    expect(peticiones.some((u) => u.pathname === '/rest/v1/promociones')).toBe(true);
   });
 
   it('con los mismos datos responde igual que la semilla', async () => {
@@ -126,13 +130,16 @@ describe('fuente de Supabase', () => {
       { busqueda: 'bebé' },
       { busqueda: 'COJIN' },
       { categorias: ['accesorios'], extras: ['stock'] },
+      { extras: ['ofertas'] },
+      { rangos: ['hasta-20', '30-50'], orden: 'caro' },
     ];
     for (const filtros of casos) {
       expect(await fuente.productos(filtros)).toEqual(await fuenteSemilla.productos(filtros));
     }
     expect(await fuente.producto('manta-estrella')).toEqual(await fuenteSemilla.producto('manta-estrella'));
-    expect(await fuente.relacionados('pulpito-reversible')).toEqual(
-      await fuenteSemilla.relacionados('pulpito-reversible'),
+    expect(await fuente.producto('bolso-red-mercado')).toEqual(await fuenteSemilla.producto('bolso-red-mercado'));
+    expect(await fuente.relacionados('osita-vestido-lila')).toEqual(
+      await fuenteSemilla.relacionados('osita-vestido-lila'),
     );
     expect(await fuente.categorias()).toEqual(await fuenteSemilla.categorias());
     expect(await fuente.promociones()).toEqual(await fuenteSemilla.promociones());

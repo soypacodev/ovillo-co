@@ -1,6 +1,7 @@
 // Operaciones sobre la cesta. Todas son puras: reciben un estado y
 // devuelven otro nuevo, sin tocar el almacenamiento ni el DOM.
 
+import { fotoVariante } from '@/lib/catalogo/precio';
 import type { Producto } from '@/lib/catalogo/tipos';
 import {
   CESTA_VACIA,
@@ -103,7 +104,7 @@ export function anadirProducto(
     categoria: producto.categoria,
     variante: variante.nombre,
     color: variante.color,
-    foto: producto.fotos[0] ?? null,
+    foto: fotoVariante(producto, variante),
     precio: producto.precio,
     encargo: producto.encargo,
     dias: producto.dias,
@@ -178,14 +179,16 @@ export function sincronizarConCatalogo(
     if (!p || !v) continue;
     const clave = `${l.slug}|${l.variante}`;
     const quedan = restante.get(clave) ?? v.stock;
-    const uds = Math.min(l.uds, quedan, MAX_UDS_LINEA);
-    if (uds < 1) continue;
-    restante.set(clave, quedan - uds);
     const personalizacion = limpiarPersonalizacion(p, l.personalizacion);
     const id = idLinea(l.slug, l.variante, personalizacion);
+    // Dos líneas que se funden (p. ej. al recortar la personalización)
+    // comparten el tope por línea: solo cuentan las unidades que caben.
     const repetida = lineas.find((x) => x.id === id);
+    const uds = Math.min(l.uds, quedan, MAX_UDS_LINEA - (repetida?.uds ?? 0));
+    if (uds < 1) continue;
+    restante.set(clave, quedan - uds);
     if (repetida) {
-      repetida.uds = Math.min(MAX_UDS_LINEA, repetida.uds + uds);
+      repetida.uds += uds;
       continue;
     }
     lineas.push({
@@ -194,7 +197,7 @@ export function sincronizarConCatalogo(
       nombre: p.nombre,
       categoria: p.categoria,
       color: v.color,
-      foto: p.fotos[0] ?? l.foto,
+      foto: fotoVariante(p, v) ?? l.foto,
       precio: p.precio,
       encargo: p.encargo,
       dias: p.dias,

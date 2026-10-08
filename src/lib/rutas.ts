@@ -21,6 +21,7 @@ export const rutas = {
   cuentaPedidos: '/cuenta/pedidos',
   cuentaPedido: (numero: string) => `/cuenta/pedidos/${encodeURIComponent(numero)}`,
   cuentaFavoritos: '/cuenta/favoritos',
+  favoritos: '/favoritos',
   cuentaDirecciones: '/cuenta/direcciones',
   cuentaDatos: '/cuenta/datos',
   entrar: '/entrar',
@@ -63,8 +64,23 @@ export function esRutaActual(href: string, ruta: string): boolean {
   return ruta === href || ruta.startsWith(`${href}/`);
 }
 
+const CORREO_AUTOR = 'soypacodev@gmail.com';
+const MENSAJE_CONTRATAR = {
+  subject: 'Quiero una tienda como Ovillo & Co.',
+  body: 'Hola, Paco:\n\nHe visto la tienda de demostración Ovillo & Co. y me gustaría algo parecido para mi negocio.\n\n',
+};
+
+/** La tienda es ficticia; el autor de la demo, no. `correo` es el de la
+ *  tienda (dominio de ejemplo) y `contratar`, el de Paco Dev con el asunto
+ *  ya escrito para quien quiera una tienda así. */
 export const DEMO = {
   autor: 'Paco Dev',
   enlace: 'https://github.com/soypacodev',
+  instagram: 'https://www.instagram.com/soypacodev/',
+  usuarioInstagram: '@soypacodev',
   correo: 'hola@ovilloandco.example',
+  correoAutor: CORREO_AUTOR,
+  contratar: `mailto:${CORREO_AUTOR}?${Object.entries(MENSAJE_CONTRATAR)
+    .map(([clave, valor]) => `${clave}=${encodeURIComponent(valor)}`)
+    .join('&')}`,
 } as const;

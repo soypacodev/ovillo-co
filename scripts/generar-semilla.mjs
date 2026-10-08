@@ -43,6 +43,15 @@ const producto = (slug) => `(select id from public.productos where slug = ${text
 /** Ruta en la base de datos: la misma ruta pública que usa la semilla. */
 const ruta = (foto) => foto.src;
 
+// Una variante solo puede enseñar una foto de su propia galería.
+for (const p of PRODUCTOS) {
+  for (const v of p.variantes) {
+    if (v.foto && !p.fotos.some((f) => f.src === v.foto.src)) {
+      throw new Error(`La foto de «${p.nombre} · ${v.nombre}» no está en la galería del producto.`);
+    }
+  }
+}
+
 const bloques = [];
 
 bloques.push(`-- ============================================================
@@ -69,13 +78,13 @@ for (const [i, p] of PRODUCTOS.entries()) {
   const per = p.personalizable ?? null;
   bloques.push(`-- ${p.nombre}
 insert into public.productos (
-  slug, nombre, categoria_id, tipo, estado, precio, antes,
+  slug, nombre, categoria_id, tipo, estado, precio, antes, variante_etiqueta,
   destacado, novedad, encargo, dias, etiqueta,
   corto, largo, historia, materiales, cuidados, medidas,
   personalizacion_etiqueta, personalizacion_ejemplo, personalizacion_max, personalizacion_pista,
   contenido, posicion, publicado_en
 ) values (
-  ${texto(p.slug)}, ${texto(p.nombre)}, ${categoria(p.categoria)}, ${texto(p.tipo)}, 'publicado', ${entero(p.precio)}, ${entero(p.antes)},
+  ${texto(p.slug)}, ${texto(p.nombre)}, ${categoria(p.categoria)}, ${texto(p.tipo)}, 'publicado', ${entero(p.precio)}, ${entero(p.antes)}, ${texto(p.etiquetaVariante)},
   ${booleano(p.destacado)}, ${booleano(p.novedad)}, ${booleano(p.encargo)}, ${entero(p.dias)}, ${texto(p.etiqueta)},
   ${texto(p.corto)},
   ${texto(p.largo)},
@@ -87,11 +96,11 @@ insert into public.productos (
   ${lista(p.contenido ?? null)}, ${i}, now()
 );
 
-insert into public.variantes (producto_id, nombre, color, stock, posicion) values
+insert into public.variantes (producto_id, nombre, color, stock, foto_ruta, posicion) values
 ${p.variantes
   .map(
     (v, j) =>
-      `  (${producto(p.slug)}, ${texto(v.nombre)}, ${texto(v.color.toUpperCase())}, ${entero(v.stock)}, ${j})`,
+      `  (${producto(p.slug)}, ${texto(v.nombre)}, ${texto(v.color.toUpperCase())}, ${entero(v.stock)}, ${texto(v.foto ? ruta(v.foto) : null)}, ${j})`,
   )
   .join(',\n')};
 

@@ -45,7 +45,7 @@ export function PantallaAcceso({ titulo, entradilla, pestana, aviso, children }:
           <Link href={rutas.tienda} className="enlace">
             comprar sin cuenta
           </Link>
-          , como invitada.
+          .
         </p>
       </div>
 

@@ -15,7 +15,8 @@ export const filaResumen = z.object({
   ventas_mes: entero,
   pedidos_mes: entero,
   ticket_medio_mes: entero,
-  ventas_mes_anterior: entero,
+  /** Del día 1 del mes pasado a la misma fecha y hora de hoy. */
+  ventas_periodo_anterior: entero,
   pedidos_pendientes: entero,
   encargos_nuevos: entero,
   mensajes_nuevos: entero,

@@ -243,6 +243,19 @@ select prueba.ok(
 select prueba.ok(
   (select count(*) from public.panel_stock_bajo(0)) <= (select count(*) from public.panel_stock_bajo(3)),
   'el umbral de stock bajo se puede ajustar');
+select prueba.ok(
+  not exists (select 1 from public.panel_stock_bajo(99) where encargo),
+  'lo que se teje por encargo no sale como stock bajo');
+select prueba.ok(
+  (select variantes_stock_bajo from public.panel_resumen()) = (select count(*) from public.panel_stock_bajo(1)),
+  'el resumen cuenta las mismas variantes que la lista de stock bajo');
+select prueba.ok(
+  (select ventas_periodo_anterior from public.panel_resumen())
+    <= coalesce((select sum(total) from public.pedidos
+                 where estado not in ('cancelado', 'reembolsado')
+                   and creado_en >= (date_trunc('month', now() at time zone 'Europe/Madrid') - interval '1 month') at time zone 'Europe/Madrid'
+                   and creado_en < date_trunc('month', now() at time zone 'Europe/Madrid') at time zone 'Europe/Madrid'), 0),
+  'la comparación usa el mismo tramo del mes pasado, no más');
 
 select prueba.ok((select max(total_filas) from public.panel_pedidos()) = :pedidos_totales,
   'demo cuenta todos los pedidos, reales y ficticios');
@@ -330,7 +343,7 @@ select prueba.falla(
     values ('demo@ovilloandco.example', 0, 0, 'Envío ordinario', 'cs_demo_falso')$$,
   '42501', 'demo no crea pedidos');
 select prueba.falla($$select public.suscribir_boletin('demo@ovilloandco.example')$$, '42501', 'demo no se apunta al boletín');
-select prueba.falla($$select public.pedir_aviso_stock('pulpito-reversible', 'Azul niebla', 'demo@ovilloandco.example')$$,
+select prueba.falla($$select public.pedir_aviso_stock('scrunchies-degradado', 'Degradado rojo', 'demo@ovilloandco.example')$$,
   '42501', 'demo no pide avisos de stock');
 select prueba.falla($$select public.registrar_mensaje_contacto('Otra cosa', 'Demo', 'demo@ovilloandco.example', 'Mensaje desde demo.', true)$$,
   '42501', 'demo no registra mensajes');

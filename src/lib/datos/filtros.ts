@@ -2,6 +2,7 @@
 // las dos fuentes de datos, así que la semilla y Supabase devuelven
 // exactamente el mismo resultado para la misma consulta.
 
+import { precioVenta } from '@/lib/catalogo/precio';
 import type { Categoria, Producto, SlugCategoria } from '@/lib/catalogo/tipos';
 
 export const ORDENES = [
@@ -9,17 +10,22 @@ export const ORDENES = [
   { id: 'nuevo', texto: 'Novedades primero' },
   { id: 'barato', texto: 'Precio: de menor a mayor' },
   { id: 'caro', texto: 'Precio: de mayor a menor' },
-  { id: 'az', texto: 'Nombre A-Z' },
+  { id: 'az', texto: 'Nombre A–Z' },
 ] as const;
 
 export type Orden = (typeof ORDENES)[number]['id'];
 
-/** Rangos de precio en céntimos, ambos extremos incluidos. */
+/**
+ * Rangos del precio final (con las rebajas ya aplicadas), en céntimos y
+ * con los dos extremos incluidos. Están elegidos para el catálogo real:
+ * detalles hasta 20 €, la mayoría de piezas entre 20 y 30 €, conjuntos
+ * hasta 50 € y las mantas por encima.
+ */
 export const RANGOS_PRECIO = [
-  { id: 'hasta-20', texto: 'Menos de 20 €', min: 0, max: 1999 },
-  { id: '20-35', texto: '20 – 35 €', min: 2000, max: 3500 },
-  { id: '35-70', texto: '35 – 70 €', min: 3501, max: 7000 },
-  { id: 'desde-70', texto: 'Más de 70 €', min: 7001, max: null },
+  { id: 'hasta-20', texto: 'Hasta 20 €', min: 0, max: 2000 },
+  { id: '20-30', texto: '20–30 €', min: 2001, max: 3000 },
+  { id: '30-50', texto: '30–50 €', min: 3001, max: 5000 },
+  { id: 'desde-50', texto: 'Más de 50 €', min: 5001, max: null },
 ] as const;
 
 type RangoPrecio = (typeof RANGOS_PRECIO)[number]['id'];
@@ -60,15 +66,19 @@ export function stockTotal(producto: Producto): number {
   return producto.variantes.reduce((suma, v) => suma + v.stock, 0);
 }
 
-/** Lo que ya está hecho y queda en el taller sale en 24-48 h. */
+/** Lo que ya está hecho y queda en el taller sale en 24–48 h. */
 function listoParaEnviar(producto: Producto): boolean {
   return !producto.encargo && stockTotal(producto) > 0;
 }
 
-/** Rebajado: tiene precio anterior y es mayor que el actual. */
+/** Rebajado: tiene precio tachado, ya sea por la rebaja automática de su
+ *  categoría o porque su precio anterior era mayor. */
 export function enOferta(producto: Producto): boolean {
-  return producto.antes !== null && producto.antes > producto.precio;
+  return precioVenta(producto).anterior !== null;
 }
+
+/** Lo que se paga por una unidad, que es lo que filtran y ordenan los precios. */
+const precioFinal = (producto: Producto) => precioVenta(producto).final;
 
 function enRango(precio: number, id: RangoPrecio): boolean {
   const rango = RANGOS_PRECIO.find((r) => r.id === id);
@@ -103,8 +113,8 @@ const COMPARADORES: Record<Orden, (a: Producto, b: Producto) => number> = {
     Number(b.destacado) - Number(a.destacado) ||
     Number(stockTotal(b) > 0) - Number(stockTotal(a) > 0),
   nuevo: (a, b) => Number(b.novedad) - Number(a.novedad),
-  barato: (a, b) => a.precio - b.precio,
-  caro: (a, b) => b.precio - a.precio,
+  barato: (a, b) => precioFinal(a) - precioFinal(b),
+  caro: (a, b) => precioFinal(b) - precioFinal(a),
   az: (a, b) => POR_NOMBRE.compare(a.nombre, b.nombre),
 };
 
@@ -119,7 +129,7 @@ function filtrarProductos(
   return productos.filter(
     (p) =>
       (cats.length === 0 || cats.includes(p.categoria)) &&
-      (rangos.length === 0 || rangos.some((r) => enRango(p.precio, r))) &&
+      (rangos.length === 0 || rangos.some((r) => enRango(precioFinal(p), r))) &&
       extras.every((e) => CUMPLE_EXTRA[e](p)) &&
       coincideBusqueda(p, palabras, categorias),
   );
@@ -140,8 +150,22 @@ export function aplicarFiltros(
 }
 
 /**
- * «También te puede gustar»: primero la misma categoría, después el
- * resto, siempre sin el propio producto y con lo disponible delante.
+ * Categorías que acompañan bien a cada una: lo de bebé va con muñecos y
+ * packs de regalo, lo de casa con los packs de cocina, etc.
+ */
+const COMPLEMENTARIAS: Record<SlugCategoria, readonly SlugCategoria[]> = {
+  amigurumis: ['bebe', 'packs'],
+  bebe: ['amigurumis', 'packs'],
+  accesorios: ['hogar'],
+  hogar: ['packs', 'accesorios'],
+  packs: ['bebe', 'hogar'],
+};
+
+/**
+ * «También te puede gustar» y «Se lleva bien con…»: primero la misma
+ * categoría y después las complementarias, siempre sin el propio
+ * producto y con lo disponible delante. Si no hay bastantes con sentido,
+ * devuelve menos antes que rellenar con piezas que no pegan.
  */
 export function elegirRelacionados(productos: readonly Producto[], slug: string, cantidad = 4): Producto[] {
   const actual = productos.find((p) => p.slug === slug);
@@ -150,14 +174,16 @@ export function elegirRelacionados(productos: readonly Producto[], slug: string,
     productos.filter((p) => p.slug !== slug),
     'destacados',
   );
-  const misma = otros.filter((p) => p.categoria === actual.categoria);
-  const resto = otros.filter((p) => p.categoria !== actual.categoria);
-  return [...misma, ...resto].slice(0, Math.max(0, cantidad));
+  const categorias = [actual.categoria, ...COMPLEMENTARIAS[actual.categoria]];
+  const disponibleAntes = (a: Producto, b: Producto) => Number(stockTotal(b) > 0) - Number(stockTotal(a) > 0);
+  return categorias
+    .flatMap((categoria) => otros.filter((p) => p.categoria === categoria).sort(disponibleAntes))
+    .slice(0, Math.max(0, cantidad));
 }
 
 // ------------------------------------------------------------
 // URL ⇄ filtros. La URL refleja los filtros para poder compartir un
-// enlace ya filtrado: ?cat=accesorios&precio=20-35&filtro=ofertas&q=manta&orden=barato
+// enlace ya filtrado: ?cat=accesorios&precio=20-30&filtro=ofertas&q=manta&orden=barato
 // ------------------------------------------------------------
 
 export type ParametrosBusqueda = Record<string, string | string[] | undefined>;

@@ -9,6 +9,7 @@ import {
   type CampoContacto,
   type CampoEncargo,
 } from './esquemas';
+import { PRESUPUESTOS } from './opciones';
 
 const JPEG = [0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46];
 const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0];
@@ -22,7 +23,7 @@ function encargoValido(): FormData {
   f.set('tipo', 'amigurumi-mascota');
   f.set('descripcion', 'Una gata siamesa de unos 20 cm, para un cumpleaños.');
   f.set('fecha', '14 de octubre');
-  f.set('presupuesto', '25 – 50 €');
+  f.set('presupuesto', PRESUPUESTOS[1]);
   f.set('colores', 'crudo y marrón');
   f.set('nombre', 'Persona de prueba');
   f.set('correo', 'prueba@ejemplo.test');

@@ -154,7 +154,7 @@
 .polaroid:hover { transform: rotate(0) scale(1.04) !important; box-shadow: var(--sombra-g); z-index: 5; }
 .polaroid .foto { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 2px; background: var(--sup); }
 .polaroid .foto img { object-fit: cover; }
-.polaroid figcaption { position: absolute; bottom: 14px; left: 14px; font-family: var(--serif); font-style: italic; font-size: .88rem; color: var(--tinta-3); }
+.polaroid figcaption { position: absolute; bottom: 14px; left: 14px; font-family: var(--serif); font-size: .88rem; color: var(--tinta-3); }
 .p1 { width: 52%; top: 0; left: 0; transform: rotate(-4deg); }
 .p2 { width: 46%; bottom: 0; right: 0; transform: rotate(5deg); }
 .p3 { width: 34%; top: 30%; left: 34%; transform: rotate(-1.5deg); z-index: 2; }
@@ -213,6 +213,12 @@ details[open] summary .mas { transform: rotate(135deg); }
 .brindis.visible { transform: translate(-50%, 0); }
 .brindis svg { stroke: var(--verde); flex: 0 0 auto; }
 .brindis:empty { visibility: hidden; }
+/* En móvil el cajón de la cesta ocupa casi todo el ancho y sus botones
+   van abajo: con una capa abierta, el aviso baja desde arriba. */
+@media (max-width: 760px) {
+  body.sin-scroll .brindis { top: 14px; bottom: auto; transform: translate(-50%, -160%); }
+  body.sin-scroll .brindis.visible { transform: translate(-50%, 0); }
+}
 
 /* ---------- Títulos pequeños en versalitas (cajas, filtros) ---------- */
 .titulo-mini { display: block; font-family: var(--sans); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-2); font-weight: 500; line-height: 1.4; }
@@ -274,3 +280,4 @@ details[open] summary .mas { transform: rotate(135deg); }
 .btn-peligro { background: var(--rojo); color: #FFFFFF; }
 .btn-peligro:hover { background: #7E1F1F; transform: translateY(-2px); }
 .form-panel-demo { display: inline-flex; }
+.nota-rebaja { margin: -.25rem 0 .35rem; color: var(--verde-osc); }

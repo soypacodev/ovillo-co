@@ -10,10 +10,13 @@ import { JsonLd } from '@/componentes/contenido/json-ld';
 import { Migas } from '@/componentes/contenido/migas';
 import { IcoInfo, IcoOk } from '@/componentes/iconos';
 import { paraCesta, TarjetaProducto } from '@/componentes/producto/tarjeta-producto';
+import { ProveedorVariante } from '@/componentes/catalogo/variante-ficha';
+import { precioVenta } from '@/lib/catalogo/precio';
 import type { MetodoEnvio, Producto } from '@/lib/catalogo/tipos';
-import { catalogo, enOferta, stockTotal } from '@/lib/datos';
+import { catalogo, stockTotal } from '@/lib/datos';
 import { urlSitio } from '@/lib/datos/entorno';
-import { eur, porcentajeRebaja } from '@/lib/formato';
+import { eur } from '@/lib/formato';
+import { diaLargo } from '@/lib/fechas';
 import { metadatosPagina } from '@/lib/metadatos';
 import { rutas } from '@/lib/rutas';
 import { tipografia } from '@/lib/tipografia';
@@ -31,12 +34,13 @@ export async function generateMetadata({ params }: PropsFicha): Promise<Metadata
   const producto = await catalogo().producto(slug);
   if (!producto) return { title: 'Pieza no encontrada' };
 
-  const foto = producto.fotos[0];
   return metadatosPagina({
     titulo: producto.nombre,
     descripcion: recortar(`${producto.corto} ${producto.largo}`, 160),
     ruta: rutas.producto(producto.slug),
-    imagen: foto && { url: foto.src, alt: foto.alt },
+    // La compone ./opengraph-image.tsx con la foto, el nombre y el precio.
+    imagen: 'ruta',
+    precio: precioVenta(producto).final,
   });
 }
 
@@ -51,6 +55,7 @@ function recortar(texto: string, maximo: number): string {
 function datosEstructurados(producto: Producto) {
   const base = urlSitio();
   const disponible = stockTotal(producto) > 0;
+  const { final, rebaja } = precioVenta(producto);
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -64,7 +69,9 @@ function datosEstructurados(producto: Producto) {
       '@type': 'Offer',
       url: `${base}${rutas.producto(producto.slug)}`,
       priceCurrency: 'EUR',
-      price: (producto.precio / 100).toFixed(2),
+      // El precio que se paga, con la rebaja automática ya aplicada.
+      price: (final / 100).toFixed(2),
+      ...(rebaja?.hasta && { priceValidUntil: rebaja.hasta }),
       itemCondition: 'https://schema.org/NewCondition',
       availability: !disponible
         ? 'https://schema.org/OutOfStock'
@@ -90,17 +97,17 @@ export default async function Ficha({ params }: PropsFicha) {
   const producto = await fuente.producto(slug);
   if (!producto) notFound();
 
-  const [categoria, relacionados, promociones, envios] = await Promise.all([
+  const [categoria, relacionados, envios] = await Promise.all([
     fuente.categoria(producto.categoria),
     fuente.relacionados(producto.slug, 4),
-    fuente.promociones(),
     fuente.metodosEnvio(),
   ]);
 
-  const descuento = enOferta(producto) ? porcentajeRebaja(producto.antes, producto.precio) : 0;
-  const rebajaCesta = promociones.find(
-    (p) => p.codigo === null && p.tipo === 'porcentaje' && p.categoria === producto.categoria,
+  const precio = precioVenta(producto);
+  const fotoDeVariante = producto.variantes.map((v) =>
+    v.foto ? producto.fotos.findIndex((f) => f.src === v.foto?.src) : -1,
   );
+  const primeraConStock = Math.max(0, producto.variantes.findIndex((v) => v.stock > 0));
   const fotoHistoria = producto.fotos[1] ?? producto.fotos[0];
   const detalles: ElementoAcordeon[] = [
     {
@@ -151,7 +158,7 @@ export default async function Ficha({ params }: PropsFicha) {
     detalles.push({
       titulo: '¿Es seguro para un bebé?',
       contenido:
-        'Nada de ojos de plástico ni piezas pequeñas: todo va bordado. El relleno es fibra hueca hipoalergénica. Aun así, no dejes a un bebé dormir con nada suelto en la cuna.',
+        'Ojos y detalles van bordados: nada de plástico ni piezas que se puedan soltar. El relleno es fibra hueca hipoalergénica. Aun así, mientras duerme, nada suelto en la cuna, y lo decorativo, como las guirnaldas, siempre fuera de su alcance.',
     });
   }
 
@@ -168,82 +175,84 @@ export default async function Ficha({ params }: PropsFicha) {
           ]}
         />
 
-        <div className="ficha">
-          <GaleriaProducto
-            fotos={producto.fotos}
-            nombre={producto.nombre}
-            encargo={producto.encargo}
-            descuento={descuento}
-          />
+        <ProveedorVariante inicial={primeraConStock}>
+          <div className="ficha">
+            <GaleriaProducto
+              fotos={producto.fotos}
+              fotoDeVariante={fotoDeVariante}
+              nombre={producto.nombre}
+              encargo={producto.encargo}
+              descuento={precio.porcentaje}
+            />
 
-          <div className="datos-ficha">
-            <p className="eyebrow ent ent-1">
-              {categoria?.nombre ?? producto.categoria}
-              {producto.tipo === 'pack' && ' · Pack'}
-            </p>
-            <h1 className="ent ent-2 tit-ficha">{producto.nombre}</h1>
-            <p className="lead ent ent-3 desc-ficha">{tipografia(producto.largo)}</p>
+            <div className="datos-ficha">
+              <p className="eyebrow ent ent-1">{categoria?.nombre ?? producto.categoria}</p>
+              <h1 className="ent ent-2 tit-ficha">{producto.nombre}</h1>
+              <p className="lead ent ent-3 desc-ficha">{tipografia(producto.largo)}</p>
 
-            <div className="ent ent-4 precio-ficha">
-              <span className="precio-g">{eur(producto.precio)}</span>
-              {descuento > 0 && producto.antes && (
-                <>
-                  <span className="antes">
-                    <span className="oculto-vis">Antes </span>
-                    {eur(producto.antes)}
-                  </span>
-                  <span className="dto">−{descuento} %</span>
-                </>
-              )}
-              <span className="mini">IVA incluido · envío aparte</span>
-            </div>
-
-            <div className="ent ent-5 avisos-ficha">
-              {producto.encargo ? (
-                <p className="aviso">
-                  <IcoInfo />
-                  <span>
-                    <b>Se teje al pedir · {producto.dias ?? 'unos'} días.</b> Es lo que tardamos en tenerlo listo, más
-                    el envío. Te escribimos cuando lo empezamos y cuando sale del taller.
-                  </span>
-                </p>
-              ) : stockTotal(producto) > 0 ? (
-                <p className="aviso aviso-ok">
-                  <IcoOk />
-                  <span>
-                    <b>Listo para enviar:</b> sale del taller en 24–48 h.
-                  </span>
-                </p>
-              ) : null}
-              {rebajaCesta && (
-                <p className="aviso aviso-rebaja">
-                  <IcoInfo />
-                  <span>
-                    <b>{rebajaCesta.nombre}:</b> −{rebajaCesta.valor} % que se descuenta solo en la cesta, sin código.
-                  </span>
-                </p>
-              )}
-            </div>
-
-            {producto.contenido && producto.contenido.length > 0 && (
-              <div className="caja-cl contenido-pack">
-                <h2 className="titulo-mini">Qué lleva dentro</h2>
-                <ul>
-                  {producto.contenido.map((c) => (
-                    <li key={c} className="mini">
-                      <span aria-hidden="true">✓</span>
-                      {c}
-                    </li>
-                  ))}
-                </ul>
+              <div className="ent ent-4 precio-ficha">
+                <span className="precio-g">{eur(precio.final)}</span>
+                {precio.anterior !== null && (
+                  <>
+                    <span className="antes">
+                      <span className="oculto-vis">Antes </span>
+                      {eur(precio.anterior)}
+                    </span>
+                    <span className="dto">−{precio.porcentaje} %</span>
+                  </>
+                )}
+                <span className="mini">IVA incluido · envío aparte</span>
               </div>
-            )}
 
-            <CompraProducto producto={paraCesta(producto)} />
+              <div className="ent ent-5 avisos-ficha">
+                {producto.encargo ? (
+                  <p className="aviso">
+                    <IcoInfo />
+                    <span>
+                      <b>Se teje al pedir · {producto.dias ?? 'unos'} días.</b> Es lo que tardamos en tenerlo listo, más
+                      el envío. Te escribimos cuando lo empezamos y cuando sale del taller.
+                    </span>
+                  </p>
+                ) : stockTotal(producto) > 0 ? (
+                  <p className="aviso aviso-ok">
+                    <IcoOk />
+                    <span>
+                      <b>Listo para enviar:</b> sale del taller en 24–48 h.
+                    </span>
+                  </p>
+                ) : null}
+                {precio.rebaja && (
+                  <p className="aviso aviso-rebaja">
+                    <IcoInfo />
+                    <span>
+                      <b>{precio.rebaja.nombre}:</b> −{precio.rebaja.porcentaje} % ya descontado en el precio que
+                      ves{precio.rebaja.hasta ? `, hasta el ${diaLargo(precio.rebaja.hasta)}` : ''}. Sin código: en la
+                      cesta pagas lo mismo.
+                    </span>
+                  </p>
+                )}
+              </div>
 
-            <Acordeon className="acordeon-ficha" elementos={detalles} />
+              {producto.contenido && producto.contenido.length > 0 && (
+                <div className="caja-cl contenido-pack">
+                  <h2 className="titulo-mini">Qué lleva dentro</h2>
+                  <ul>
+                    {producto.contenido.map((c) => (
+                      <li key={c} className="mini">
+                        <span aria-hidden="true">✓</span>
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <CompraProducto producto={paraCesta(producto)} />
+
+              <Acordeon className="acordeon-ficha" elementos={detalles} />
+            </div>
           </div>
-        </div>
+        </ProveedorVariante>
       </div>
 
       {producto.historia && (

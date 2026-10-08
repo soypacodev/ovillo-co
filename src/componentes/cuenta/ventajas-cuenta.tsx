@@ -31,8 +31,8 @@ export function VentajasCuenta() {
       <div className="caja mt-4">
         <h2 className="titulo-mini">Sobre tus datos</h2>
         <p className="mini mt-2">
-          Guardamos tu nombre, tu correo y las direcciones que metas. La contraseña la gestiona Supabase cifrada: no la
-          podemos ver ni queriendo. Puedes borrar la cuenta cuando quieras desde «Mis datos».
+          Guardamos tu nombre, tu correo y las direcciones que metas. La contraseña se guarda cifrada: no la podemos
+          ver ni queriendo. Puedes borrar la cuenta cuando quieras desde «Mis datos».
         </p>
         <Link href={`${rutas.legal}#privacidad`} className="mini enlace mt-3">
           Leer la política de privacidad

@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { IcoLupa, IcoPersona } from '@/componentes/iconos';
+import { IcoPersona } from '@/componentes/iconos';
 import { rutas } from '@/lib/rutas';
 import { BotonCesta } from './boton-cesta';
 import { CabeceraPegajosa } from './cabecera-pegajosa';
+import { EnlaceBuscar, EnlaceFavoritos } from './enlaces-cabecera';
 import { Logo } from './logo';
 import { MenuMovil } from './menu-movil';
 import { MenuPrincipal } from './menu-principal';
@@ -17,9 +18,8 @@ export function Cabecera({ conSesion }: { conSesion: boolean }) {
         <Logo />
         <MenuPrincipal />
         <div className="acciones">
-          <Link className="icono solo-ancho" href={rutas.tienda} aria-label="Buscar en la tienda">
-            <IcoLupa />
-          </Link>
+          <EnlaceBuscar />
+          <EnlaceFavoritos className="icono solo-ancho" />
           <Link
             className="icono solo-ancho"
             href={cuenta}

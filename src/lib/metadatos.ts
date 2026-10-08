@@ -7,10 +7,11 @@ import type { Metadata } from 'next';
 const NOMBRE_TIENDA = 'Ovillo & Co.';
 
 /** La que genera app/opengraph-image.tsx. */
-const IMAGEN_GENERAL = {
+export const IMAGEN_GENERAL = {
   url: '/opengraph-image',
   width: 1200,
   height: 630,
+  type: 'image/jpeg',
   alt: 'Ovillo & Co. · Crochet hecho a mano en Málaga',
 };
 
@@ -20,24 +21,37 @@ interface DatosPagina {
   /** Ruta canónica, sin dominio (la completa metadataBase). */
   ruta: string;
   tipo?: 'website' | 'article';
-  /** Foto propia para compartir; sin ella, la imagen general de la tienda. */
-  imagen?: { url: string; alt: string };
+  /** Imagen para compartir: sin ella, la general; con «ruta», la que
+   *  genera el opengraph-image.tsx de la propia ruta, que Next añade solo. */
+  imagen?: { url: string; alt: string } | 'ruta';
+  /** En las fichas: precio en céntimos, para og:type «product». */
+  precio?: number;
 }
 
 /** Título, descripción, canónica y Open Graph completos de una página. */
-export function metadatosPagina({ titulo, descripcion, ruta, tipo = 'website', imagen }: DatosPagina): Metadata {
+export function metadatosPagina({ titulo, descripcion, ruta, tipo = 'website', imagen, precio }: DatosPagina): Metadata {
+  const openGraph = {
+    locale: 'es_ES',
+    siteName: NOMBRE_TIENDA,
+    url: ruta,
+    title: `${titulo} · ${NOMBRE_TIENDA}`,
+    description: descripcion,
+    ...(imagen !== 'ruta' && { images: [imagen ? { ...IMAGEN_GENERAL, ...imagen } : IMAGEN_GENERAL] }),
+  };
+  if (precio === undefined) {
+    return { title: titulo, description: descripcion, alternates: { canonical: ruta }, openGraph: { ...openGraph, type: tipo } };
+  }
+  // Next no contempla og:type «product» en `openGraph`: sin `type` ahí, las
+  // etiquetas de producto salen por `other` y no hay dos og:type distintos.
   return {
     title: titulo,
     description: descripcion,
     alternates: { canonical: ruta },
-    openGraph: {
-      type: tipo,
-      locale: 'es_ES',
-      siteName: NOMBRE_TIENDA,
-      url: ruta,
-      title: `${titulo} · ${NOMBRE_TIENDA}`,
-      description: descripcion,
-      images: [imagen ?? IMAGEN_GENERAL],
+    openGraph,
+    other: {
+      'og:type': 'product',
+      'product:price:amount': (precio / 100).toFixed(2),
+      'product:price:currency': 'EUR',
     },
   };
 }

@@ -6,6 +6,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { fotoVariante } from '@/lib/catalogo/precio';
 import type { MetodoEnvio, Producto, Promocion } from '@/lib/catalogo/tipos';
 import { ENVIO_GRATIS_DESDE, ENVIOS, PRODUCTOS, PROMOCIONES } from '@/datos/semilla';
 import { idLinea } from '@/lib/cesta/lineas';
@@ -72,7 +73,7 @@ export function calcularConCatalogo(
       categoria: producto.categoria,
       variante: variante.nombre,
       color: variante.color,
-      foto: producto.fotos[0] ?? null,
+      foto: fotoVariante(producto, variante),
       precio: producto.precio,
       encargo: producto.encargo,
       dias: producto.dias,

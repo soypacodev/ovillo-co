@@ -38,7 +38,7 @@ export function FormularioContacto() {
           </Link>
         }
       >
-        <p className="lead">Te contestamos en 24–48 horas laborables. Si es urgente, dilo en el asunto la próxima vez y lo miramos antes.</p>
+        <p className="lead">Te contestamos en 24–48 horas laborables. Si es urgente, dilo al principio del mensaje la próxima vez y lo miramos antes.</p>
         <p className="mini-2">
           {estado.guardado
             ? 'Esta tienda es una demostración: el mensaje se ha guardado en una base de datos de prueba y se ve en el panel del taller.'

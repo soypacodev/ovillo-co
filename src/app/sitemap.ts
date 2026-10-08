@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { INDEXAR_TIENDA } from '@/lib/buscadores/indexacion';
 import { catalogo } from '@/lib/datos';
 import { urlSitio } from '@/lib/datos/entorno';
 import { rutas } from '@/lib/rutas';
@@ -16,6 +17,10 @@ const PAGINAS: { ruta: string; prioridad: number }[] = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = urlSitio();
+  // En la demo solo se indexa la portada: listar páginas con noindex
+  // haría que Search Console las marcase como errores.
+  if (!INDEXAR_TIENDA) return [{ url: `${base}${rutas.inicio}`, priority: 1 }];
+
   const fuente = catalogo();
   const [categorias, productos] = await Promise.all([fuente.categorias(), fuente.productos()]);
 

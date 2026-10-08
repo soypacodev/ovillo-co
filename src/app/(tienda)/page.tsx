@@ -8,17 +8,38 @@ import { CifrasAnimadas } from '@/componentes/contenido/cifras-animadas';
 import { ZonaParalaje } from '@/componentes/portada/zona-paralaje';
 import { TarjetaProducto } from '@/componentes/producto/tarjeta-producto';
 import { suscribirBoletin } from '@/lib/acciones/boletin';
+import { INDEXAR_TIENDA, ROBOTS_PORTADA } from '@/lib/buscadores/indexacion';
+import { IMAGEN_GENERAL } from '@/lib/metadatos';
 import type { Categoria, Promocion } from '@/lib/catalogo/tipos';
 import { CIFRAS_TALLER, HORAS_MANTA } from '@/datos/taller';
-import { catalogo } from '@/lib/datos';
+import { catalogo, stockTotal } from '@/lib/datos';
 import { diaLargo } from '@/lib/fechas';
 import { rutas } from '@/lib/rutas';
 
 import '@/estilos/catalogo.css';
 import '@/estilos/portada.css';
 
+// La portada es la única página que se indexa en la demo (ver
+// src/lib/buscadores/indexacion.ts), así que su descripción dice qué es y
+// quién la ha hecho. En una instalación real habla solo de la tienda.
+const DESCRIPCION = INDEXAR_TIENDA
+  ? 'Amigurumis, mantas y accesorios de crochet tejidos a mano en Málaga, de uno en uno. Piezas únicas y encargos personalizados.'
+  : 'Tienda online de demostración hecha por Paco Dev: crochet a mano en Málaga, con catálogo, pago, envíos, encargos y panel para el taller.';
+
 export const metadata: Metadata = {
+  description: DESCRIPCION,
   alternates: { canonical: rutas.inicio },
+  robots: ROBOTS_PORTADA,
+  openGraph: {
+    type: 'website',
+    locale: 'es_ES',
+    siteName: 'Ovillo & Co.',
+    url: rutas.inicio,
+    title: 'Ovillo & Co. · Crochet hecho a mano en Málaga',
+    description: DESCRIPCION,
+    // Al definir su propio Open Graph, la portada no hereda la imagen de app/.
+    images: [IMAGEN_GENERAL],
+  },
 };
 
 const PASOS = [
@@ -91,7 +112,13 @@ export default async function Inicio() {
     fuente.metodosEnvio(),
   ]);
 
-  const destacados = todos.filter((p) => p.destacado).slice(0, 8);
+  // Ningún producto sale en dos bloques: las novedades tienen el suyo, y
+  // «lo que hay ahora mismo» es solo lo que está hecho y sale ya.
+  const novedadesVisibles = novedades.slice(0, 4);
+  const enNovedades = new Set(novedadesVisibles.map((p) => p.slug));
+  const destacados = todos
+    .filter((p) => !p.encargo && stockTotal(p) > 0 && !enNovedades.has(p.slug))
+    .slice(0, 4);
   const gratisDesde = envios.find((e) => e.id === 'ordinario')?.gratisDesde ?? null;
   const rebaja = rebajaDestacada(promociones, categorias);
 
@@ -138,7 +165,9 @@ export default async function Inicio() {
               <div>
                 <IcoCamion />
                 <span>
-                  <b>Envío en 48 h</b>
+                  <b>
+                    Sale del taller en <span className="sin-salto">24–48 h</span>
+                  </b>
                   {gratisDesde ? `Gratis a partir de ${eurosRedondos(gratisDesde)}` : 'A toda la península'}
                 </span>
               </div>
@@ -246,7 +275,7 @@ export default async function Inicio() {
                   −{rebaja.promo.valor} % en {rebaja.categoria.nombre.toLowerCase()}
                 </h2>
                 <p className="banda-texto">
-                  {rebaja.categoria.texto} Se descuenta solo en la cesta, sin código ni letra pequeña.
+                  {rebaja.categoria.texto} Ya va descontado en el precio de cada pieza, sin código ni letra pequeña.
                 </p>
               </div>
               <Link className="btn btn-1" href={rutas.categoria(rebaja.categoria.slug)}>
@@ -273,7 +302,7 @@ export default async function Inicio() {
               </Link>
             </Aparece>
             <Aparece efecto="rev-lista" className="rejilla rejilla-4">
-              {novedades.slice(0, 4).map((p) => (
+              {novedadesVisibles.map((p) => (
                 <TarjetaProducto key={p.slug} producto={p} />
               ))}
             </Aparece>
@@ -291,7 +320,7 @@ export default async function Inicio() {
               <br />y mucho hilo
             </h2>
             <p className="lead taller-texto">
-              Ovillo &amp; Co. nació en 2019 con un pulpito reversible y una lista de espera apuntada en la nevera.
+              Ovillo &amp; Co. nació en 2019 con un cervatillo dormilón y una lista de espera apuntada en la nevera.
               Hoy somos un taller pequeño en Málaga y seguimos tejiendo cada pieza de una en una.
             </p>
             <blockquote>

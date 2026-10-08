@@ -39,8 +39,14 @@ export function LineaCesta({ linea, alNavegar }: { linea: Linea; alNavegar?: () 
         />
       </div>
       <div className="linea-precio">
-        <p className="precio">{eur(linea.precio * linea.uds)}</p>
-        {rebaja > 0 && <p className="mini-2 dto">−{eur(rebaja)}</p>}
+        {/* El precio ya rebajado, como en la ficha; el tachado, el de catálogo. */}
+        <p className="precio">{eur(linea.precio * linea.uds - rebaja)}</p>
+        {rebaja > 0 && (
+          <p className="mini-2 antes">
+            <span className="oculto-vis">Antes </span>
+            {eur(linea.precio * linea.uds)}
+          </p>
+        )}
         <button type="button" className="boton-texto" onClick={() => quitar(linea.id)}>
           quitar<span className="oculto-vis"> {linea.nombre}</span>
         </button>

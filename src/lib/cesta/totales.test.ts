@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Promocion } from '@/lib/catalogo/tipos';
 import { PROMOCIONES } from '@/datos/semilla';
-import { FECHA, cestaCon } from './prueba-utiles';
+import { precioVenta } from '@/lib/catalogo/precio';
+import { anadirProducto } from './lineas';
+import { FECHA, cestaCon, producto } from './prueba-utiles';
+import { CESTA_VACIA } from './tipos';
 import { promocionVigente, totales } from './totales';
 
 describe('totales', () => {
@@ -43,7 +46,7 @@ describe('totales', () => {
   });
 
   it('la recogida en el taller es gratis', () => {
-    const { lineas } = cestaCon(['pulpito-reversible']);
+    const { lineas } = cestaCon(['cervatillo-dormilon']);
     expect(totales(lineas, null, { envioId: 'recogida', fecha: FECHA }).envio).toBe(0);
   });
 
@@ -65,28 +68,51 @@ describe('totales', () => {
   });
 
   it('PRIMERA5 resta 5 € y ENVIOGRATIS anula el envío', () => {
-    const { lineas } = cestaCon(['pulpito-reversible', { uds: 2 }]);
-    expect(totales(lineas, 'PRIMERA5', { fecha: FECHA }).total).toBe(3600 - 500 + 395);
+    const { lineas } = cestaCon(['cervatillo-dormilon', { uds: 2 }]);
+    expect(totales(lineas, 'PRIMERA5', { fecha: FECHA }).total).toBe(4800 - 500 + 395);
     const t = totales(lineas, 'ENVIOGRATIS', { fecha: FECHA });
     expect(t.envioGratisCupon).toBe(true);
     expect(t.envio).toBe(0);
     expect(t.faltaEnvioGratis).toBe(0);
-    expect(t.total).toBe(3600);
+    expect(t.total).toBe(4800);
   });
 
   it('un cupón que no llega al mínimo no descuenta y dice cuánto falta', () => {
-    const { lineas } = cestaCon(['pulpito-reversible']);
+    // El bolso se queda en 18,70 € con la rebaja de accesorios.
+    const { lineas } = cestaCon(['bolso-red-mercado']);
     const t = totales(lineas, 'PRIMERA5', { fecha: FECHA });
     expect(t.rebajaCupon).toBe(0);
     expect(t.promocionCupon?.codigo).toBe('PRIMERA5');
-    expect(t.cuponFaltaMinimo).toBe(200);
+    expect(t.cuponFaltaMinimo).toBe(130);
   });
 
   it('un cupón desconocido se ignora', () => {
-    const { lineas } = cestaCon(['pulpito-reversible']);
+    const { lineas } = cestaCon(['cervatillo-dormilon']);
     const t = totales(lineas, 'NOEXISTE', { fecha: FECHA });
     expect(t.promocionCupon).toBeNull();
-    expect(t.total).toBe(1800 + 395);
+    expect(t.total).toBe(2400 + 395);
+  });
+
+  it('la rebaja automática se redondea por unidad: la cesta cuadra con el precio de la ficha', () => {
+    // 19,90 € − 15 % = 16,91 € la unidad (la rebaja de 2,985 € se redondea a 2,99 €).
+    const bolso = { ...producto('bolso-red-mercado'), precio: 1990 };
+    const { lineas } = anadirProducto(CESTA_VACIA, bolso, { uds: 3 }).estado;
+    const t = totales(lineas, null, { fecha: FECHA });
+    const final = precioVenta({ ...bolso, rebaja: { nombre: 'Rebajas de accesorios', porcentaje: 15, hasta: null } }).final;
+    expect(final).toBe(1691);
+    expect(t.rebajaAuto).toBe(3 * 299);
+    expect(t.subtotal - t.rebajaAuto).toBe(3 * final);
+  });
+
+  it('avisa si el código deja la cesta por debajo del envío gratis (el umbral cuenta tras descuentos)', () => {
+    // Cojín 34,00 € + bolso 18,70 € = 52,70 €: envío gratis. Con HOLA10, 47,43 €.
+    const { lineas } = cestaCon(['cojin-relieve'], ['bolso-red-mercado']);
+    expect(totales(lineas, null, { fecha: FECHA })).toMatchObject({ envio: 0, cuponQuitaEnvioGratis: false });
+    const t = totales(lineas, 'HOLA10', { fecha: FECHA });
+    expect(t).toMatchObject({ base: 4743, envio: 395, faltaEnvioGratis: 257, cuponQuitaEnvioGratis: true });
+    // ENVIOGRATIS no quita nada, y sin llegar al umbral tampoco hay nada que perder.
+    expect(totales(lineas, 'ENVIOGRATIS', { fecha: FECHA }).cuponQuitaEnvioGratis).toBe(false);
+    expect(totales(cestaCon(['cojin-relieve']).lineas, 'HOLA10', { fecha: FECHA }).cuponQuitaEnvioGratis).toBe(false);
   });
 
   it('una rebaja automática caducada no se aplica', () => {

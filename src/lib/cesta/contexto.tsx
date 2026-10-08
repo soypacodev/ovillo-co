@@ -124,10 +124,10 @@ export function ProveedorCesta({ children }: { children: ReactNode }) {
           if (abrirCajon && resultado.uds > 0) setAbierta(true);
           break;
         case 'agotado':
-          avisar('Ese color está agotado');
+          avisar('Esa opción está agotada');
           break;
         case 'sin-variante':
-          avisar('Elige un color antes de añadirlo');
+          avisar('Elige una opción antes de añadirlo');
           break;
       }
       return resultado;

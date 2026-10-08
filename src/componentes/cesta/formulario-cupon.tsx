@@ -44,6 +44,9 @@ export function FormularioCupon({ abierto = false }: { abierto?: boolean }) {
             Te faltan {eur(totales.cuponFaltaMinimo)} para que este código se aplique.
           </p>
         )}
+        {totales.cuponQuitaEnvioGratis && (
+          <p className="cupon-msg">El envío gratis se calcula con el importe ya descontado.</p>
+        )}
       </div>
     );
   }

@@ -58,9 +58,10 @@
 }
 
 /* ---------- Cabecera en pantallas muy estrechas ----------
-   Con cuatro iconos, el logo y el globito no caben hasta 320 px. Buscar
-   y Mi cuenta están también en el menú, así que aquí se esconden, y la
-   cinta de demostración pasa a su texto corto. */
+   Con cinco iconos, el logo y los globitos no caben hasta 320 px.
+   Favoritos y Mi cuenta están también en el menú, así que aquí se
+   esconden (el buscador se queda), y la cinta de demostración pasa a su
+   texto corto. */
 @media (max-width: 430px) {
   .cinta-demo .largo { display: none; }
   .cinta-demo .corto { display: inline; }
@@ -126,7 +127,7 @@
 @media (max-height: 420px) and (pointer: coarse) {
   /* En apaisado la cinta roba un tercio del alto útil. */
   .cinta { display: none; }
-  .cabecera .nav { padding: .5rem 0; }
+  .cabecera .nav { padding-block: .5rem; }
 }
 
 /* ---------- Impresión: que un pedido salga limpio en papel ---------- */

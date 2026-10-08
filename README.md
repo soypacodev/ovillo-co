@@ -97,7 +97,7 @@ Y lo que no se ve, pero se nota: carga rápida en móvil, textos accesibles para
 | Estilos | **CSS propio** con variables de diseño | Sin framework de estilos: menos peso y control total del diseño |
 | Tipografía | Fraunces y DM Sans **servidas desde el propio dominio** | Recortadas a lo que usa la web: pasan de 325 KB a 80 KB |
 | Pruebas | **Vitest**, **Playwright** con **axe-core** y PostgreSQL real | Lógica, interfaz, accesibilidad y políticas de la base de datos, en cada push |
-| Despliegue | **Vercel** | Previsualización por rama y dominio con HTTPS sin configurar servidores |
+| Despliegue | **Vercel**, con las funciones en París | Previsualización por rama y dominio con HTTPS sin configurar servidores; la región, fijada en [`vercel.json`](vercel.json), es la más cercana a España |
 
 **Funciona sin nada configurado.** Sin variables de entorno, el catálogo sale de [`src/datos/semilla.ts`](src/datos/semilla.ts), el pago crea pedidos de demostración y el panel enseña datos inventados generados al vuelo. Con Supabase y Stripe, la misma interfaz pasa a leer y escribir de verdad. Cómo se consigue está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
 
@@ -158,7 +158,7 @@ Para avisar de un fallo, sigue [`SECURITY.md`](SECURITY.md).
 | Pago | 92 · 100 | 100 | 96 |
 | Panel | 91 · 100 | 100 | 100 |
 
-La categoría SEO no aparece porque la demo lleva `noindex` a propósito, para no competir en los buscadores con tiendas de crochet de verdad; se quita con `NEXT_PUBLIC_INDEXAR=si`. Las fotos se sirven en AVIF o WebP con el tamaño justo para cada pantalla.
+La categoría SEO no aparece porque la demo solo deja indexar la portada, que se presenta como demostración, y el resto lleva `noindex` a propósito para no competir con tiendas de crochet de verdad; `NEXT_PUBLIC_INDEXAR=si` abre la tienda entera. Las fotos se sirven en AVIF o WebP con el tamaño justo para cada pantalla.
 
 ---
 
@@ -247,11 +247,12 @@ El código se publica bajo licencia [MIT](LICENSE): puedes usarlo, modificarlo y
 
 **Las fotos no entran en la licencia MIT.** Son de sus autores y se usan con la [licencia de Unsplash](https://unsplash.com/license); si reutilizas el proyecto, cámbialas por las tuyas o respeta esa licencia. Las fuentes conservan su propia licencia OFL, incluida junto a los archivos.
 
-## Autor
+## ¿Quieres algo así?
 
-Hecha por **Paco López · Paco Dev**, desarrollador full stack.
-¿Tienes un negocio y quieres una tienda así? Escríbeme.
+Ovillo &amp; Co. es una demostración hecha por **Paco López · Paco Dev**, desarrollador full stack en Málaga, para enseñar lo que puede tener un negocio pequeño: esta misma tienda, con tu catálogo, tus fotos y tus envíos. La web publicada lo dice en una cinta discreta arriba y en el pie, sin estorbar a quien solo quiere ver la tienda.
 
-[GitHub](https://github.com/soypacodev) · [Instagram @soypacodev](https://www.instagram.com/soypacodev) · [soypacodev@gmail.com](mailto:soypacodev@gmail.com)
+Escríbeme a **[soypacodev@gmail.com](mailto:soypacodev@gmail.com?subject=Quiero%20una%20tienda%20como%20Ovillo%20%26%20Co.)** y lo hablamos.
+
+[GitHub](https://github.com/soypacodev) · [Instagram @soypacodev](https://www.instagram.com/soypacodev/)
 
 <p align="center"><sub>Hecha en Málaga por <a href="https://github.com/soypacodev">Paco López</a>.</sub></p>

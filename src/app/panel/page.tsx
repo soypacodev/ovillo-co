@@ -11,7 +11,7 @@ import { rutas } from '@/lib/rutas';
 
 export const metadata: Metadata = { title: 'Resumen' };
 
-/** «+12 %», «−8 %» o null si el mes anterior no tuvo ventas. */
+/** «+12 %», «−8 %» o null si el tramo comparable no tuvo ventas. */
 function variacion(actual: number, anterior: number): { texto: string; sube: boolean } | null {
   if (!anterior) return null;
   const pct = Math.round(((actual - anterior) / anterior) * 100);
@@ -26,7 +26,7 @@ export default async function ResumenPanel() {
     fuente.stockBajo(1),
     fuente.pedidos({ limite: 5, desplazamiento: 0 }),
   ]);
-  const cambio = variacion(resumen.ventas_mes, resumen.ventas_mes_anterior);
+  const cambio = variacion(resumen.ventas_mes, resumen.ventas_periodo_anterior);
   const hoy = fechaLarga(new Date().toISOString());
 
   return (
@@ -46,10 +46,10 @@ export default async function ResumenPanel() {
                 {cambio ? (
                   <>
                     <span className={cambio.sube ? 'sube' : 'baja'}>{cambio.texto}</span> frente a los{' '}
-                    {eur(resumen.ventas_mes_anterior)} del mes pasado
+                    {eur(resumen.ventas_periodo_anterior)} del mismo periodo del mes pasado
                   </>
                 ) : (
-                  'El mes pasado no hubo ventas para comparar'
+                  'En el mismo periodo del mes pasado no hubo ventas para comparar'
                 )}
               </span>
             </dd>
@@ -93,7 +93,9 @@ export default async function ResumenPanel() {
             <dt>Stock bajo</dt>
             <dd>
               {resumen.variantes_stock_bajo}
-              <span className="cifra-nota">{resumen.variantes_stock_bajo === 1 ? 'variante' : 'variantes'} con 1 pieza o ninguna</span>
+              <span className="cifra-nota">
+                {resumen.variantes_stock_bajo === 1 ? 'variante hecha' : 'variantes hechas'} con 1 pieza o ninguna
+              </span>
             </dd>
           </div>
         </dl>
@@ -155,7 +157,7 @@ export default async function ResumenPanel() {
                     <span className="mini"> · {s.variante}</span>
                   </Link>
                   <span className={s.stock === 0 ? 'stock-cero' : 'stock-uno'}>
-                    {s.stock === 0 ? (s.encargo ? 'Por encargo' : 'Agotado') : 'Queda 1'}
+                    {s.stock === 0 ? 'Agotado' : 'Queda 1'}
                   </span>
                 </li>
               ))}

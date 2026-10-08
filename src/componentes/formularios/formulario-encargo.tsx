@@ -117,7 +117,7 @@ export function FormularioEncargo() {
           <Campo prefijo={PREFIJO} nombre="presupuesto" etiqueta="Presupuesto que tienes en mente" error={errores.presupuesto}>
             {(aria) => (
               <select {...aria} defaultValue={valores.presupuesto ?? ''}>
-                <option value="">Preferimos que nos lo digáis</option>
+                <option value="">Aún no lo sé</option>
                 {PRESUPUESTOS.map((p) => (
                   <option key={p} value={p}>
                     {tipografia(p)}

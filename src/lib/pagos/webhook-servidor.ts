@@ -6,6 +6,7 @@ import type Stripe from 'stripe';
 import { configuracionSupabase } from '@/lib/datos/entorno';
 import { entornoStripe } from '@/lib/datos/entorno-servidor';
 import { clienteServicio } from '@/lib/datos/supabase/servicio';
+import { leerCuerpoLimitado } from './cuerpo-limitado';
 import { clienteStripe, stripeConfigurado } from './stripe';
 import { procesarEvento, type DependenciasWebhook } from './webhook';
 
@@ -60,7 +61,7 @@ function dependencias(): DependenciasWebhook {
 
 const responder = (estado: number, mensaje: string) => Response.json({ mensaje }, { status: estado });
 
-/** Los eventos de Stripe ocupan unos pocos KB; más que esto no es suyo. */
+/** Los eventos de Stripe ocupan unos pocos KB; más que esto no es suyo. En bytes. */
 const MAX_CUERPO_WEBHOOK = 256 * 1024;
 
 /**
@@ -84,15 +85,13 @@ export async function manejarWebhook(peticion: Request): Promise<Response> {
   const firma = peticion.headers.get('stripe-signature');
   if (!firma) return responder(400, 'Falta la firma de Stripe.');
 
-  if (Number(peticion.headers.get('content-length') ?? 0) > MAX_CUERPO_WEBHOOK) {
-    return responder(413, 'Cuerpo demasiado grande.');
-  }
-  // La firma se calcula sobre el cuerpo exacto: hay que leerlo como texto.
-  const cuerpo = await peticion.text();
-  if (cuerpo.length > MAX_CUERPO_WEBHOOK) return responder(413, 'Cuerpo demasiado grande.');
+  // El límite es en bytes; la firma se calcula sobre esos mismos bytes,
+  // así que se le pasan tal cual, sin decodificar y volver a codificar.
+  const cuerpo = await leerCuerpoLimitado(peticion, MAX_CUERPO_WEBHOOK);
+  if (!cuerpo) return responder(413, 'Cuerpo demasiado grande.');
   let evento: Stripe.Event;
   try {
-    evento = stripe.webhooks.constructEvent(cuerpo, firma, secreto);
+    evento = stripe.webhooks.constructEvent(Buffer.from(cuerpo), firma, secreto);
   } catch {
     return responder(400, 'Firma no válida.');
   }

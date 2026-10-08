@@ -9,19 +9,22 @@ export interface PropsResumen {
   etiquetaEnvio?: string;
 }
 
-/** Filas de importes: subtotal, rebajas, cupón, envío y total. */
+/**
+ * Filas de importes: subtotal, cupón, envío y total. El subtotal suma las
+ * piezas con su precio ya rebajado, igual que cada línea; las rebajas
+ * automáticas se nombran debajo para que se vea lo que se ahorra.
+ */
 export function ResumenTotales({ totales: t, cupon, etiquetaEnvio = 'Envío' }: PropsResumen) {
   return (
     <>
       <div className="fila">
         <span>Subtotal</span>
-        <span>{eur(t.subtotal)}</span>
+        <span>{eur(t.subtotal - t.rebajaAuto)}</span>
       </div>
       {t.rebajasAuto.map((r) => (
-        <div className="fila" key={r.nombre}>
-          <span>{tipografia(r.nombre)}</span>
-          <span className="rebaja">{eurMenos(r.importe)}</span>
-        </div>
+        <p className="mini-2 nota-rebaja" key={r.nombre}>
+          Ya incluye {tipografia(r.nombre.toLowerCase())}: te ahorras {eur(r.importe)}.
+        </p>
       ))}
       {t.rebajaCupon > 0 && (
         <div className="fila">

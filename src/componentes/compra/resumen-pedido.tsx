@@ -28,7 +28,7 @@ export function ResumenPedido({ lineas, totales: t, cupon }: { lineas: readonly 
                   {l.variante} · {l.uds} ud.{l.personalizacion && ` · «${l.personalizacion}»`}
                 </p>
               </div>
-              <span className="mini precio">{eur(l.precio * l.uds)}</span>
+              <span className="mini precio">{eur(l.precio * l.uds - (t.rebajaPorLinea[l.id] ?? 0))}</span>
             </li>
           ))}
         </ul>

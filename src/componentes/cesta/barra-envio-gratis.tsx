@@ -9,7 +9,8 @@ export function BarraEnvioGratis({ totales }: { totales: Totales }) {
   return (
     <div className="progreso">
       <p className="mini">
-        Te faltan <b>{eur(totales.faltaEnvioGratis)}</b> para el envío gratis
+        {totales.cuponQuitaEnvioGratis ? 'Con este código te faltan ' : 'Te faltan '}
+        <b>{eur(totales.faltaEnvioGratis)}</b> para el envío gratis
       </p>
       <div
         className="barra"

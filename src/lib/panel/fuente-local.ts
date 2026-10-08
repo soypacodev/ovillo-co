@@ -75,15 +75,28 @@ function aFichaProducto(p: Producto): FichaProductoPanel {
   };
 }
 
+/**
+ * Mes en curso y el mismo tramo del mes anterior, como en panel_resumen():
+ * del día 1 a la misma fecha y hora, en hora de Madrid. Si el mes pasado
+ * era más corto, el tramo acaba con él (el 31 de marzo cuenta febrero entero).
+ */
+export function periodosComparables(ahora: Date): { mes: string; anterior: string; finAnterior: string } {
+  const mes = inicioMesMadrid(ahora);
+  const anterior = inicioMesMadrid(ahora, -1);
+  const transcurrido = ahora.getTime() - mes.getTime();
+  const finAnterior = new Date(Math.min(anterior.getTime() + transcurrido, mes.getTime()));
+  return { mes: mes.toISOString(), anterior: anterior.toISOString(), finAnterior: finAnterior.toISOString() };
+}
+
 /** `ahora` se puede fijar para que las pruebas den siempre lo mismo. */
 export function crearFuenteLocal(ahora: () => Date = () => new Date()): FuentePanel {
   // Se regeneran si cambia el día, para que «hoy» siga siendo hoy.
-  let cache: { dia: string; datos: DatosDemo } | null = null;
+  let datosDelDia: { dia: string; datos: DatosDemo } | null = null;
   const datos = () => {
     const momento = ahora();
     const dia = diaMadrid(momento);
-    if (!cache || cache.dia !== dia) cache = { dia, datos: generarDatosDemo(momento) };
-    return cache.datos;
+    if (!datosDelDia || datosDelDia.dia !== dia) datosDelDia = { dia, datos: generarDatosDemo(momento) };
+    return datosDelDia.datos;
   };
 
   const porFechaDesc = <T extends { creado_en: string }>(a: T, b: T) => b.creado_en.localeCompare(a.creado_en);
@@ -93,21 +106,23 @@ export function crearFuenteLocal(ahora: () => Date = () => new Date()): FuentePa
 
     async resumen() {
       const { pedidos, encargos, mensajes, suscriptores } = datos();
-      const mes = inicioMesMadrid(ahora()).toISOString();
-      const anterior = inicioMesMadrid(ahora(), -1).toISOString();
+      const momento = ahora();
+      const { mes, anterior, finAnterior } = periodosComparables(momento);
       const delMes = pedidos.filter((p) => vendido(p.estado) && p.creado_en >= mes);
       const ventasMes = delMes.reduce((s, p) => s + p.total, 0);
       return {
         ventas_mes: ventasMes,
         pedidos_mes: delMes.length,
         ticket_medio_mes: delMes.length ? Math.round(ventasMes / delMes.length) : 0,
-        ventas_mes_anterior: pedidos
-          .filter((p) => vendido(p.estado) && p.creado_en >= anterior && p.creado_en < mes)
+        ventas_periodo_anterior: pedidos
+          .filter((p) => vendido(p.estado) && p.creado_en >= anterior && p.creado_en < finAnterior)
           .reduce((s, p) => s + p.total, 0),
         pedidos_pendientes: pedidos.filter((p) => ESTADOS_PENDIENTES.includes(p.estado)).length,
         encargos_nuevos: encargos.filter((e) => e.estado === 'nuevo').length,
         mensajes_nuevos: mensajes.filter((m) => m.estado === 'nuevo').length,
-        variantes_stock_bajo: PRODUCTOS.flatMap((p) => p.variantes).filter((v) => v.stock <= 1).length,
+        variantes_stock_bajo: PRODUCTOS.filter((p) => !p.encargo)
+          .flatMap((p) => p.variantes)
+          .filter((v) => v.stock <= 1).length,
         suscriptores,
       };
     },
@@ -129,7 +144,8 @@ export function crearFuenteLocal(ahora: () => Date = () => new Date()): FuentePa
     },
 
     async stockBajo(umbral = 1) {
-      const filas: (StockBajo & { posicion: number })[] = PRODUCTOS.flatMap((p) =>
+      // Lo que se teje por encargo no se repone: su stock es el cupo de encargos.
+      const filas: (StockBajo & { posicion: number })[] = PRODUCTOS.filter((p) => !p.encargo).flatMap((p) =>
         p.variantes.map((v, posicion) => ({
           producto_slug: p.slug,
           producto: p.nombre,

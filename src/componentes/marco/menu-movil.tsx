@@ -6,20 +6,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { IcoCerrar, IcoMenu } from '@/componentes/iconos';
 import { usePanelModal } from '@/componentes/use-panel-modal';
 import { MENU_PRINCIPAL, esRutaActual, rutas } from '@/lib/rutas';
+import { TextoFavoritos } from './enlaces-cabecera';
 import { Logo } from './logo';
 
 const nadaQueEscuchar = () => () => {};
 
 export function MenuMovil({ cuenta }: { cuenta: string }) {
   // La cuenta depende de la sesión: no tiene sentido precargarla.
-  const enlaces = [
+  const enlaces: { href: string; texto: ReactNode; precargar?: boolean }[] = [
     ...MENU_PRINCIPAL,
     { href: cuenta, texto: 'Mi cuenta', precargar: false },
+    { href: rutas.favoritos, texto: <TextoFavoritos /> },
     { href: rutas.cesta, texto: 'Mi cesta' },
   ];
 
@@ -69,7 +71,7 @@ export function MenuMovil({ cuenta }: { cuenta: string }) {
                   <li key={e.href}>
                     <Link
                       href={e.href}
-                      prefetch={'precargar' in e ? e.precargar : undefined}
+                      prefetch={e.precargar}
                       onClick={cerrar}
                       aria-current={esRutaActual(e.href, ruta) ? 'page' : undefined}
                     >

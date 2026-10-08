@@ -7,6 +7,7 @@ import { CATEGORIAS, ENVIOS, PRODUCTOS, PROMOCIONES } from '@/datos/semilla';
 import { diaMadrid } from '@/lib/fechas';
 import { aplicarFiltros, elegirRelacionados } from './filtros';
 import type { FuenteCatalogo } from './fuente';
+import { conRebajas } from './rebajas';
 
 /** Igual que la base de datos: vale hasta el final del día de «hasta». */
 function vigente(promocion: Promocion, hoy: string): boolean {
@@ -15,6 +16,9 @@ function vigente(promocion: Promocion, hoy: string): boolean {
 
 /** Copia profunda para que nadie pueda modificar la semilla desde fuera. */
 const copia = <T>(valor: T): T => structuredClone(valor);
+
+/** Productos con la rebaja automática de hoy ya puesta. */
+const productosDeHoy = () => conRebajas(PRODUCTOS, PROMOCIONES);
 
 export const fuenteSemilla: FuenteCatalogo = {
   origen: 'semilla',
@@ -28,15 +32,15 @@ export const fuenteSemilla: FuenteCatalogo = {
   },
 
   async productos(filtros = {}) {
-    return copia(aplicarFiltros(PRODUCTOS, filtros, CATEGORIAS));
+    return copia(aplicarFiltros(productosDeHoy(), filtros, CATEGORIAS));
   },
 
   async producto(slug) {
-    return copia(PRODUCTOS.find((p) => p.slug === slug) ?? null);
+    return copia(productosDeHoy().find((p) => p.slug === slug) ?? null);
   },
 
   async relacionados(slug, cantidad = 4) {
-    return copia(elegirRelacionados(PRODUCTOS, slug, cantidad));
+    return copia(elegirRelacionados(productosDeHoy(), slug, cantidad));
   },
 
   async promociones() {

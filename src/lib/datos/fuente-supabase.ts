@@ -5,8 +5,10 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Categoria, Producto } from '@/lib/catalogo/tipos';
-import { aplicarFiltros, elegirRelacionados, RANGOS_PRECIO, type FiltrosCatalogo } from './filtros';
+import type { Promocion } from '@/lib/catalogo/tipos';
+import { aplicarFiltros, elegirRelacionados } from './filtros';
 import type { FuenteCatalogo } from './fuente';
+import { conRebajas } from './rebajas';
 import {
   aCategoria,
   aCupon,
@@ -31,13 +33,6 @@ function filas(respuesta: { data: unknown; error: ErrorSupabase | null }, que: s
   return Array.isArray(data) ? data : [data];
 }
 
-/** Rangos de precio como filtro «or» de PostgREST. */
-function filtroRangos(ids: NonNullable<FiltrosCatalogo['rangos']>): string {
-  return RANGOS_PRECIO.filter((r) => ids.includes(r.id))
-    .map((r) => (r.max === null ? `precio.gte.${r.min}` : `and(precio.gte.${r.min},precio.lte.${r.max})`))
-    .join(',');
-}
-
 /** Fuente del catálogo sobre un cliente anónimo de Supabase. */
 export function crearFuenteSupabase(cliente: SupabaseClient, urlSupabase: string): FuenteCatalogo {
   const aProductos = (lista: unknown[]): Producto[] => lista.map((f) => aProducto(f, urlSupabase));
@@ -47,13 +42,17 @@ export function crearFuenteSupabase(cliente: SupabaseClient, urlSupabase: string
     return filas(respuesta, 'las categorías').map((f) => aCategoria(f, urlSupabase));
   }
 
+  async function promociones(): Promise<Promocion[]> {
+    const respuesta = await cliente.from('promociones').select(SELECT_PROMOCION).is('codigo', null).order('nombre');
+    return filas(respuesta, 'las promociones').map(aPromocion);
+  }
+
   async function todosLosProductos(): Promise<Producto[]> {
-    const respuesta = await cliente
-      .from('productos')
-      .select(SELECT_PRODUCTO)
-      .eq('estado', 'publicado')
-      .order('posicion');
-    return aProductos(filas(respuesta, 'los productos'));
+    const [respuesta, rebajas] = await Promise.all([
+      cliente.from('productos').select(SELECT_PRODUCTO).eq('estado', 'publicado').order('posicion'),
+      promociones(),
+    ]);
+    return conRebajas(aProductos(filas(respuesta, 'los productos')), rebajas);
   }
 
   return {
@@ -70,39 +69,35 @@ export function crearFuenteSupabase(cliente: SupabaseClient, urlSupabase: string
     async productos(filtros = {}) {
       let consulta = cliente.from('productos').select(SELECT_PRODUCTO).eq('estado', 'publicado');
 
+      // Precio y ofertas dependen de la rebaja automática: se filtran aquí,
+      // con el precio final, y no en la base de datos.
       if (filtros.categorias?.length) consulta = consulta.in('categoria.slug', [...filtros.categorias]);
-      if (filtros.rangos?.length) consulta = consulta.or(filtroRangos(filtros.rangos));
       if (filtros.extras?.includes('encargo')) consulta = consulta.eq('encargo', true);
       if (filtros.extras?.includes('novedades')) consulta = consulta.eq('novedad', true);
-      if (filtros.extras?.includes('ofertas')) consulta = consulta.not('antes', 'is', null);
 
       // Las categorías solo hacen falta para buscar también por su nombre.
-      const [respuesta, cats] = await Promise.all([
+      const [respuesta, rebajas, cats] = await Promise.all([
         consulta.order('posicion'),
+        promociones(),
         filtros.busqueda?.trim() ? categorias() : Promise.resolve([]),
       ]);
-      return aplicarFiltros(aProductos(filas(respuesta, 'los productos')), filtros, cats);
+      return aplicarFiltros(conRebajas(aProductos(filas(respuesta, 'los productos')), rebajas), filtros, cats);
     },
 
     async producto(slug) {
-      const respuesta = await cliente
-        .from('productos')
-        .select(SELECT_PRODUCTO)
-        .eq('slug', slug)
-        .eq('estado', 'publicado')
-        .maybeSingle();
+      const [respuesta, rebajas] = await Promise.all([
+        cliente.from('productos').select(SELECT_PRODUCTO).eq('slug', slug).eq('estado', 'publicado').maybeSingle(),
+        promociones(),
+      ]);
       const [fila] = filas(respuesta, 'el producto');
-      return fila ? aProducto(fila, urlSupabase) : null;
+      return fila ? conRebajas([aProducto(fila, urlSupabase)], rebajas)[0] : null;
     },
 
     async relacionados(slug, cantidad = 4) {
       return elegirRelacionados(await todosLosProductos(), slug, cantidad);
     },
 
-    async promociones() {
-      const respuesta = await cliente.from('promociones').select(SELECT_PROMOCION).is('codigo', null).order('nombre');
-      return filas(respuesta, 'las promociones').map(aPromocion);
-    },
+    promociones,
 
     async cupon(codigo) {
       if (!codigo.trim()) return null;

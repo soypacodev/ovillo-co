@@ -83,7 +83,7 @@ export function Confirmacion({ pedido: p }: { pedido: ResumenPedido }) {
         {p.estado !== 'pendiente' && <Confeti />}
         <Ovillo width={64} height={64} className="flota ovillo-gracias" />
         <p className="eyebrow ent ent-1">{p.estado === 'pendiente' ? 'Pago en proceso' : 'Pedido confirmado'}</p>
-        <h1 className="ent ent-2">{p.estado === 'pendiente' ? 'Casi está' : '¡Gracias! Ya nos ponemos'}</h1>
+        <h1 className="ent ent-2">{p.estado === 'pendiente' ? 'Casi está' : '¡Gracias! Nos ponemos con ello'}</h1>
         <p className="lead ent ent-3">
           {p.diasConfeccion
             ? `Como hay piezas que se tejen al pedir, calcula unos ${p.diasConfeccion} días antes de que salga.`

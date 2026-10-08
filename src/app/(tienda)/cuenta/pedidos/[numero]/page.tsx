@@ -99,7 +99,7 @@ export default async function PaginaPedido({ params }: PropsPedido) {
                       {l.nombre_producto}
                     </Link>
                     <span className="mini">
-                      {l.nombre_variante} · {l.cantidad} × {eur(l.precio_unitario)}
+                      {l.nombre_variante} · {l.cantidad} × {eur(Math.round(l.total / l.cantidad))}
                       {l.personalizacion && ` · «${l.personalizacion}»`}
                     </span>
                   </span>
@@ -109,16 +109,16 @@ export default async function PaginaPedido({ params }: PropsPedido) {
             })}
           </ul>
           <dl className="totales-pedido">
+            {/* Las líneas llevan ya la rebaja automática: el subtotal es su suma. */}
             <div className="fila">
               <dt>Subtotal</dt>
-              <dd>{eur(pedido.subtotal)}</dd>
+              <dd>
+                {eur(pedido.subtotal - pedido.descuento_automatico)}
+                {pedido.descuento_automatico > 0 && (
+                  <span className="mini-2 nota-rebaja"> (con {eur(pedido.descuento_automatico)} de rebajas)</span>
+                )}
+              </dd>
             </div>
-            {pedido.descuento_automatico > 0 && (
-              <div className="fila">
-                <dt>Rebajas</dt>
-                <dd className="rebaja">{eurMenos(pedido.descuento_automatico)}</dd>
-              </div>
-            )}
             {pedido.descuento_cupon > 0 && (
               <div className="fila">
                 <dt>Código {pedido.codigo_cupon}</dt>

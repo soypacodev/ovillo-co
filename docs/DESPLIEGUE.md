@@ -36,7 +36,7 @@ Y en tu ordenador: [Node.js](https://nodejs.org) 22.18 o superior y [Git](https:
 3. Rellena:
    - **Project name**: `ovillo-co` (o el nombre de tu tienda).
    - **Database Password**: pulsa **Generate a password** y **guárdala** en tu gestor de contraseñas. La necesitarás para la terminal.
-   - **Region**: la más cercana a tu clientela. Para España, **West EU (Ireland)** o **Central EU (Frankfurt)**.
+   - **Region**: la más cercana a tu clientela. Para España, **West EU (Paris)**: es donde [`vercel.json`](../vercel.json) pone las funciones de la web, y así las consultas no salen de la ciudad. Si cambias una, cambia la otra.
 4. Pulsa **Create new project** y espera un par de minutos a que termine.
 5. Apunta tres datos. Están en **Project Settings** (rueda dentada abajo a la izquierda):
    - **Data API → Project URL**: algo como `https://abcdefghijkl.supabase.co`. Será `NEXT_PUBLIC_SUPABASE_URL`.
@@ -264,6 +264,8 @@ Al arrancar enseña *Your webhook signing secret is whsec_…*: ese valor es `ST
 
 En **Settings → Build and Deployment → Node.js Version**, elige **22.x**.
 
+No hace falta elegir región: [`vercel.json`](../vercel.json) pone las funciones en París (`cdg1`), cerca de la clientela en España y de Supabase si lo creaste en *West EU (Paris)*. Si tu clientela está en otro sitio, cambia la región ahí; el plan Hobby admite una.
+
 ### Variables de entorno
 
 | Variable | Qué es | De dónde sale | ¿Secreta? |
@@ -276,7 +278,7 @@ En **Settings → Build and Deployment → Node.js Version**, elige **22.x**.
 | `DEMO_PANEL_PASSWORD` | Contraseña de esa cuenta | Paso 5 | **Sí** |
 | `STRIPE_SECRET_KEY` | Clave secreta de Stripe (`sk_test_…`). Vacía o incompleta, el pago funciona en modo demostración | Paso 6 | **Sí** |
 | `STRIPE_WEBHOOK_SECRET` | Secreto de firma del webhook de producción (`whsec_…`) | Paso 9 | **Sí** |
-| `NEXT_PUBLIC_INDEXAR` | `si` para que los buscadores indexen la tienda; cualquier otro valor añade `noindex` | Tú decides | No |
+| `NEXT_PUBLIC_INDEXAR` | `si` para que los buscadores indexen toda la tienda; con cualquier otro valor solo se indexa la portada (ver [Arquitectura](ARQUITECTURA.md#qué-ven-los-buscadores)) | Tú decides | No |
 
 > **Las variables `NEXT_PUBLIC_*` se graban en la compilación.** Si cambias una, hay que volver a desplegar: **Deployments → ⋯ del último → Redeploy**.
 >

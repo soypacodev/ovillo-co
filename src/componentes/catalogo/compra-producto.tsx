@@ -1,7 +1,9 @@
 'use client';
 
-// Bloque de compra de la ficha: color, iniciales, unidades, añadir y
-// favoritos, más la barra fija del móvil, que comparte el mismo estado.
+// Bloque de compra de la ficha: variante (color, talla o modelo),
+// iniciales, unidades, añadir y favoritos, más la barra fija del móvil,
+// que comparte el mismo estado. La variante elegida vive en
+// <ProveedorVariante> para que la galería enseñe su foto.
 
 import { useId, useState } from 'react';
 import { ContadorUnidades } from '@/componentes/cesta/contador-unidades';
@@ -9,16 +11,20 @@ import { IcoCesta } from '@/componentes/iconos';
 import { BotonAnadir } from '@/componentes/producto/boton-anadir';
 import { BotonFavorito } from '@/componentes/producto/boton-favorito';
 import { pedirAvisoStock } from '@/lib/acciones/aviso-stock';
+import { precioVenta } from '@/lib/catalogo/precio';
 import { MAX_UDS_LINEA, type ProductoCesta } from '@/lib/cesta/tipos';
 import { eur } from '@/lib/formato';
 import { FormularioCorreo } from './formulario-correo';
+import { useVariante } from './variante-ficha';
 
 export function CompraProducto({ producto }: { producto: ProductoCesta }) {
-  const { variantes, personalizable, nombre, precio, encargo } = producto;
+  const { variantes, personalizable, nombre, encargo, etiquetaVariante } = producto;
   const id = useId();
+  const { final: precio } = precioVenta(producto);
+  // Los colores se eligen por la muestra; tallas y modelos, por su nombre.
+  const porColor = etiquetaVariante === 'Color';
 
-  const primeraConStock = variantes.findIndex((v) => v.stock > 0);
-  const [indice, setIndice] = useState(Math.max(0, primeraConStock));
+  const { indice, elegir } = useVariante();
   const [uds, setUds] = useState(1);
   const [iniciales, setIniciales] = useState('');
 
@@ -44,30 +50,43 @@ export function CompraProducto({ producto }: { producto: ProductoCesta }) {
   return (
     <>
       <div className="compra">
-        {/* ---------- Color ---------- */}
-        <div className="bloque-compra" role="group" aria-labelledby={`${id}-color`}>
+        {/* ---------- Variante ---------- */}
+        <div className="bloque-compra" role="group" aria-labelledby={`${id}-variante`}>
           <div className="fila-etiqueta">
-            <span id={`${id}-color`} className="etiqueta-compra">
-              Color
+            <span id={`${id}-variante`} className="etiqueta-compra">
+              {etiquetaVariante}
             </span>
             <span className="mini" aria-live="polite">
-              {variante?.nombre} · {estadoVariante}
+              {porColor ? `${variante?.nombre} · ${estadoVariante}` : estadoVariante}
             </span>
           </div>
-          <div className="muestras">
-            {variantes.map((v, i) => (
-              <button
-                key={v.nombre}
-                type="button"
-                className={v.stock === 0 ? 'sw sin' : 'sw'}
-                aria-pressed={i === indice}
-                aria-label={v.stock === 0 ? `${v.nombre} (agotado)` : v.nombre}
-                title={v.nombre}
-                onClick={() => setIndice(i)}
-              >
-                <i style={{ background: v.color }} />
-              </button>
-            ))}
+          <div className={porColor ? 'muestras' : 'muestras muestras-texto'}>
+            {variantes.map((v, i) =>
+              porColor ? (
+                <button
+                  key={v.nombre}
+                  type="button"
+                  className={v.stock === 0 ? 'sw sin' : 'sw'}
+                  aria-pressed={i === indice}
+                  aria-label={v.stock === 0 ? `${v.nombre} (agotado)` : v.nombre}
+                  title={v.nombre}
+                  onClick={() => elegir(i)}
+                >
+                  <i style={{ background: v.color }} />
+                </button>
+              ) : (
+                <button
+                  key={v.nombre}
+                  type="button"
+                  className={v.stock === 0 ? 'chip chip-variante sin' : 'chip chip-variante'}
+                  aria-pressed={i === indice}
+                  onClick={() => elegir(i)}
+                >
+                  {v.nombre}
+                  {v.stock === 0 && <span className="oculto-vis"> (agotado)</span>}
+                </button>
+              ),
+            )}
           </div>
         </div>
 
@@ -100,9 +119,11 @@ export function CompraProducto({ producto }: { producto: ProductoCesta }) {
         {/* ---------- Comprar o pedir aviso ---------- */}
         {agotada ? (
           <div className="caja bloque-compra">
-            <h2 className="tit-agotado">Este color se ha agotado</h2>
+            <h2 className="tit-agotado">
+              {porColor ? 'Este color se ha agotado' : `«${variante?.nombre}» se ha agotado`}
+            </h2>
             <p className="mini aviso-texto">
-              Déjanos tu correo y te avisamos en cuanto lo volvamos a tejer. Sin listas raras: primero quien avisa.
+              Déjanos tu correo y te escribimos en cuanto lo volvamos a tejer. Te avisamos por orden de llegada.
             </p>
             <FormularioCorreo
               key={variante?.nombre}

@@ -21,11 +21,11 @@ const esquemaPublico = z
 
 export type EntornoPublico = z.infer<typeof esquemaPublico>;
 
-let cache: EntornoPublico | undefined;
+let entornoValidado: EntornoPublico | undefined;
 
 /** Variables públicas validadas. Lanza con un mensaje claro si alguna no es válida. */
 export function entornoPublico(): EntornoPublico {
-  if (cache) return cache;
+  if (entornoValidado) return entornoValidado;
   const resultado = esquemaPublico.safeParse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -34,8 +34,8 @@ export function entornoPublico(): EntornoPublico {
   if (!resultado.success) {
     throw new Error(`Variables de entorno no válidas:\n${z.prettifyError(resultado.error)}`);
   }
-  cache = resultado.data;
-  return cache;
+  entornoValidado = resultado.data;
+  return entornoValidado;
 }
 
 export interface ConfiguracionSupabase {

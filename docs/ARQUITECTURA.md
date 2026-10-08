@@ -54,7 +54,7 @@ La regla general: **la interfaz no sabe de dónde salen los datos.** Las página
 | `panel/` | Resumen, pedidos, productos, encargos, mensajes, clientes | Cada página comprueba el rol por sí misma: el layout no se vuelve a pintar al navegar entre páginas |
 | `api/stripe/webhook/` | Único endpoint de API | Lee el cuerpo como texto para verificar la firma |
 | `auth/confirmar/` | Vuelta de los enlaces de los correos | Admite `?code=` (PKCE) y `?token_hash=&type=` |
-| `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx` | Metadatos generados | La imagen para redes se genera con la tipografía de la marca |
+| `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx` | Metadatos generados | La imagen para redes se genera con la tipografía de la marca; cada ficha tiene la suya en `tienda/[slug]/opengraph-image.tsx` |
 
 Las páginas son **componentes de servidor**: leen los datos, los pasan ya resueltos y solo hidratan las islas interactivas. Los `params` y `searchParams` son promesas (Next 16) y se leen con [`src/lib/parametros.ts`](../src/lib/parametros.ts), que tiene en cuenta que cada valor puede venir repetido.
 
@@ -73,7 +73,7 @@ Agrupados por zona (`catalogo/`, `cesta/`, `compra/`, `cuenta/`, `panel/`, `marc
 
 ### Cesta: `src/lib/cesta/`
 
-- **Lógica pura y probada**: [`totales.ts`](../src/lib/cesta/totales.ts) es el único sitio con aritmética de dinero. Orden: subtotal → rebaja automática por categoría → cupón sobre lo que queda → envío (gratis por encima del umbral). El cajón, la página de la cesta, el pago, el recálculo del servidor sin Supabase y los datos de demostración del panel llaman a la misma función.
+- **Lógica pura y probada**: [`totales.ts`](../src/lib/cesta/totales.ts) es el único sitio con aritmética de dinero. Orden: subtotal → rebaja automática por categoría → cupón sobre lo que queda → envío. El envío gratis se mide con lo que se paga por las piezas después de rebajas y cupón; si un código deja la cesta por debajo del umbral, la cesta lo avisa («Con este código te faltan X € para el envío gratis»). La rebaja automática se redondea por unidad y la tienda enseña ya el precio final ([`precio.ts`](../src/lib/catalogo/precio.ts)) en tarjetas, ficha, botón de añadir y datos estructurados, así que lo que se ve es lo que se cobra; `calcular_pedido` en SQL hace la misma cuenta. El cajón, la página de la cesta, el pago, el recálculo del servidor sin Supabase y los datos de demostración del panel llaman a la misma función.
 - **Estado**: un almacén externo para `useSyncExternalStore` que vive en memoria, se guarda en `localStorage` y escucha el evento `storage` para que dos pestañas vean la misma cesta.
 - **Lo guardado se valida**: lo que hay en `localStorage` puede venir de una versión anterior o estar editado a mano, así que se comprueba campo a campo y lo que no encaja se descarta en lugar de romper la página.
 - **Se pone al día con el catálogo**: al cargar el catálogo del servidor, la cesta actualiza precios y avisa de piezas agotadas o retiradas.
@@ -286,6 +286,25 @@ No hay pedidos «pendientes de pago» en la base de datos: lo que necesita el we
 
 La interfaz desactiva botones y el servidor comprueba el rol antes de cada acción, pero la regla definitiva está en PostgreSQL. Las funciones que necesitan ver más que quien llama son `security definer` con `search_path = ''` (sin posibilidad de suplantar tablas con otro esquema) y comprueban el rol dentro. Las del rol `demo` son políticas **restrictivas**: se suman a las permisivas y ninguna otra puede abrir la puerta, y una prueba falla si se crea una tabla nueva sin ellas.
 
+### Qué ven los buscadores
+
+La demo tiene que aparecer cuando alguien busca a su autor, pero no debe competir con talleres de crochet de verdad ni que alguien intente comprar en ella creyendo que existe. Por eso, mientras `NEXT_PUBLIC_INDEXAR` no valga `si`:
+
+- **Solo se indexa la portada.** Su descripción dice que es una tienda de demostración hecha por Paco Dev, que es lo que tiene que leer quien llegue desde un buscador.
+- **El resto lleva `noindex, follow`**: fichas, catálogo y páginas de contenido se pueden rastrear (el buscador sigue los enlaces y lee los datos estructurados), pero no salen como resultados. `robots.txt` no las bloquea, porque entonces el buscador no vería el `noindex`.
+- **El mapa del sitio solo lista la portada**, para no mandar a indexar páginas que piden lo contrario.
+- **Datos estructurados**: la tienda se describe como `Store` (un `LocalBusiness`) de Málaga, sin calle ni teléfono, con su horario de recogida, la zona a la que envía y su rango de precios, y el sitio enlaza a su autor como `Person`. Cada ficha añade su `Product` con la oferta.
+
+Con `NEXT_PUBLIC_INDEXAR=si`, pensado para una instalación de un negocio real, se indexa todo y el mapa del sitio lista categorías y fichas. La política está en [`src/lib/buscadores/indexacion.ts`](../src/lib/buscadores/indexacion.ts).
+
+### Imágenes para compartir de menos de 250 KB
+
+WhatsApp no enseña la vista previa de un enlace si la imagen pasa de unos 300 KB, y un PNG de 1200 × 630 con una foto dentro ronda los 430 KB. `ImageResponse` solo genera PNG, así que [`src/lib/compartir/imagen.ts`](../src/lib/compartir/imagen.ts) recorta la foto a su hueco antes de componer la tarjeta y después la vuelve a comprimir en JPEG con `sharp` (la misma librería que usa Next.js para optimizar imágenes): se queda en unos 100 KB. Cada ficha tiene su tarjeta con la foto, el nombre, el precio y si está lista para enviar, y sus metadatos llevan `og:type` `product` con `product:price:amount` y `product:price:currency`.
+
+### Funciones en París
+
+[`vercel.json`](../vercel.json) fija la región de las funciones en `cdg1` (París). Todas las páginas se generan al pedirlas (por el nonce), así que la distancia entre la función y quien compra se nota en cada visita: desde España, París está más cerca que la región por defecto de Vercel, en la costa este de Estados Unidos. Supabase conviene crearlo en la misma ciudad, *West EU (Paris)*, para que las consultas no crucen Europa.
+
 ### Sin dependencias que no hagan falta
 
-Ocho dependencias de producción: Next.js, React y React DOM, los dos paquetes de Supabase, Stripe, Zod y `server-only`. Sin framework de CSS, sin librería de componentes, sin gestor de estado y sin librería de gráficos (el del panel es SVG propio). Menos peso para el navegador y menos superficie que mantener.
+Nueve dependencias de producción: Next.js, React y React DOM, los dos paquetes de Supabase, Stripe, Zod, `server-only` y `sharp` (que Next.js ya instala para optimizar imágenes; aquí se declara porque las tarjetas para compartir lo usan directamente). Sin framework de CSS, sin librería de componentes, sin gestor de estado y sin librería de gráficos (el del panel es SVG propio). Menos peso para el navegador y menos superficie que mantener.
