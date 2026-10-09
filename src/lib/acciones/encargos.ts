@@ -1,11 +1,14 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { textos } from '@/lib/i18n';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { usuarioActual } from '@/lib/cuentas/sesion';
 import { configuracionSupabase } from '@/lib/datos/entorno';
 import { clienteServicio } from '@/lib/datos/supabase/servicio';
 import {
   TIPOS_ENCARGO,
+  avisoRevisar,
   erroresPorCampo,
   esquemaEncargo,
   formularioAObjeto,
@@ -20,6 +23,27 @@ import { crearLimitador, origenPeticion } from './limite';
 import type { EstadoFormulario } from './tipos';
 
 export type EstadoEncargo = EstadoFormulario<CampoEncargo>;
+
+const T = textos(
+  {
+    muchos: 'Nos han llegado varios encargos seguidos desde tu conexión. Espera unos minutos y vuelve a probar.',
+    fallo: 'No hemos podido guardar tu encargo por un problema nuestro. Vuelve a intentarlo en un momento.',
+  },
+  {
+    en: {
+      muchos: 'We’ve had several custom orders in a row from your connection. Please wait a few minutes and try again.',
+      fallo: 'We couldn’t save your custom order because of a problem on our side. Please try again in a moment.',
+    },
+    fr: {
+      muchos: 'Nous avons reçu plusieurs commandes sur mesure d’affilée depuis votre connexion. Patientez quelques minutes et réessayez.',
+      fallo: 'Nous n’avons pas pu enregistrer votre commande sur mesure à cause d’un problème de notre côté. Réessayez dans un instant.',
+    },
+    de: {
+      muchos: 'Von Ihrer Verbindung kamen mehrere Anfragen für Auftragsarbeiten kurz hintereinander. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
+      fallo: 'Ihre Anfrage für eine Auftragsarbeit konnte wegen eines Problems bei uns nicht gespeichert werden. Bitte versuchen Sie es gleich noch einmal.',
+    },
+  },
+);
 
 const limitador = crearLimitador({ maximo: 5, ventana: 10 * 60 * 1000 });
 
@@ -92,14 +116,15 @@ export async function enviarEncargo(_previo: EstadoEncargo, formulario: FormData
   // pistas al robot, pero no se guarda.
   if (esRobot(formulario)) return { estado: 'enviado', guardado: false };
 
+  const idioma = await idiomaActual();
+  const t = T[idioma];
   const valores = valoresDeTexto<CampoEncargo>(crudo);
-  const resultado = await esquemaEncargo.safeParseAsync(crudo);
+  const resultado = await esquemaEncargo(idioma).safeParseAsync(crudo);
   if (!resultado.success) {
     const errores = erroresPorCampo<CampoEncargo>(resultado.error);
-    const n = Object.keys(errores).length;
     return {
       estado: 'error',
-      mensaje: n === 1 ? 'Hay un campo que revisar.' : `Hay ${n} campos que revisar.`,
+      mensaje: avisoRevisar(Object.keys(errores).length, idioma),
       errores,
       valores,
     };
@@ -108,7 +133,7 @@ export async function enviarEncargo(_previo: EstadoEncargo, formulario: FormData
   if (!limitador.permitir(origenPeticion(await headers()))) {
     return {
       estado: 'error',
-      mensaje: 'Nos han llegado varios encargos seguidos desde tu conexión. Espera unos minutos y vuelve a probar.',
+      mensaje: t.muchos,
       errores: {},
       valores,
     };
@@ -124,7 +149,7 @@ export async function enviarEncargo(_previo: EstadoEncargo, formulario: FormData
   if (!guardado) {
     return {
       estado: 'error',
-      mensaje: 'No hemos podido guardar tu encargo por un problema nuestro. Vuelve a intentarlo en un momento.',
+      mensaje: t.fallo,
       errores: {},
       valores,
     };

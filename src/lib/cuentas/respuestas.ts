@@ -4,10 +4,38 @@ import 'server-only';
 
 import type { z } from 'zod';
 import { erroresPorCampo, formularioAObjeto, valoresDeTexto } from '@/lib/acciones/esquemas';
+import { textos, type Idioma } from '@/lib/i18n';
 import type { EstadoAccion } from './tipos';
 
-export const SIN_BD = 'En esta demostración las cuentas necesitan conectar la base de datos.';
-export const FALLO = 'Algo ha fallado de nuestro lado. Vuelve a intentarlo en un momento.';
+/** Mensajes comunes de las acciones de la cuenta. */
+export const RESPUESTAS = textos(
+  {
+    sinBd: 'En esta demostración las cuentas necesitan conectar la base de datos.',
+    fallo: 'Algo ha fallado de nuestro lado. Vuelve a intentarlo en un momento.',
+    sesionCaducada: 'Tu sesión ha caducado. Vuelve a entrar.',
+    revisar: (n: number) => (n === 1 ? 'Hay un campo que revisar.' : `Hay ${n} campos que revisar.`),
+  },
+  {
+    en: {
+      sinBd: 'In this demo, accounts need the database to be connected.',
+      fallo: 'Something went wrong on our side. Please try again in a moment.',
+      sesionCaducada: 'Your session has expired. Please sign in again.',
+      revisar: (n: number) => (n === 1 ? 'There is one field to check.' : `There are ${n} fields to check.`),
+    },
+    fr: {
+      sinBd: 'Dans cette démonstration, les comptes ont besoin que la base de données soit connectée.',
+      fallo: 'Un problème est survenu de notre côté. Veuillez réessayer dans un instant.',
+      sesionCaducada: 'Votre session a expiré. Veuillez vous reconnecter.',
+      revisar: (n: number) => (n === 1 ? 'Un champ est à vérifier.' : `${n} champs sont à vérifier.`),
+    },
+    de: {
+      sinBd: 'In dieser Demo brauchen die Konten eine verbundene Datenbank.',
+      fallo: 'Bei uns ist etwas schiefgelaufen. Bitte versuchen Sie es gleich noch einmal.',
+      sesionCaducada: 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.',
+      revisar: (n: number) => (n === 1 ? 'Ein Feld muss noch geprüft werden.' : `${n} Felder müssen noch geprüft werden.`),
+    },
+  },
+);
 
 let intentos = 0;
 /** Estado de éxito. `intento` cambia en cada respuesta para que el aviso vuelva a recibir el foco. */
@@ -23,6 +51,7 @@ export const error = <C extends string>(
 export function validar<T extends z.ZodType, C extends string>(
   esquema: T,
   formulario: FormData,
+  idioma: Idioma,
 ): { datos: z.output<T> } | { fallo: EstadoAccion<C> } {
   const crudo = formularioAObjeto(formulario);
   const r = esquema.safeParse(crudo);
@@ -32,5 +61,5 @@ export function validar<T extends z.ZodType, C extends string>(
   // Las contraseñas no vuelven nunca al formulario.
   const valores = valoresDeTexto<C>(crudo);
   for (const campo of ['contrasena', 'repetida'] as C[]) delete valores[campo];
-  return { fallo: error(n === 1 ? 'Hay un campo que revisar.' : `Hay ${n} campos que revisar.`, errores, valores) };
+  return { fallo: error(RESPUESTAS[idioma].revisar(n), errores, valores) };
 }

@@ -8,6 +8,17 @@ import { useActionState, useId } from 'react';
 import { CampoTrampa } from '@/componentes/formularios/campo-trampa';
 import { IcoOk, Ovillo } from '@/componentes/iconos';
 import { CORREO_INICIAL, type EstadoCorreo } from '@/lib/acciones/tipos';
+import { textos } from '@/lib/i18n';
+import { useTextos } from '@/lib/i18n/cliente';
+
+const T = textos(
+  { ejemplo: 'tucorreo@ejemplo.com', enviando: 'Enviando…' },
+  {
+    en: { ejemplo: 'you@example.com', enviando: 'Sending…' },
+    fr: { ejemplo: 'vous@exemple.fr', enviando: 'Envoi…' },
+    de: { ejemplo: 'ihre@beispiel.de', enviando: 'Wird gesendet…' },
+  },
+);
 
 export interface PropsFormularioCorreo {
   accion: (previo: EstadoCorreo, datos: FormData) => Promise<EstadoCorreo>;
@@ -21,6 +32,7 @@ export interface PropsFormularioCorreo {
 export function FormularioCorreo({ accion, etiqueta, boton, ocultos, className }: PropsFormularioCorreo) {
   const [estado, enviar, enviando] = useActionState(accion, CORREO_INICIAL);
   const id = useId();
+  const t = useTextos(T);
   const idError = `${id}-error`;
 
   if (estado.estado === 'ok') {
@@ -50,7 +62,7 @@ export function FormularioCorreo({ accion, etiqueta, boton, ocultos, className }
           name="correo"
           inputMode="email"
           autoComplete="email"
-          placeholder="tucorreo@ejemplo.com"
+          placeholder={t.ejemplo}
           defaultValue={error?.correo ?? ''}
           required
           aria-invalid={error ? true : undefined}
@@ -66,7 +78,7 @@ export function FormularioCorreo({ accion, etiqueta, boton, ocultos, className }
         {enviando ? (
           <>
             <Ovillo width={18} height={18} className="ovillo-gira" />
-            Enviando…
+            {t.enviando}
           </>
         ) : (
           boton

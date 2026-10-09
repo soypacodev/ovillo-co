@@ -1,18 +1,48 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { BotonSalir } from '@/componentes/cuenta/boton-salir';
 import { NavCuenta } from '@/componentes/cuenta/nav-cuenta';
 import { perfilActual } from '@/lib/cuentas/sesion';
 import { configuracionSupabase } from '@/lib/datos/entorno';
+import { textos } from '@/lib/i18n';
+import { Enlace } from '@/lib/i18n/enlace';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { rutas } from '@/lib/rutas';
 import '@/estilos/cuenta.css';
 import '@/estilos/pedido.css';
 
-export const metadata: Metadata = {
-  title: { default: 'Tu cuenta', template: '%s · Tu cuenta · Ovillo & Co.' },
-  robots: { index: false, follow: false },
-};
+const T = textos(
+  {
+    cuenta: 'Tu cuenta',
+    hola: (nombre: string) => `Hola, ${nombre || 'de nuevo'}`,
+    panel: 'Ir al panel del taller',
+  },
+  {
+    en: {
+      cuenta: 'Your account',
+      hola: (nombre: string) => (nombre ? `Hello, ${nombre}` : 'Hello again'),
+      panel: "Go to the workshop's dashboard",
+    },
+    fr: {
+      cuenta: 'Votre compte',
+      hola: (nombre: string) => (nombre ? `Bonjour, ${nombre}` : 'Bon retour parmi nous'),
+      panel: 'Aller au tableau de bord de l’atelier',
+    },
+    de: {
+      cuenta: 'Ihr Konto',
+      hola: (nombre: string) => (nombre ? `Hallo, ${nombre}` : 'Schön, dass Sie wieder da sind'),
+      panel: 'Zum Dashboard der Werkstatt',
+    },
+  },
+);
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = T[await idiomaActual()];
+  return {
+    title: { default: t.cuenta, template: `%s · ${t.cuenta} · Ovillo & Co.` },
+    robots: { index: false, follow: false },
+  };
+}
 
 /** Saludo y pestañas comunes. Cada página comprueba la sesión por su
  *  cuenta (el layout no se vuelve a pintar al cambiar de pestaña). */
@@ -21,20 +51,21 @@ export default async function LayoutCuenta({ children }: { children: ReactNode }
   const perfil = await perfilActual();
   if (!perfil) return <div className="wrap">{children}</div>;
 
-  const nombre = perfil.nombre.split(/\s+/)[0] || 'de nuevo';
+  const t = T[await idiomaActual()];
+  const nombre = perfil.nombre.split(/\s+/)[0];
   return (
     <div className="wrap">
       <header className="cuenta-cab">
         <div>
-          <p className="eyebrow">Tu cuenta</p>
-          <h1 className="cuenta-titulo mt-1">Hola, {nombre}</h1>
+          <p className="eyebrow">{t.cuenta}</p>
+          <h1 className="cuenta-titulo mt-1">{t.hola(nombre)}</h1>
           <p className="mini mt-1">{perfil.email}</p>
         </div>
         <div className="cuenta-cab-acciones">
           {perfil.rol !== 'cliente' && (
-            <Link className="btn btn-2 btn-p" href={rutas.panel}>
-              Ir al panel del taller
-            </Link>
+            <Enlace className="btn btn-2 btn-p" href={rutas.panel}>
+              {t.panel}
+            </Enlace>
           )}
           <BotonSalir />
         </div>

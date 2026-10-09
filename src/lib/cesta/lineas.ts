@@ -103,6 +103,7 @@ export function anadirProducto(
     nombre: producto.nombre,
     categoria: producto.categoria,
     variante: variante.nombre,
+    ...(variante.rotulo && { rotulo: variante.rotulo }),
     color: variante.color,
     foto: fotoVariante(producto, variante),
     precio: producto.precio,
@@ -191,10 +192,13 @@ export function sincronizarConCatalogo(
       repetida.uds += uds;
       continue;
     }
+    const resto = { ...l };
+    delete resto.rotulo;
     lineas.push({
-      ...l,
+      ...resto,
       id,
       nombre: p.nombre,
+      ...(v.rotulo && { rotulo: v.rotulo }),
       categoria: p.categoria,
       color: v.color,
       foto: fotoVariante(p, v) ?? l.foto,

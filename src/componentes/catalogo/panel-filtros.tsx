@@ -9,11 +9,70 @@ import { IcoCerrar, IcoLupa } from '@/componentes/iconos';
 import { ANCLA_BUSCAR, EVENTO_BUSCAR } from '@/componentes/marco/enlaces-cabecera';
 import { usePanelModal } from '@/componentes/use-panel-modal';
 import type { SlugCategoria } from '@/lib/catalogo/tipos';
-import { EXTRAS, RANGOS_PRECIO } from '@/lib/datos/filtros';
+import { extrasEn, rangosPrecioEn } from '@/lib/datos/filtros';
 import { piezas } from '@/lib/formato';
+import { textos } from '@/lib/i18n';
+import { useIdioma, useTextos } from '@/lib/i18n/cliente';
 import { alternar, useFiltros } from './contexto-filtros';
 
 const RETARDO_BUSQUEDA_MS = 220;
+
+const T = textos(
+  {
+    panel: 'Filtros del catálogo',
+    filtros: 'Filtros',
+    cerrar: 'Cerrar los filtros',
+    buscar: 'Buscar',
+    ejemplo: 'manta, osita, cesta…',
+    categoria: 'Categoría',
+    precio: 'Precio',
+    disponibilidad: 'Disponibilidad',
+    quitarTodos: 'Quitar todos los filtros',
+    buscando: 'Buscando…',
+    ver: (cuantas: string) => `Ver ${cuantas}`,
+  },
+  {
+    en: {
+      panel: 'Catalogue filters',
+      filtros: 'Filters',
+      cerrar: 'Close filters',
+      buscar: 'Search',
+      ejemplo: 'blanket, bear, basket…',
+      categoria: 'Category',
+      precio: 'Price',
+      disponibilidad: 'Availability',
+      quitarTodos: 'Clear all filters',
+      buscando: 'Searching…',
+      ver: (cuantas: string) => `Show ${cuantas}`,
+    },
+    fr: {
+      panel: 'Filtres du catalogue',
+      filtros: 'Filtres',
+      cerrar: 'Fermer les filtres',
+      buscar: 'Rechercher',
+      ejemplo: 'couverture, ourson, panier…',
+      categoria: 'Catégorie',
+      precio: 'Prix',
+      disponibilidad: 'Disponibilité',
+      quitarTodos: 'Effacer tous les filtres',
+      buscando: 'Recherche…',
+      ver: (cuantas: string) => `Voir ${cuantas}`,
+    },
+    de: {
+      panel: 'Katalogfilter',
+      filtros: 'Filter',
+      cerrar: 'Filter schließen',
+      buscar: 'Suchen',
+      ejemplo: 'Decke, Bär, Korb…',
+      categoria: 'Kategorie',
+      precio: 'Preis',
+      disponibilidad: 'Verfügbarkeit',
+      quitarTodos: 'Alle Filter entfernen',
+      buscando: 'Wird gesucht…',
+      ver: (cuantas: string) => `${cuantas} ansehen`,
+    },
+  },
+);
 
 export interface CategoriaFiltro {
   slug: SlugCategoria;
@@ -23,6 +82,8 @@ export interface CategoriaFiltro {
 export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) {
   const { filtros, aplicar, quitarTodo, texto, setTexto, total, pendiente, panelAbierto, abrirPanel, cerrarPanel } =
     useFiltros();
+  const idioma = useIdioma();
+  const t = useTextos(T);
   const panel = useRef<HTMLElement>(null);
   const cerrar = useRef<HTMLButtonElement>(null);
   const entrada = useRef<HTMLInputElement>(null);
@@ -78,20 +139,20 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
       ref={panel}
       id="panel-filtros"
       className={panelAbierto ? 'cuadro-filtros abierto' : 'cuadro-filtros'}
-      aria-label="Filtros del catálogo"
+      aria-label={t.panel}
       // tabIndex para poder llevar el foco al panel al abrirlo en móvil.
       tabIndex={-1}
     >
       <div className="cab-filtros">
-        <h2 className="tit-panel">Filtros</h2>
-        <button ref={cerrar} type="button" className="icono" onClick={cerrarPanel} aria-label="Cerrar los filtros">
+        <h2 className="tit-panel">{t.filtros}</h2>
+        <button ref={cerrar} type="button" className="icono" onClick={cerrarPanel} aria-label={t.cerrar}>
           <IcoCerrar />
         </button>
       </div>
 
       <div className="grupo-filtro">
         <label className="titulo-mini" htmlFor={`${id}-buscar`}>
-          Buscar
+          {t.buscar}
         </label>
         <div className="busca">
           <IcoLupa width={17} height={17} />
@@ -109,7 +170,7 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
                 aplicar((f) => ({ ...f, busqueda: texto.trim() }));
               }
             }}
-            placeholder="manta, osita, cesta…"
+            placeholder={t.ejemplo}
             autoComplete="off"
             enterKeyHint="search"
             maxLength={80}
@@ -119,7 +180,7 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
 
       <div className="grupo-filtro" role="group" aria-labelledby={`${id}-cat`}>
         <p className="titulo-mini" id={`${id}-cat`}>
-          Categoría
+          {t.categoria}
         </p>
         <div className="chips">
           {categorias.map((c) => (
@@ -138,10 +199,10 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
 
       <div className="grupo-filtro" role="group" aria-labelledby={`${id}-precio`}>
         <p className="titulo-mini" id={`${id}-precio`}>
-          Precio
+          {t.precio}
         </p>
         <div className="chips">
-          {RANGOS_PRECIO.map((r) => (
+          {rangosPrecioEn(idioma).map((r) => (
             <button
               key={r.id}
               type="button"
@@ -157,10 +218,10 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
 
       <div className="grupo-filtro" role="group" aria-labelledby={`${id}-extra`}>
         <p className="titulo-mini" id={`${id}-extra`}>
-          Disponibilidad
+          {t.disponibilidad}
         </p>
         <div className="chips">
-          {EXTRAS.map((e) => (
+          {extrasEn(idioma).map((e) => (
             <button
               key={e.id}
               type="button"
@@ -175,13 +236,13 @@ export function PanelFiltros({ categorias }: { categorias: CategoriaFiltro[] }) 
       </div>
 
       <button type="button" className="btn btn-4 btn-p quitar-filtros" onClick={quitarTodo} disabled={!hayFiltros}>
-        Quitar todos los filtros
+        {t.quitarTodos}
       </button>
 
       {/* Solo en móvil: cierra la capa y deja ver los resultados. */}
       <div className="pie-filtros">
         <button type="button" className="btn btn-1 btn-bloque" onClick={cerrarPanel} aria-busy={pendiente}>
-          {pendiente ? 'Buscando…' : `Ver ${piezas(total)}`}
+          {pendiente ? t.buscando : t.ver(piezas(total, idioma))}
         </button>
       </div>
     </aside>

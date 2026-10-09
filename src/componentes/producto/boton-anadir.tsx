@@ -3,6 +3,13 @@
 import type { ReactNode } from 'react';
 import { useCesta } from '@/lib/cesta/contexto';
 import type { OpcionesAnadir, ProductoCesta } from '@/lib/cesta/tipos';
+import { textos } from '@/lib/i18n';
+import { useTextos } from '@/lib/i18n/cliente';
+
+const T = textos(
+  { anadir: 'Añadir a la cesta' },
+  { en: { anadir: 'Add to basket' }, fr: { anadir: 'Ajouter au panier' }, de: { anadir: 'In den Warenkorb' } },
+);
 
 export interface PropsBotonAnadir extends OpcionesAnadir {
   producto: ProductoCesta;
@@ -17,7 +24,7 @@ export interface PropsBotonAnadir extends OpcionesAnadir {
 export function BotonAnadir({
   producto,
   className = 'btn btn-1',
-  children = 'Añadir a la cesta',
+  children,
   abrirCajon = true,
   disabled,
   variante,
@@ -25,6 +32,7 @@ export function BotonAnadir({
   personalizacion,
 }: PropsBotonAnadir) {
   const { anadir } = useCesta();
+  const t = useTextos(T);
   return (
     <button
       type="button"
@@ -32,7 +40,7 @@ export function BotonAnadir({
       disabled={disabled}
       onClick={() => anadir(producto, { variante, uds, personalizacion, abrir: abrirCajon })}
     >
-      {children}
+      {children ?? t.anadir}
     </button>
   );
 }

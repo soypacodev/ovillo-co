@@ -40,6 +40,13 @@ describe('cupones', () => {
     expect(validarCupon('HOLA10', cesta.lineas, undefined, FECHA).mensaje).not.toContain('envío gratis');
   });
 
+  it('da los mensajes en el idioma de la página', () => {
+    expect(validarCupon('REGALO', cesta.lineas, undefined, FECHA, 'en').mensaje).toBe(
+      'That code doesn’t exist or is no longer active.',
+    );
+    expect(validarCupon('HOLA10', cesta.lineas, undefined, FECHA, 'de').mensaje).toMatch(/^Code „HOLA10“ eingelöst: /);
+  });
+
   it('un código rechazado no cambia la cesta', () => {
     const { estado } = aplicarCupon(cesta, 'NADA', undefined, FECHA);
     expect(estado).toBe(cesta);

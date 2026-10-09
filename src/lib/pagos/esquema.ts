@@ -6,7 +6,8 @@
 
 import { z } from 'zod';
 import { MAX_UDS_LINEA } from '@/lib/cesta/tipos';
-import { METODOS_ENVIO, erroresDatos, type ErroresCampos } from './opciones';
+import type { Idioma } from '@/lib/i18n';
+import { METODOS_ENVIO, erroresDatos, mensajeEnvio, type ErroresCampos } from './opciones';
 
 export {
   MAX_DEDICATORIA,
@@ -21,29 +22,32 @@ export {
 
 const textoLibre = z.string().trim().default('');
 
-/** Tipos y recortes con zod; las reglas, las mismas que en el navegador. */
-export const esquemaDatos = z
-  .object({
-    email: z.string().trim(),
-    nombre: z.string().trim(),
-    apellidos: z.string().trim(),
-    telefono: textoLibre,
-    envio: z.enum(METODOS_ENVIO, 'Elige cómo quieres recibirlo.'),
-    calle: textoLibre,
-    piso: textoLibre,
-    cp: textoLibre,
-    ciudad: textoLibre,
-    provincia: textoLibre,
-    regalo: z.boolean().default(false),
-    dedicatoria: textoLibre,
-    nota: textoLibre,
-    acepta: z.boolean().default(false),
-  })
-  .superRefine((d, ctx) => {
-    for (const [campo, mensaje] of Object.entries(erroresDatos(d))) {
-      ctx.addIssue({ code: 'custom', path: [campo], message: mensaje });
-    }
-  });
+/** Tipos y recortes con zod; las reglas, las mismas que en el navegador, con sus mensajes en `idioma`. */
+export const crearEsquemaDatos = (idioma: Idioma) =>
+  z
+    .object({
+      email: z.string().trim(),
+      nombre: z.string().trim(),
+      apellidos: z.string().trim(),
+      telefono: textoLibre,
+      envio: z.enum(METODOS_ENVIO, mensajeEnvio(idioma)),
+      calle: textoLibre,
+      piso: textoLibre,
+      cp: textoLibre,
+      ciudad: textoLibre,
+      provincia: textoLibre,
+      regalo: z.boolean().default(false),
+      dedicatoria: textoLibre,
+      nota: textoLibre,
+      acepta: z.boolean().default(false),
+    })
+    .superRefine((d, ctx) => {
+      for (const [campo, mensaje] of Object.entries(erroresDatos(d, idioma))) {
+        ctx.addIssue({ code: 'custom', path: [campo], message: mensaje });
+      }
+    });
+
+export const esquemaDatos = crearEsquemaDatos('es');
 
 export type DatosValidados = z.output<typeof esquemaDatos>;
 
@@ -57,29 +61,32 @@ export const esquemaLinea = z.object({
 export type LineaEntrada = z.input<typeof esquemaLinea>;
 export type LineaPedido = z.output<typeof esquemaLinea>;
 
-export const esquemaPedido = z.object({
-  datos: esquemaDatos,
-  lineas: z
-    .array(esquemaLinea)
-    .min(1, 'La cesta está vacía.')
-    .max(50, 'Demasiadas líneas en la cesta.')
-    // La cesta ya junta las líneas iguales; dos repetidas indican una
-    // petición hecha a mano.
-    .refine(
-      (lineas) => new Set(lineas.map((l) => `${l.slug}|${l.variante}|${l.personalizacion}`)).size === lineas.length,
-      'Hay líneas repetidas en la cesta.',
-    ),
-  cupon: z
-    .string()
-    .trim()
-    .max(40)
-    .transform((c) => c.toUpperCase() || null)
-    .nullable()
-    .default(null),
-  /** Total que vio la clienta: si el servidor calcula otro, no se cobra. */
-  totalVisto: z.number().int().min(0),
-});
+/** El pedido completo; los mensajes de los datos de entrega, en `idioma`. */
+export const crearEsquemaPedido = (idioma: Idioma) =>
+  z.object({
+    datos: crearEsquemaDatos(idioma),
+    lineas: z
+      .array(esquemaLinea)
+      .min(1, 'La cesta está vacía.')
+      .max(50, 'Demasiadas líneas en la cesta.')
+      // La cesta ya junta las líneas iguales; dos repetidas indican una
+      // petición hecha a mano.
+      .refine(
+        (lineas) => new Set(lineas.map((l) => `${l.slug}|${l.variante}|${l.personalizacion}`)).size === lineas.length,
+        'Hay líneas repetidas en la cesta.',
+      ),
+    cupon: z
+      .string()
+      .trim()
+      .max(40)
+      .transform((c) => c.toUpperCase() || null)
+      .nullable()
+      .default(null),
+    /** Total que vio la clienta: si el servidor calcula otro, no se cobra. */
+    totalVisto: z.number().int().min(0),
+  });
 
+export const esquemaPedido = crearEsquemaPedido('es');
 
 /** Primer error de cada campo, con la ruta sin el prefijo «datos.». */
 export function erroresPorCampo(issues: readonly z.core.$ZodIssue[]): ErroresCampos {

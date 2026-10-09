@@ -5,7 +5,6 @@
 // Se valida con las mismas reglas que el servidor antes de dejar avanzar;
 // al confirmar, el servidor vuelve a validarlo todo y recalcula el pedido.
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
 import { IcoInfo, Ovillo } from '@/componentes/iconos';
@@ -14,6 +13,9 @@ import type { MetodoEnvio } from '@/lib/catalogo/tipos';
 import { useCesta } from '@/lib/cesta/contexto';
 import type { LineaCesta, ProductoCesta } from '@/lib/cesta/tipos';
 import { totales as calcularTotales } from '@/lib/cesta/totales';
+import { textos } from '@/lib/i18n';
+import { useIdioma, useTextos } from '@/lib/i18n/cliente';
+import { Enlace } from '@/lib/i18n/enlace';
 import { confirmarPedido } from '@/lib/pagos/acciones';
 import { provinciaDeCodigo, type ErroresCampos, type IdEnvio } from '@/lib/pagos/opciones';
 import { rutas } from '@/lib/rutas';
@@ -37,6 +39,57 @@ import { ResumenPedido } from './resumen-pedido';
 import { useSincronizarCesta } from './use-sincronizar-cesta';
 import { guardarEnvio, lineasParaPedido } from './utiles';
 
+const T = textos(
+  {
+    cargando: 'Cargando tu pedido…',
+    nadaQuePagar: 'No hay nada que pagar',
+    vacia: 'Tu cesta está vacía.',
+    verTienda: 'Ver la tienda',
+    sinConexion: 'No hemos podido conectar con la tienda. Revisa la conexión y vuelve a probar.',
+    pasos: 'Pasos del pago',
+    nombresPaso: { 1: 'Tus datos', 2: 'Entrega', 3: 'Revisión y pago' },
+    hechoVolver: ' (hecho, volver)',
+    cancelado: 'Has vuelto sin pagar. Tu cesta y tus datos siguen aquí; cuando quieras, seguimos.',
+  },
+  {
+    en: {
+      cargando: 'Loading your order…',
+      nadaQuePagar: 'Nothing to pay for',
+      vacia: 'Your basket is empty.',
+      verTienda: 'Browse the shop',
+      sinConexion: 'We couldn’t connect to the shop. Check your connection and try again.',
+      pasos: 'Checkout steps',
+      nombresPaso: { 1: 'Your details', 2: 'Delivery', 3: 'Review and pay' },
+      hechoVolver: ' (done, go back)',
+      cancelado: 'You came back without paying. Your basket and details are still here; carry on whenever you like.',
+    },
+    fr: {
+      cargando: 'Chargement de votre commande…',
+      nadaQuePagar: 'Rien à payer',
+      vacia: 'Votre panier est vide.',
+      verTienda: 'Voir la boutique',
+      sinConexion: 'Impossible de joindre la boutique. Vérifiez votre connexion et réessayez.',
+      pasos: 'Étapes du paiement',
+      nombresPaso: { 1: 'Vos coordonnées', 2: 'Livraison', 3: 'Vérification et paiement' },
+      hechoVolver: ' (fait, revenir)',
+      cancelado:
+        'Vous voilà de retour sans avoir payé. Votre panier et vos coordonnées sont toujours là\u202f; reprenez quand vous voulez.',
+    },
+    de: {
+      cargando: 'Ihre Bestellung wird geladen…',
+      nadaQuePagar: 'Nichts zu bezahlen',
+      vacia: 'Ihr Warenkorb ist leer.',
+      verTienda: 'Zum Shop',
+      sinConexion: 'Wir konnten den Shop nicht erreichen. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+      pasos: 'Schritte der Bezahlung',
+      nombresPaso: { 1: 'Ihre Daten', 2: 'Lieferung', 3: 'Prüfen und bezahlen' },
+      hechoVolver: ' (erledigt, zurück)',
+      cancelado:
+        'Sie sind ohne Bezahlung zurückgekehrt. Ihr Warenkorb und Ihre Daten sind noch da; machen Sie weiter, wann Sie möchten.',
+    },
+  },
+);
+
 export interface PropsFormularioPago {
   productos: ProductoCesta[];
   metodos: MetodoEnvio[];
@@ -46,12 +99,13 @@ export interface PropsFormularioPago {
 
 export function FormularioPago({ productos, metodos, modo, cancelado }: PropsFormularioPago) {
   const { lineas, cupon, hidratada } = useCesta();
+  const t = useTextos(T);
   useSincronizarCesta(productos);
 
   if (!hidratada) {
     return (
       <div className="esqueleto" aria-busy="true">
-        <p className="oculto-vis">Cargando tu pedido…</p>
+        <p className="oculto-vis">{t.cargando}</p>
         <div className="hueso" style={{ height: 260 }} />
       </div>
     );
@@ -61,12 +115,12 @@ export function FormularioPago({ productos, metodos, modo, cancelado }: PropsFor
     return (
       <div className="compra-vacia">
         <Ovillo width={64} height={64} className="ovillo-vacio" />
-        <h2>No hay nada que pagar</h2>
-        <p className="lead">Tu cesta está vacía.</p>
+        <h2>{t.nadaQuePagar}</h2>
+        <p className="lead">{t.vacia}</p>
         <div className="botones-centro">
-          <Link className="btn btn-1" href={rutas.tienda}>
-            Ver la tienda
-          </Link>
+          <Enlace className="btn btn-1" href={rutas.tienda}>
+            {t.verTienda}
+          </Enlace>
         </div>
       </div>
     );
@@ -86,10 +140,12 @@ interface PropsPasos {
 function Pasos({ lineas, cupon, metodos, modo, cancelado }: PropsPasos) {
   const router = useRouter();
   const { quitarCupon } = useCesta();
+  const x = useTextos(T);
+  const idioma = useIdioma();
   // Solo se monta en el navegador: puede leer el borrador al iniciar.
   const [datos, setDatos] = useState<Datos>(leerBorrador);
   const [paso, setPaso] = useState<Paso>(() =>
-    cancelado && !Object.keys(erroresDe(datos, [...CAMPOS_PASO[1], ...CAMPOS_PASO[2]])).length ? 3 : 1,
+    cancelado && !Object.keys(erroresDe(datos, [...CAMPOS_PASO[1], ...CAMPOS_PASO[2]], idioma)).length ? 3 : 1,
   );
   const [errores, setErrores] = useState<ErroresCampos>({});
   const [errorGeneral, setErrorGeneral] = useState<{ mensaje: string; cupon?: boolean } | null>(null);
@@ -130,7 +186,7 @@ function Pasos({ lineas, cupon, metodos, modo, cancelado }: PropsPasos) {
   };
 
   const avanzar = (desde: Paso) => {
-    const e = erroresDe(datos, CAMPOS_PASO[desde]);
+    const e = erroresDe(datos, CAMPOS_PASO[desde], idioma);
     setErrores(e);
     const primero = CAMPOS_PASO[desde].find((c) => e[c]);
     if (primero) {
@@ -159,7 +215,7 @@ function Pasos({ lineas, cupon, metodos, modo, cancelado }: PropsPasos) {
       avanzar(paso);
       return;
     }
-    const e = erroresDe(datos, [...CAMPOS_PASO[1], ...CAMPOS_PASO[2], ...CAMPOS_PASO[3]]);
+    const e = erroresDe(datos, [...CAMPOS_PASO[1], ...CAMPOS_PASO[2], ...CAMPOS_PASO[3]], idioma);
     if (Object.keys(e).length) {
       mostrarErrores(e);
       return;
@@ -179,7 +235,7 @@ function Pasos({ lineas, cupon, metodos, modo, cancelado }: PropsPasos) {
         });
       } catch {
         // Sin conexión o con el servidor caído: se avisa y la cesta sigue intacta.
-        setErrorGeneral({ mensaje: 'No hemos podido conectar con la tienda. Revisa la conexión y vuelve a probar.', cupon: false });
+        setErrorGeneral({ mensaje: x.sinConexion, cupon: false });
         return;
       }
       if (r.ok) {
@@ -207,17 +263,17 @@ function Pasos({ lineas, cupon, metodos, modo, cancelado }: PropsPasos) {
 
   return (
     <>
-      <ol className="pasos-pago" aria-label="Pasos del pago">
-        {PASOS.map(({ n, nombre }) => (
+      <ol className="pasos-pago" aria-label={x.pasos}>
+        {PASOS.map((n) => (
           <li key={n} className={n < paso ? 'hecho' : undefined} aria-current={n === paso ? 'step' : undefined}>
             {n < paso ? (
               <button type="button" onClick={() => setPaso(n)}>
-                <b>{n}.</b> {nombre}
-                <span className="oculto-vis"> (hecho, volver)</span>
+                <b>{n}.</b> {x.nombresPaso[n]}
+                <span className="oculto-vis">{x.hechoVolver}</span>
               </button>
             ) : (
               <span>
-                <b>{n}.</b> {nombre}
+                <b>{n}.</b> {x.nombresPaso[n]}
               </span>
             )}
           </li>
@@ -229,7 +285,7 @@ function Pasos({ lineas, cupon, metodos, modo, cancelado }: PropsPasos) {
           {cancelado && paso === 3 && !errorGeneral && (
             <div className="aviso mb-6">
               <IcoInfo />
-              <span>Has vuelto sin pagar. Tu cesta y tus datos siguen aquí; cuando quieras, seguimos.</span>
+              <span>{x.cancelado}</span>
             </div>
           )}
 

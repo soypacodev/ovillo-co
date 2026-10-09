@@ -105,3 +105,24 @@
 .pie-web .pie-autor-enlaces { display: flex; flex-wrap: wrap; gap: 0 1.2rem; margin-top: .5rem; }
 .pie-autor-enlaces a { display: inline-flex; align-items: center; min-height: 44px; color: #FFFFFF; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .pie-demo .btn-claro:hover { background: #FFFFFF; }
+
+/* ---------- Selector de idioma ---------- */
+.selector-idioma, .selector-idioma:last-of-type { position: relative; border: 0; padding: 0; }
+.selector-idioma > summary { display: grid; gap: 0; list-style: none; cursor: pointer; font: 600 .78rem/1 var(--sans); letter-spacing: .06em; color: var(--tinta-2); }
+.selector-idioma > summary::-webkit-details-marker { display: none; }
+.selector-idioma[open] > summary { background: var(--pastel); }
+.idiomas-menu { position: absolute; right: 0; top: calc(100% + .4rem); z-index: 30; min-width: 11rem; padding: .4rem; background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio-s); box-shadow: var(--sombra); }
+.idiomas-lista { list-style: none; margin: 0; padding: 0; }
+.idiomas-menu a { display: flex; align-items: center; gap: .6rem; padding: .55rem .7rem; border-radius: 8px; color: var(--tinta); text-decoration: none; }
+.idiomas-menu a:hover, .idiomas-menu a:focus-visible { background: var(--pastel-cl); }
+.idiomas-menu a[aria-current] { font-weight: 600; color: var(--azul-osc); }
+.idioma-codigo { font: 600 .72rem/1 var(--sans); letter-spacing: .06em; color: var(--tinta-3); width: 1.6rem; }
+.idiomas-fila .idiomas-lista { display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+.idiomas-fila a { color: inherit; text-decoration: none; display: inline-flex; gap: .4rem; align-items: baseline; padding: .2rem 0; }
+.idiomas-fila a:hover { text-decoration: underline; }
+.idiomas-fila a[aria-current] { font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }
+.idiomas-fila .idioma-codigo { display: none; }
+.pie-idiomas { margin-top: 1rem; font-size: .9rem; }
+.menu-movil .idiomas-fila { margin-top: 1.5rem; }
+.menu-movil .idiomas-fila ul { margin-top: 0; display: flex; gap: .4rem 1.2rem; }
+.menu-movil .idiomas-fila a:not(.logo) { font-family: var(--sans); font-size: 1rem; line-height: 1.4; padding: .3rem 0; border-bottom: 0; }

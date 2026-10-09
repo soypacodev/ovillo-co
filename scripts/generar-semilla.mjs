@@ -13,9 +13,16 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const destino = path.join(raiz, 'supabase', 'seed.sql');
+const destinoTraducciones = path.join(raiz, 'supabase', 'traducciones.sql');
 
 const { CATEGORIAS, PRODUCTOS, PROMOCIONES, ENVIOS } = await import(
   path.join(raiz, 'src', 'datos', 'semilla.ts')
+);
+const { TRADUCCIONES_CATEGORIAS, TRADUCCIONES_PRODUCTOS } = await import(
+  path.join(raiz, 'src', 'datos', 'traducciones-catalogo.ts')
+);
+const { TRADUCCIONES_PROMOCIONES, TRADUCCIONES_ENVIOS } = await import(
+  path.join(raiz, 'src', 'datos', 'traducciones-tarifas.ts')
 );
 
 /** Literal de texto SQL, o null. */
@@ -29,6 +36,9 @@ const entero = (valor) => {
 };
 
 const booleano = (valor) => (valor ? 'true' : 'false');
+
+/** Literal jsonb, con las claves en orden fijo para que el archivo no cambie solo. */
+const json = (valor) => `${texto(JSON.stringify(valor ?? {}))}::jsonb`;
 
 const lista = (valores) =>
   valores === null || valores === undefined
@@ -132,18 +142,56 @@ bloques.push(
     ';',
 );
 
+// Traducciones: las mismas sentencias sirven para una base recién
+// sembrada y para poner al día una que ya tenía el catálogo.
+const traducciones = [
+  ...CATEGORIAS.map(
+    (c) => `update public.categorias set traducciones = ${json(TRADUCCIONES_CATEGORIAS[c.slug])} where slug = ${texto(c.slug)};`,
+  ),
+  ...PRODUCTOS.map(
+    (p) => `update public.productos set traducciones = ${json(TRADUCCIONES_PRODUCTOS[p.slug])} where slug = ${texto(p.slug)};`,
+  ),
+  ...PROMOCIONES.map(
+    (pr) =>
+      `update public.promociones set traducciones = ${json(TRADUCCIONES_PROMOCIONES[pr.nombre])} where nombre = ${texto(pr.nombre)};`,
+  ),
+  ...ENVIOS.map(
+    (e) => `update public.metodos_envio set traducciones = ${json(TRADUCCIONES_ENVIOS[e.id])} where id = ${texto(e.id)};`,
+  ),
+].join('\n');
+
+bloques.push(`-- Traducciones (inglés, francés y alemán)\n${traducciones}`);
 bloques.push('commit;');
 
 const sql = bloques.join('\n\n') + '\n';
 
+const sqlTraducciones = `-- ============================================================
+--  Ovillo & Co. · Traducciones del catálogo de ejemplo
+--
+--  Para una base que ya tiene el catálogo de supabase/seed.sql: pone
+--  los textos en inglés, francés y alemán. Requiere la migración
+--  20261014120000_traducciones.sql. Se puede ejecutar más de una vez.
+--
+--  Generado por scripts/generar-semilla.mjs. No se edita a mano.
+-- ============================================================
+
+begin;
+
+${traducciones}
+
+commit;
+`;
+
 if (process.argv.includes('--comprobar')) {
   const actual = await readFile(destino, 'utf8').catch(() => '');
-  if (actual !== sql) {
-    console.error('supabase/seed.sql no coincide con src/datos/semilla.ts. Ejecuta «npm run db:semilla».');
+  const actualTraducciones = await readFile(destinoTraducciones, 'utf8').catch(() => '');
+  if (actual !== sql || actualTraducciones !== sqlTraducciones) {
+    console.error('supabase/seed.sql o supabase/traducciones.sql no coinciden con src/datos. Ejecuta «npm run db:semilla».');
     process.exit(1);
   }
-  console.log('supabase/seed.sql está al día.');
+  console.log('supabase/seed.sql y supabase/traducciones.sql están al día.');
 } else {
   await writeFile(destino, sql);
+  await writeFile(destinoTraducciones, sqlTraducciones);
   console.log(`Escrito ${path.relative(raiz, destino)}: ${CATEGORIAS.length} categorías, ${PRODUCTOS.length} productos.`);
 }

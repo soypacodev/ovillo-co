@@ -1,6 +1,7 @@
 // Piezas comunes para montar el resumen de la confirmación, tanto en el
 // modo demostración como a partir de una sesión de Stripe.
 
+import { textos, type Idioma } from '@/lib/i18n';
 import type { DatosValidados } from './esquema';
 import type { DireccionPedido } from './metadatos';
 import type { EntregaResumen, PedidoCalculado, ResumenPedido } from './tipos';
@@ -17,12 +18,27 @@ export function direccionEnLinea(d: DireccionPedido | null): string | null {
   return [d.calle, d.piso, `${d.cp} ${d.ciudad}`, d.provincia].filter((p) => p.trim()).join(', ');
 }
 
+const T = textos(
+  { rebajas: 'rebajas', codigo: (c: string) => `código ${c}`, y: ' y ', descuento: 'descuento' },
+  {
+    en: { rebajas: 'sale', codigo: (c: string) => `code ${c}`, y: ' and ', descuento: 'discount' },
+    fr: { rebajas: 'soldes', codigo: (c: string) => `code ${c}`, y: ' et ', descuento: 'remise' },
+    de: { rebajas: 'Sale', codigo: (c: string) => `Code ${c}`, y: ' und ', descuento: 'Rabatt' },
+  },
+);
+
 /** Rótulo de la fila de descuentos: «Rebajas y código HOLA10». */
-export function nombreDescuento(automatico: number, cupon: number, codigo: string | null): string {
+export function nombreDescuento(
+  automatico: number,
+  cupon: number,
+  codigo: string | null,
+  idioma: Idioma = 'es',
+): string {
+  const t = T[idioma];
   const partes: string[] = [];
-  if (automatico > 0) partes.push('rebajas');
-  if (cupon > 0 && codigo) partes.push(`código ${codigo}`);
-  const texto = partes.join(' y ') || 'descuento';
+  if (automatico > 0) partes.push(t.rebajas);
+  if (cupon > 0 && codigo) partes.push(t.codigo(codigo));
+  const texto = partes.join(t.y) || t.descuento;
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
@@ -58,6 +74,7 @@ export function resumenDemo(
   pedido: PedidoCalculado,
   plazo: string,
   fecha: Date = new Date(),
+  idioma: Idioma = 'es',
 ): ResumenPedido {
   const entrega: EntregaResumen = {
     nombre: `${datos.nombre} ${datos.apellidos}`,
@@ -79,6 +96,7 @@ export function resumenDemo(
       slug: l.slug,
       nombre: l.nombre,
       variante: l.variante,
+      ...(l.rotulo && { rotulo: l.rotulo }),
       foto: l.foto,
       cantidad: l.cantidad,
       // Con la rebaja automática ya aplicada, como en la tienda y en Stripe.
@@ -87,7 +105,7 @@ export function resumenDemo(
     })),
     subtotal: pedido.subtotal - pedido.descuentoAutomatico,
     descuento: pedido.descuentoCupon,
-    nombreDescuento: nombreDescuento(0, pedido.descuentoCupon, pedido.codigoCupon),
+    nombreDescuento: nombreDescuento(0, pedido.descuentoCupon, pedido.codigoCupon, idioma),
     envioImporte: pedido.envio,
     total: pedido.total,
     diasConfeccion: pedido.diasConfeccion,

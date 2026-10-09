@@ -16,7 +16,7 @@ export function FranjaDemo({ modo }: { modo: ModoPanel }) {
         </span>{' '}
         <span className="franja-demo-contratar">
           ¿Quieres un panel así para tu negocio?{' '}
-          <a href={DEMO.contratar}>
+          <a href={DEMO.contratar('es')}>
             Habla con {DEMO.autor}
             <span className="oculto-vis"> por correo</span>
           </a>

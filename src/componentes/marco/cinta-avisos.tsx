@@ -11,12 +11,49 @@ import { useEffect, useRef, useState } from 'react';
 import { ENVIO_GRATIS_DESDE } from '@/datos/semilla';
 import { guardarLocal, leerLocal } from '@/lib/almacen-local';
 
-const AVISOS = [
-  'Hecho a mano en Málaga',
-  `Envío gratis desde ${ENVIO_GRATIS_DESDE / 100} €`,
-  'Encargos personalizados',
-  'Piezas únicas',
-];
+import { eur } from '@/lib/formato';
+import { textos, type Idioma } from '@/lib/i18n';
+import { useIdioma, useTextos } from '@/lib/i18n/cliente';
+
+const T = textos(
+  {
+    avisos: (gratis: string) => [
+      'Hecho a mano en Málaga',
+      `Envío gratis desde ${gratis}`,
+      'Encargos personalizados',
+      'Piezas únicas',
+    ],
+  },
+  {
+    en: {
+      avisos: (gratis: string) => [
+        'Handmade in Málaga',
+        `Free shipping over ${gratis}`,
+        'Custom orders',
+        'One-of-a-kind pieces',
+      ],
+    },
+    fr: {
+      avisos: (gratis: string) => [
+        'Fait main à Málaga',
+        `Livraison offerte dès ${gratis}`,
+        'Commandes sur mesure',
+        'Pièces uniques',
+      ],
+    },
+    de: {
+      avisos: (gratis: string) => [
+        'Handgemacht in Málaga',
+        `Kostenloser Versand ab ${gratis}`,
+        'Auftragsarbeiten',
+        'Unikate',
+      ],
+    },
+  },
+);
+
+/** «50 €» sin decimales: en la cinta sobran. */
+const importeRedondo = (centimos: number, idioma: Idioma) => eur(centimos, idioma).replace(/[.,]00(?=\D|$)/, '');
 const VELOCIDAD = 17; // píxeles por segundo
 const MARGEN_REDIMENSION = 40;
 
@@ -29,6 +66,8 @@ function inicioCinta(): number {
 }
 
 export function CintaAvisos() {
+  const idioma = useIdioma();
+  const AVISOS = useTextos(T).avisos(importeRedondo(ENVIO_GRATIS_DESDE, idioma));
   const tira = useRef<HTMLUListElement>(null);
   const [copias, setCopias] = useState(1);
 

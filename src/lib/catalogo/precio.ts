@@ -26,7 +26,14 @@ export function rebajaDeCategoria(
     if (!vigenteEl(p, dia)) continue;
     if (!mejor || p.valor > mejor.valor) mejor = p;
   }
-  return mejor && { nombre: mejor.nombre, porcentaje: mejor.valor, hasta: mejor.hasta };
+  return (
+    mejor && {
+      nombre: mejor.nombre,
+      porcentaje: mejor.valor,
+      hasta: mejor.hasta,
+      ...(mejor.traducciones && { traducciones: mejor.traducciones }),
+    }
+  );
 }
 
 /** Lo que se descuenta de una unidad. Se redondea por unidad para que

@@ -7,9 +7,41 @@ import { catalogo } from '@/lib/datos';
 import { configuracionSupabase } from '@/lib/datos/entorno';
 import { PATRON_CLAVE_STRIPE, entornoStripe } from '@/lib/datos/entorno-servidor';
 import { clienteServicio } from '@/lib/datos/supabase/servicio';
+import { conIdioma, textos, type Idioma } from '@/lib/i18n';
+import { localizarPedido } from './localizar';
 import { deMetadatos, aMetadatos, type DatosSesion } from './metadatos';
 import { direccionEnLinea, nombreDescuento } from './resumen';
 import type { PedidoCalculado, ResumenPedido } from './tipos';
+
+// Lo que ve la clienta en la pantalla de pago de Stripe.
+const T = textos(
+  {
+    bordado: (texto: string) => `bordado «${texto}»`,
+    encargo: (dias: number) => `se teje al pedir (${dias} días)`,
+    gratis: (envio: string) => `${envio} (gratis)`,
+    descuento: 'Descuento',
+  },
+  {
+    en: {
+      bordado: (texto: string) => `embroidered “${texto}”`,
+      encargo: (dias: number) => `made to order (${dias} days)`,
+      gratis: (envio: string) => `${envio} (free)`,
+      descuento: 'Discount',
+    },
+    fr: {
+      bordado: (texto: string) => `brodé «\u00a0${texto}\u00a0»`,
+      encargo: (dias: number) => `crocheté à la commande (${dias} jours)`,
+      gratis: (envio: string) => `${envio} (offerte)`,
+      descuento: 'Remise',
+    },
+    de: {
+      bordado: (texto: string) => `bestickt mit „${texto}“`,
+      encargo: (dias: number) => `wird auf Bestellung gehäkelt (${dias} Tage)`,
+      gratis: (envio: string) => `${envio} (kostenlos)`,
+      descuento: 'Rabatt',
+    },
+  },
+);
 
 /** Sin una clave secreta de prueba completa la tienda funciona en modo
  *  demostración, sin cobrar. */
@@ -45,26 +77,33 @@ function precioFinalUnidad(linea: { total: number; cantidad: number; slug: strin
 
 const recorta = (texto: string, max: number) => (texto.length > max ? `${texto.slice(0, max - 1)}…` : texto);
 
-/**
- * Crea la sesión de Stripe Checkout con los importes del servidor y
- * devuelve su URL. Caduca a los 45 minutos. Si Stripe calcula otro
- * total, la sesión se cancela y se lanza un error.
- */
 /** Descripción del pago en Stripe: así el dueño lo encuentra por el número de pedido. */
 export function descripcionPago(numero: string): string {
   return `Pedido ${numero} · Ovillo & Co. (tienda de demostración)`;
 }
 
+/**
+ * Crea la sesión de Stripe Checkout con los importes del servidor y
+ * devuelve su URL. Caduca a los 45 minutos. Si Stripe calcula otro
+ * total, la sesión se cancela y se lanza un error. La pantalla de pago y
+ * los nombres de las piezas van en `idioma`; los metadatos y la
+ * descripción del pago, en español, para el dueño.
+ */
 export async function crearSesionPago(
   pedido: PedidoCalculado,
   datos: DatosSesion & { email: string },
   origen: string,
+  idioma: Idioma = 'es',
 ): Promise<string> {
   const stripe = clienteStripe();
+  const t = T[idioma];
+  // Solo cambian los nombres: los importes son los del pedido recalculado.
+  const local = await localizarPedido(pedido, idioma);
   // Las rebajas automáticas ya van en el precio de cada pieza, como en la
   // tienda; el cupón de Stripe solo lleva el código de descuento.
   const descuento = pedido.descuentoCupon;
   const rotulo = nombreDescuento(0, pedido.descuentoCupon, pedido.codigoCupon);
+  const rotuloVisible = nombreDescuento(0, pedido.descuentoCupon, pedido.codigoCupon, idioma);
 
   // Un cupón de un solo uso por sesión con el importe ya calculado: así
   // Stripe cobra exactamente lo que ha decidido el servidor.
@@ -75,7 +114,7 @@ export async function crearSesionPago(
       currency: 'eur',
       duration: 'once',
       max_redemptions: 1,
-      name: recorta(rotulo, 40),
+      name: recorta(rotuloVisible, 40),
       metadata: { referencia: datos.referencia },
     });
     descuentos = [{ coupon: cupon.id }];
@@ -84,11 +123,11 @@ export async function crearSesionPago(
   const gratis = pedido.envio === 0 && pedido.metodoEnvio.id !== 'recogida';
   const sesion = await stripe.checkout.sessions.create({
     mode: 'payment',
-    locale: 'es',
+    locale: idioma,
     currency: 'eur',
     customer_email: datos.email,
     client_reference_id: datos.referencia,
-    line_items: pedido.lineas.map((l) => ({
+    line_items: local.lineas.map((l) => ({
       quantity: l.cantidad,
       price_data: {
         currency: 'eur',
@@ -96,9 +135,9 @@ export async function crearSesionPago(
         product_data: {
           name: l.nombre,
           description: [
-            l.variante,
-            l.personalizacion && `bordado «${l.personalizacion}»`,
-            l.encargo && l.dias && `se teje al pedir (${l.dias} días)`,
+            l.rotulo ?? l.variante,
+            l.personalizacion && t.bordado(l.personalizacion),
+            l.encargo && l.dias && t.encargo(l.dias),
           ]
             .filter(Boolean)
             .join(' · '),
@@ -118,7 +157,7 @@ export async function crearSesionPago(
         shipping_rate_data: {
           type: 'fixed_amount',
           fixed_amount: { amount: pedido.envio, currency: 'eur' },
-          display_name: gratis ? `${pedido.metodoEnvio.nombre} (gratis)` : pedido.metodoEnvio.nombre,
+          display_name: gratis ? t.gratis(local.metodoEnvio.nombre) : local.metodoEnvio.nombre,
         },
       },
     ],
@@ -127,8 +166,8 @@ export async function crearSesionPago(
       description: descripcionPago(datos.referencia),
       metadata: { referencia: datos.referencia },
     },
-    success_url: `${origen}/gracias?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origen}/pago?cancelado=1`,
+    success_url: `${origen}${conIdioma('/gracias', idioma)}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origen}${conIdioma('/pago', idioma)}?cancelado=1`,
     expires_at: Math.floor(Date.now() / 1000) + 45 * 60,
   });
 
@@ -159,10 +198,11 @@ async function numeroRegistrado(sesionId: string): Promise<string | null> {
 }
 
 /**
- * Resumen de una sesión de Stripe para la página de confirmación.
- * null si no existe, no es de esta tienda o no se ha completado.
+ * Resumen de una sesión de Stripe para la página de confirmación, con los
+ * textos en `idioma`. null si no existe, no es de esta tienda o no se ha
+ * completado.
  */
-export async function leerSesion(sesionId: string): Promise<ResumenPedido | null> {
+export async function leerSesion(sesionId: string, idioma: Idioma = 'es'): Promise<ResumenPedido | null> {
   if (!PATRON_SESION.test(sesionId)) return null;
   let sesion: Stripe.Checkout.Session;
   try {
@@ -175,12 +215,13 @@ export async function leerSesion(sesionId: string): Promise<ResumenPedido | null
   const datos = deMetadatos(sesion.metadata);
   if (!datos || sesion.status !== 'complete') return null;
 
-  const [metodos, numero] = await Promise.all([catalogo().metodosEnvio(), numeroRegistrado(sesion.id)]);
+  const fuente = catalogo(idioma);
+  const [metodos, numero] = await Promise.all([fuente.metodosEnvio(), numeroRegistrado(sesion.id)]);
   const metodo = metodos.find((m) => m.id === datos.envio);
   const descuento = sesion.total_details?.amount_discount ?? 0;
   const envio = sesion.total_details?.amount_shipping ?? 0;
 
-  const lineas = (sesion.line_items?.data ?? []).map((item) => {
+  let lineas: ResumenPedido['lineas'] = (sesion.line_items?.data ?? []).map((item) => {
     const producto = item.price?.product;
     const meta = producto && typeof producto === 'object' && !('deleted' in producto) ? producto.metadata : {};
     return {
@@ -193,6 +234,20 @@ export async function leerSesion(sesionId: string): Promise<ResumenPedido | null
       personalizacion: meta.personalizacion ?? '',
     };
   });
+
+  // Los nombres de las piezas ya llegan traducidos de Stripe; el de la
+  // variante se busca en el catálogo del idioma.
+  if (idioma !== 'es') {
+    const slugs = [...new Set(lineas.map((l) => l.slug).filter(Boolean))];
+    const productos = await Promise.all(slugs.map((slug) => fuente.producto(slug).catch(() => null)));
+    const rotulos = new Map(
+      productos.flatMap((p) => (p ? p.variantes.map((v) => [`${p.slug}|${v.nombre}`, v.rotulo] as const) : [])),
+    );
+    lineas = lineas.map((l) => {
+      const rotulo = rotulos.get(`${l.slug}|${l.variante}`);
+      return rotulo ? { ...l, rotulo } : l;
+    });
+  }
 
   return {
     numero: numero ?? datos.referencia,
@@ -210,7 +265,12 @@ export async function leerSesion(sesionId: string): Promise<ResumenPedido | null
     lineas,
     subtotal: sesion.amount_subtotal ?? 0,
     descuento,
-    nombreDescuento: sesion.metadata?.descuento ?? 'Descuento',
+    nombreDescuento:
+      idioma === 'es'
+        ? (sesion.metadata?.descuento ?? T.es.descuento)
+        : descuento > 0 && datos.cupon
+          ? nombreDescuento(0, descuento, datos.cupon, idioma)
+          : T[idioma].descuento,
     envioImporte: envio,
     total: sesion.amount_total ?? 0,
     diasConfeccion: datos.diasConfeccion,

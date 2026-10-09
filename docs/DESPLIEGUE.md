@@ -82,6 +82,10 @@ npx supabase db push                             # aplica las migraciones en ord
    | 7 | `20261010120000_panel_escritura.sql` | Guardado de productos desde el panel |
    | 8 | `20261011120000_encargos_solo_servidor.sql` | Los encargos solo entran por el servidor |
    | 9 | `20261012120000_demo_sin_fugas.sql` | Más datos ocultos a demo y contraseña de demo fija |
+   | 10 | `20261013120000_variantes_precio_final.sql` | Fotos por variante y qué distingue a las variantes |
+   | 11 | `20261013120100_panel_mismo_periodo.sql` | Resumen del panel comparable y stock real |
+   | 12 | `20261013120200_direccion_predeterminada.sql` | Dirección predeterminada en un solo paso |
+   | 13 | `20261014120000_traducciones.sql` | Traducciones del catálogo (inglés, francés y alemán) |
 
 > **No los juntes en una sola consulta.** La quinta añade un valor a un tipo y PostgreSQL no permite usarlo en la misma transacción en que se crea; por eso va sola.
 >
@@ -108,6 +112,8 @@ psql "postgresql://…la misma…" -f supabase/seed-demo.sql
 `seed-demo.sql` se puede ejecutar las veces que quieras: borra lo ficticio y lo vuelve a crear con fechas relativas a hoy, así que conviene repetirlo de vez en cuando para que el panel no se quede con ventas antiguas. Los importes no están escritos a mano: los calcula la propia base de datos con el catálogo, así que siempre cuadran.
 
 > **Las fotos del catálogo de ejemplo** apuntan a `/fotos/…`, que la web sirve desde `public/fotos/`. No hay que subirlas a Supabase. Las que subas tú desde el panel irán al espacio `productos` de Supabase Storage.
+
+> **¿Ya tenías el catálogo cargado de antes?** Aplica la migración `20261014120000_traducciones.sql` y después ejecuta [`supabase/traducciones.sql`](../supabase/traducciones.sql): pone los textos en inglés, francés y alemán sin tocar nada más. Hazlo **antes** de desplegar la versión con idiomas: esa versión ya pide la columna `traducciones`.
 
 ## 4. Supabase: correos y direcciones de vuelta
 

@@ -46,6 +46,7 @@ function normalizarLinea(x: unknown): LineaCesta | null {
   const slug = texto(x.slug, 120);
   const nombre = texto(x.nombre);
   const variante = texto(x.variante, 120);
+  const rotulo = texto(x.rotulo, 120);
   const precio = entero(x.precio, 0, 10_000_000);
   const uds = entero(x.uds, 1, 999);
   const categoria = CATEGORIAS.find((c) => c === x.categoria);
@@ -63,6 +64,7 @@ function normalizarLinea(x: unknown): LineaCesta | null {
     nombre,
     categoria,
     variante,
+    ...(rotulo && { rotulo }),
     color: texto(x.color, 40) ?? COLOR_NEUTRO,
     foto: foto(x.foto),
     precio,

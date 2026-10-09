@@ -40,7 +40,10 @@ export interface LineaCesta {
   slug: string;
   nombre: string;
   categoria: SlugCategoria;
+  /** Nombre de la variante en español: la clave en Stripe y en la base de datos. */
   variante: string;
+  /** Nombre de la variante en el idioma en que se añadió; sin él, `variante`. */
+  rotulo?: string;
   color: string;
   foto: Foto | null;
   /** Precio unitario en céntimos. */

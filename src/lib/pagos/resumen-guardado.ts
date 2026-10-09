@@ -21,6 +21,7 @@ function lineaValida(l: unknown): boolean {
     texto(l.slug, 120) &&
     texto(l.nombre, 200) &&
     texto(l.variante, 120) &&
+    (l.rotulo === undefined || texto(l.rotulo, 120)) &&
     (foto === null || (esObjeto(foto) && ruta(foto.src) && typeof foto.alt === 'string')) &&
     entero(l.cantidad) &&
     entero(l.total) &&

@@ -23,6 +23,7 @@ const resumenPedido = z.object({
 export type ResumenPedidoCuenta = z.infer<typeof resumenPedido>;
 
 const pedidoCompleto = resumenPedido.extend({
+  metodo_envio_id: textoONulo,
   subtotal: entero,
   descuento_automatico: entero,
   descuento_cupon: entero,
@@ -82,7 +83,7 @@ export async function miPedido(usuarioId: string, numero: string): Promise<Pedid
   const { data, error } = await supabase
     .from('pedidos')
     .select(
-      `id, numero, estado, creado_en, total, metodo_envio_nombre, subtotal, descuento_automatico, descuento_cupon,
+      `id, numero, estado, creado_en, total, metodo_envio_id, metodo_envio_nombre, subtotal, descuento_automatico, descuento_cupon,
        envio, codigo_cupon, dias_confeccion, transportista, numero_seguimiento, pagado_en, enviado_en, entregado_en,
        cancelado_en, direccion_envio,
        lineas:lineas_pedido(producto_slug, nombre_producto, nombre_variante, color, foto_ruta, precio_unitario,

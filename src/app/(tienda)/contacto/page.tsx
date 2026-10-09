@@ -1,82 +1,76 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Aparece } from '@/componentes/aparece';
 import { PreguntasFrecuentes } from '@/componentes/contenido/acordeon';
 import { CabeceraPagina } from '@/componentes/contenido/cabecera-pagina';
 import { Migas } from '@/componentes/contenido/migas';
 import { FormularioContacto } from '@/componentes/formularios/formulario-contacto';
 import { IcoInsta, IcoPinterest, IcoSobre } from '@/componentes/iconos';
-import { PREGUNTAS } from '@/datos/semilla';
+import { preguntasFrecuentes } from '@/datos/preguntas';
+import { Enlace } from '@/lib/i18n/enlace';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { metadatosPagina } from '@/lib/metadatos';
 import { DEMO, rutas } from '@/lib/rutas';
+import { T } from './contenido';
 import '@/estilos/contenido.css';
 
-export const metadata = metadatosPagina({
-  titulo: 'Contacto y preguntas frecuentes',
-  descripcion:
-    'Escribe a Ovillo & Co. para dudas, pedidos, arreglos o encargos. Te contestamos en 24–48 horas. Preguntas frecuentes sobre plazos, colores, bebés y devoluciones.',
-  ruta: rutas.contacto,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaActual();
+  const t = T[idioma];
+  return metadatosPagina({ idioma, titulo: t.titulo, descripcion: t.descripcion, ruta: rutas.contacto });
+}
 
-const HORARIO: [string, string][] = [
-  ['Lunes a viernes', 'por la mañana'],
-  ['Sábados', 'a ratos'],
-  ['Domingos', 'descansamos'],
-];
-
-export default function PaginaContacto() {
+export default async function PaginaContacto() {
+  const idioma = await idiomaActual();
+  const t = T[idioma];
   return (
     <div className="wrap">
-      <Migas actual="Contacto" />
+      <Migas actual={t.miga} />
 
-      <CabeceraPagina etiqueta="Hablamos" titulo="Escríbenos y te contestamos nosotros" ancho={56}>
-        <p>
-          Sin centralitas ni respuestas automáticas. Leemos todos los mensajes y contestamos en 24–48 horas laborables,
-          salvo en los puentes largos.
-        </p>
+      <CabeceraPagina etiqueta={t.etiqueta} titulo={t.cabecera} ancho={56}>
+        <p>{t.entradilla}</p>
       </CabeceraPagina>
 
       <div className="con-lateral">
         <div>
-          <h2 className="oculto-vis">Formulario de contacto</h2>
+          <h2 className="oculto-vis">{t.formulario}</h2>
           <FormularioContacto />
 
           <section aria-labelledby="preguntas">
             <Aparece className="cab-sec">
               <div>
-                <p className="eyebrow">Antes de escribir</p>
+                <p className="eyebrow">{t.antes}</p>
                 <h2 className="mt-1" id="preguntas">
-                  A lo mejor está aquí
+                  {t.aquiTitulo}
                 </h2>
-                <p className="lead mt-2">
-                  Las preguntas que más nos llegan, contestadas de una vez.
-                </p>
+                <p className="lead mt-2">{t.aquiTexto}</p>
               </div>
             </Aparece>
-            <PreguntasFrecuentes preguntas={PREGUNTAS} />
+            <PreguntasFrecuentes preguntas={preguntasFrecuentes(idioma)} />
             <p className="mini mt-5">
-              ¿Dudas con el lavado? Tienes la{' '}
-              <Link className="enlace" href={rutas.cuidados}>
-                guía de cuidados
-              </Link>{' '}
-              completa. ¿Plazos y devoluciones? Están en{' '}
-              <Link className="enlace" href={rutas.envios}>
-                envíos
-              </Link>
-              .
+              {t.remite(
+                (texto) => (
+                  <Enlace className="enlace" href={rutas.cuidados}>
+                    {texto}
+                  </Enlace>
+                ),
+                (texto) => (
+                  <Enlace className="enlace" href={rutas.envios}>
+                    {texto}
+                  </Enlace>
+                ),
+              )}
             </p>
           </section>
         </div>
 
-        <aside aria-label="Otras formas de contacto">
+        <aside aria-label={t.otrasVias}>
           <div className="caja">
-            <h2 className="lista-titulo">
-              Otras formas
-            </h2>
+            <h2 className="lista-titulo">{t.otras}</h2>
             <ul className="vias">
               <li>
                 <IcoSobre />
                 <span>
-                  <b>Correo</b>
+                  <b>{t.correo}</b>
                   <a className="mini enlace" href={`mailto:${DEMO.correo}`}>
                     {DEMO.correo}
                   </a>
@@ -86,25 +80,25 @@ export default function PaginaContacto() {
                 <IcoInsta />
                 <span>
                   <b>Instagram</b>
-                  <span className="mini">@ovilloandco (de ejemplo)</span>
+                  <span className="mini">@ovilloandco {t.deEjemplo}</span>
                 </span>
               </li>
               <li>
                 <IcoPinterest />
                 <span>
                   <b>Pinterest</b>
-                  <span className="mini">Ovillo &amp; Co. (de ejemplo)</span>
+                  <span className="mini">Ovillo &amp; Co. {t.deEjemplo}</span>
                 </span>
               </li>
             </ul>
           </div>
 
           <div className="caja-cl">
-            <h2 className="titulo-mini">Cuándo contestamos</h2>
+            <h2 className="titulo-mini">{t.cuando}</h2>
             <table className="tabla tabla-corta mt-2">
-              <caption className="oculto-vis">Horario de respuesta</caption>
+              <caption className="oculto-vis">{t.horario}</caption>
               <tbody>
-                {HORARIO.map(([dia, cuando]) => (
+                {t.dias.map(([dia, cuando]) => (
                   <tr key={dia}>
                     <th scope="row">{dia}</th>
                     <td className="derecha">{cuando}</td>
@@ -112,18 +106,12 @@ export default function PaginaContacto() {
                 ))}
               </tbody>
             </table>
-            <p className="mini-2 mt-3">
-              En agosto tardamos algo más: es cuando aprovechamos para tejer sin parar.
-            </p>
+            <p className="mini-2 mt-3">{t.agosto}</p>
           </div>
 
           <div className="banda banda-lateral">
-            <h2 className="lista-titulo">
-              ¿Se te ha roto algo nuestro?
-            </h2>
-            <p className="mt-1">
-              Te lo arreglamos gratis, aunque lo compraras hace años. Solo pagas el envío de vuelta.
-            </p>
+            <h2 className="lista-titulo">{t.rotoTitulo}</h2>
+            <p className="mt-1">{t.rotoTexto}</p>
           </div>
         </aside>
       </div>

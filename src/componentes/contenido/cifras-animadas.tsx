@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { DATOS_IDIOMA, IDIOMAS, type Idioma } from '@/lib/i18n';
+import { useIdioma } from '@/lib/i18n/cliente';
 
 export interface Cifra {
   valor: number;
@@ -8,7 +10,9 @@ export interface Cifra {
 }
 
 const DURACION_MS = 1400;
-const NUMERO = new Intl.NumberFormat('es-ES');
+const NUMEROS = Object.fromEntries(
+  IDIOMAS.map((i) => [i, new Intl.NumberFormat(DATOS_IDIOMA[i].formato)]),
+) as Record<Idioma, Intl.NumberFormat>;
 
 /** Cifras que suben de 0 a su valor al entrar en pantalla. El HTML del
  *  servidor ya lleva el valor final: sin JavaScript, o con menos
@@ -16,6 +20,7 @@ const NUMERO = new Intl.NumberFormat('es-ES');
  *  el valor final, nunca la cuenta. */
 export function CifrasAnimadas({ cifras, className }: { cifras: readonly Cifra[]; className?: string }) {
   const ref = useRef<HTMLDListElement>(null);
+  const numero = NUMEROS[useIdioma()];
   const [progreso, setProgreso] = useState(1);
 
   useEffect(() => {
@@ -54,9 +59,9 @@ export function CifrasAnimadas({ cifras, className }: { cifras: readonly Cifra[]
           <dt>{c.texto}</dt>
           <dd>
             <span className="cifra" aria-hidden="true">
-              {NUMERO.format(Math.round(c.valor * progreso))}
+              {numero.format(Math.round(c.valor * progreso))}
             </span>
-            <span className="oculto-vis">{NUMERO.format(c.valor)}</span>
+            <span className="oculto-vis">{numero.format(c.valor)}</span>
           </dd>
         </div>
       ))}

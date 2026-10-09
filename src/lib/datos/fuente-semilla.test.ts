@@ -142,7 +142,7 @@ describe('fuente de la semilla', () => {
     it('trae la rebaja automática de su categoría y el precio final', async () => {
       const bolso = await fuente.producto('bolso-red-mercado');
       if (!bolso) throw new Error('Falta el bolso en la semilla');
-      expect(bolso.rebaja).toEqual({ nombre: 'Rebajas de accesorios', porcentaje: 15, hasta: null });
+      expect(bolso.rebaja).toMatchObject({ nombre: 'Rebajas de accesorios', porcentaje: 15, hasta: null });
       expect(precioVenta(bolso)).toMatchObject({ final: 1870, anterior: 2200, porcentaje: 15 });
       expect((await fuente.producto('cojin-relieve'))?.rebaja).toBeNull();
     });

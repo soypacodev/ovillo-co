@@ -3,7 +3,7 @@
 // pruebas.
 
 import type { Promocion } from '@/lib/catalogo/tipos';
-import { CATEGORIAS, ENVIOS, PRODUCTOS, PROMOCIONES } from '@/datos/semilla';
+import { CATEGORIAS_T as CATEGORIAS, ENVIOS_T as ENVIOS, PRODUCTOS_T as PRODUCTOS, PROMOCIONES_T as PROMOCIONES } from '@/datos/semilla-traducida';
 import { diaMadrid } from '@/lib/fechas';
 import { aplicarFiltros, elegirRelacionados } from './filtros';
 import type { FuenteCatalogo } from './fuente';

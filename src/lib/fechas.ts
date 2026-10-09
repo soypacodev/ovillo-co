@@ -3,6 +3,8 @@
 // y el panel tienen que contar igual o un pedido de las 00:30 saldría en
 // el día anterior.
 
+import { DATOS_IDIOMA, type Idioma } from '@/lib/i18n/idiomas';
+
 const ZONA = 'Europe/Madrid';
 
 const PARTES = new Intl.DateTimeFormat('en-US', {
@@ -57,22 +59,33 @@ export function sumarDias(dia: string, n: number): string {
   return new Date(Date.UTC(a, m - 1, d + n)).toISOString().slice(0, 10);
 }
 
-const FECHA_LARGA = new Intl.DateTimeFormat('es-ES', { timeZone: ZONA, day: 'numeric', month: 'long', year: 'numeric' });
-const FECHA_HORA = new Intl.DateTimeFormat('es-ES', {
-  timeZone: ZONA,
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-});
+type OpcionesFecha = Intl.DateTimeFormatOptions;
 
-/** «8 de octubre de 2026» */
-export const fechaLarga = (iso: string) => FECHA_LARGA.format(new Date(iso));
+const FORMATOS = new Map<string, Intl.DateTimeFormat>();
+
+/** Formateadores por idioma y opciones, creados una vez. */
+function formato(idioma: Idioma, opciones: OpcionesFecha): Intl.DateTimeFormat {
+  const clave = `${idioma}|${JSON.stringify(opciones)}`;
+  let f = FORMATOS.get(clave);
+  if (!f) {
+    f = new Intl.DateTimeFormat(DATOS_IDIOMA[idioma].formato, opciones);
+    FORMATOS.set(clave, f);
+  }
+  return f;
+}
+
+const LARGA: OpcionesFecha = { timeZone: ZONA, day: 'numeric', month: 'long', year: 'numeric' };
+const CON_HORA: OpcionesFecha = { timeZone: ZONA, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+const CORTO: OpcionesFecha = { timeZone: 'UTC', day: 'numeric', month: 'short' };
+const DIA: OpcionesFecha = { timeZone: 'UTC', day: 'numeric', month: 'long' };
+
+/** «8 de octubre de 2026» («8 October 2026» en inglés). */
+export const fechaLarga = (iso: string, idioma: Idioma = 'es') => formato(idioma, LARGA).format(new Date(iso));
 /** «8 oct, 18:05» */
-export const fechaHora = (iso: string) => FECHA_HORA.format(new Date(iso)).replace('.', '');
-
-const DIA_CORTO = new Intl.DateTimeFormat('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'short' });
-const DIA_LARGO = new Intl.DateTimeFormat('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long' });
+export const fechaHora = (iso: string, idioma: Idioma = 'es') =>
+  formato(idioma, CON_HORA)
+    .format(new Date(iso))
+    .replace(idioma === 'es' ? '.' : /(?!)/, '');
 
 const deDia = (dia: string) => {
   const [a, m, d] = dia.split('-').map(Number);
@@ -80,9 +93,12 @@ const deDia = (dia: string) => {
 };
 
 /** «8 oct» para un día «AAAA-MM-DD» (sin zona: ya es un día de Madrid). */
-export const diaCorto = (dia: string) => DIA_CORTO.format(deDia(dia)).replace('.', '');
+export const diaCorto = (dia: string, idioma: Idioma = 'es') =>
+  formato(idioma, CORTO)
+    .format(deDia(dia))
+    .replace(idioma === 'es' ? '.' : /(?!)/, '');
 /** «8 de octubre» para un día «AAAA-MM-DD». */
-export const diaLargo = (dia: string) => DIA_LARGO.format(deDia(dia));
+export const diaLargo = (dia: string, idioma: Idioma = 'es') => formato(idioma, DIA).format(deDia(dia));
 
 /** Año en curso en Madrid: el de la numeración de los pedidos. */
 export const anioMadrid = (fecha: Date = new Date()) => diaMadrid(fecha).slice(0, 4);

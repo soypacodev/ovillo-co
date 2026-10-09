@@ -3,9 +3,22 @@
 import { IcoCesta } from '@/componentes/iconos';
 import { useCesta } from '@/lib/cesta/contexto';
 import { piezas } from '@/lib/formato';
+import { textos } from '@/lib/i18n';
+import { useIdioma, useTextos } from '@/lib/i18n/cliente';
+
+const T = textos(
+  { ver: (cuantas: string) => `Ver la cesta, ${cuantas}`, vacia: 'Ver la cesta, vacía' },
+  {
+    en: { ver: (cuantas: string) => `View basket, ${cuantas}`, vacia: 'View basket, empty' },
+    fr: { ver: (cuantas: string) => `Voir le panier, ${cuantas}`, vacia: 'Voir le panier, vide' },
+    de: { ver: (cuantas: string) => `Warenkorb ansehen, ${cuantas}`, vacia: 'Warenkorb ansehen, leer' },
+  },
+);
 
 export function BotonCesta() {
   const { unidades, abrir, abierta } = useCesta();
+  const idioma = useIdioma();
+  const t = useTextos(T);
   return (
     <button
       type="button"
@@ -14,7 +27,7 @@ export function BotonCesta() {
       aria-haspopup="dialog"
       aria-expanded={abierta}
       aria-controls="cajon-cesta"
-      aria-label={unidades ? `Ver la cesta, ${piezas(unidades)}` : 'Ver la cesta, vacía'}
+      aria-label={unidades ? t.ver(piezas(unidades, idioma)) : t.vacia}
     >
       <IcoCesta />
       {unidades > 0 && (

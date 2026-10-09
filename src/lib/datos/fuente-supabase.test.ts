@@ -4,6 +4,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { describe, expect, it } from 'vitest';
 import { CATEGORIAS, ENVIOS, PRODUCTOS, PROMOCIONES } from '@/datos/semilla';
+import { TRADUCCIONES_CATEGORIAS, TRADUCCIONES_PRODUCTOS } from '@/datos/traducciones-catalogo';
+import { TRADUCCIONES_ENVIOS, TRADUCCIONES_PROMOCIONES } from '@/datos/traducciones-tarifas';
 import type { FiltrosCatalogo } from './filtros';
 import { crearFuenteSupabase } from './fuente-supabase';
 import { fuenteSemilla } from './fuente-semilla';
@@ -34,6 +36,7 @@ const filaProducto = (p: (typeof PRODUCTOS)[number], posicion: number) => ({
   personalizacion_pista: p.personalizable?.pista ?? null,
   contenido: p.contenido ?? null,
   posicion,
+  traducciones: TRADUCCIONES_PRODUCTOS[p.slug] ?? {},
   categoria: { slug: p.categoria },
   variantes: p.variantes.map(({ foto, ...v }, i) => ({ ...v, foto_ruta: foto?.src ?? null, posicion: i })),
   fotos: p.fotos.map((f, i) => ({ ruta: f.src, alt: f.alt, posicion: i })),
@@ -46,11 +49,13 @@ const TABLAS: Record<string, unknown[]> = {
     texto: c.texto,
     foto_ruta: c.foto.src,
     foto_alt: c.foto.alt,
+    traducciones: TRADUCCIONES_CATEGORIAS[c.slug] ?? {},
   })),
   productos: PRODUCTOS.map(filaProducto),
   // RLS ya solo deja ver las automáticas.
   promociones: PROMOCIONES.filter((p) => p.codigo === null).map((p) => ({
     ...p,
+    traducciones: TRADUCCIONES_PROMOCIONES[p.nombre] ?? {},
     categoria: p.categoria ? { slug: p.categoria } : null,
   })),
   metodos_envio: ENVIOS.map((e) => ({
@@ -59,6 +64,7 @@ const TABLAS: Record<string, unknown[]> = {
     precio: e.precio,
     gratis_desde: e.gratisDesde,
     plazo: e.plazo,
+    traducciones: TRADUCCIONES_ENVIOS[e.id] ?? {},
   })),
 };
 
@@ -76,6 +82,7 @@ function preparar() {
       cuerpo = PROMOCIONES.filter((p) => p.codigo === p_codigo.trim().toUpperCase()).map((p) => ({
         ...p,
         categoria: p.categoria,
+        traducciones: TRADUCCIONES_PROMOCIONES[p.nombre] ?? {},
       }));
     } else {
       const slug = url.searchParams.get('slug')?.replace(/^eq\./, '');

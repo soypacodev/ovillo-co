@@ -1,11 +1,14 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { textos } from '@/lib/i18n';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { usuarioActual } from '@/lib/cuentas/sesion';
 import { configuracionSupabase } from '@/lib/datos/entorno';
 import { clienteServicio } from '@/lib/datos/supabase/servicio';
 import {
   MOTIVOS_CONTACTO,
+  avisoRevisar,
   erroresPorCampo,
   esquemaContacto,
   formularioAObjeto,
@@ -18,6 +21,27 @@ import { crearLimitador, origenPeticion } from './limite';
 import type { EstadoFormulario } from './tipos';
 
 export type EstadoContacto = EstadoFormulario<CampoContacto>;
+
+const T = textos(
+  {
+    muchos: 'Nos han llegado varios mensajes seguidos desde tu conexión. Espera unos minutos y vuelve a probar.',
+    fallo: 'No hemos podido guardar tu mensaje por un problema nuestro. Vuelve a intentarlo en un momento.',
+  },
+  {
+    en: {
+      muchos: 'We’ve had several messages in a row from your connection. Please wait a few minutes and try again.',
+      fallo: 'We couldn’t save your message because of a problem on our side. Please try again in a moment.',
+    },
+    fr: {
+      muchos: 'Nous avons reçu plusieurs messages d’affilée depuis votre connexion. Patientez quelques minutes et réessayez.',
+      fallo: 'Nous n’avons pas pu enregistrer votre message à cause d’un problème de notre côté. Réessayez dans un instant.',
+    },
+    de: {
+      muchos: 'Von Ihrer Verbindung kamen mehrere Nachrichten kurz hintereinander. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
+      fallo: 'Ihre Nachricht konnte wegen eines Problems bei uns nicht gespeichert werden. Bitte versuchen Sie es gleich noch einmal.',
+    },
+  },
+);
 
 const limitador = crearLimitador({ maximo: 5, ventana: 10 * 60 * 1000 });
 
@@ -54,14 +78,15 @@ export async function enviarContacto(_previo: EstadoContacto, formulario: FormDa
 
   if (esRobot(formulario)) return { estado: 'enviado', guardado: false };
 
+  const idioma = await idiomaActual();
+  const t = T[idioma];
   const valores = valoresDeTexto<CampoContacto>(crudo);
-  const resultado = esquemaContacto.safeParse(crudo);
+  const resultado = esquemaContacto(idioma).safeParse(crudo);
   if (!resultado.success) {
     const errores = erroresPorCampo<CampoContacto>(resultado.error);
-    const n = Object.keys(errores).length;
     return {
       estado: 'error',
-      mensaje: n === 1 ? 'Hay un campo que revisar.' : `Hay ${n} campos que revisar.`,
+      mensaje: avisoRevisar(Object.keys(errores).length, idioma),
       errores,
       valores,
     };
@@ -70,7 +95,7 @@ export async function enviarContacto(_previo: EstadoContacto, formulario: FormDa
   if (!limitador.permitir(origenPeticion(await headers()))) {
     return {
       estado: 'error',
-      mensaje: 'Nos han llegado varios mensajes seguidos desde tu conexión. Espera unos minutos y vuelve a probar.',
+      mensaje: t.muchos,
       errores: {},
       valores,
     };
@@ -87,7 +112,7 @@ export async function enviarContacto(_previo: EstadoContacto, formulario: FormDa
   if (!guardado) {
     return {
       estado: 'error',
-      mensaje: 'No hemos podido guardar tu mensaje por un problema nuestro. Vuelve a intentarlo en un momento.',
+      mensaje: t.fallo,
       errores: {},
       valores,
     };

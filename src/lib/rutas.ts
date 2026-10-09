@@ -2,6 +2,7 @@
 // páginas no repitan cadenas que luego hay que cambiar en diez sitios.
 
 import type { SlugCategoria } from '@/lib/catalogo/tipos';
+import type { Idioma } from '@/lib/i18n/idiomas';
 
 export const rutas = {
   inicio: '/',
@@ -46,15 +47,15 @@ export const rutas = {
 
 export interface EnlaceMenu {
   href: string;
-  texto: string;
+  texto: Record<Idioma, string>;
 }
 
 export const MENU_PRINCIPAL: EnlaceMenu[] = [
-  { href: rutas.tienda, texto: 'Tienda' },
-  { href: rutas.taller, texto: 'El taller' },
-  { href: rutas.encargos, texto: 'Encargos' },
-  { href: rutas.cuidados, texto: 'Cuidados' },
-  { href: rutas.contacto, texto: 'Contacto' },
+  { href: rutas.tienda, texto: { es: 'Tienda', en: 'Shop', fr: 'Boutique', de: 'Shop' } },
+  { href: rutas.taller, texto: { es: 'El taller', en: 'The workshop', fr: 'L’atelier', de: 'Die Werkstatt' } },
+  { href: rutas.encargos, texto: { es: 'Encargos', en: 'Custom orders', fr: 'Sur mesure', de: 'Auftragsarbeiten' } },
+  { href: rutas.cuidados, texto: { es: 'Cuidados', en: 'Care', fr: 'Entretien', de: 'Pflege' } },
+  { href: rutas.contacto, texto: { es: 'Contacto', en: 'Contact', fr: 'Contact', de: 'Kontakt' } },
 ];
 
 /** Marca como actual la sección y también sus páginas hijas
@@ -65,10 +66,29 @@ export function esRutaActual(href: string, ruta: string): boolean {
 }
 
 const CORREO_AUTOR = 'soypacodev@gmail.com';
-const MENSAJE_CONTRATAR = {
-  subject: 'Quiero una tienda como Ovillo & Co.',
-  body: 'Hola, Paco:\n\nHe visto la tienda de demostración Ovillo & Co. y me gustaría algo parecido para mi negocio.\n\n',
+const MENSAJE_CONTRATAR: Record<Idioma, { subject: string; body: string }> = {
+  es: {
+    subject: 'Quiero una tienda como Ovillo & Co.',
+    body: 'Hola, Paco:\n\nHe visto la tienda de demostración Ovillo & Co. y me gustaría algo parecido para mi negocio.\n\n',
+  },
+  en: {
+    subject: 'I would like a shop like Ovillo & Co.',
+    body: "Hi Paco,\n\nI've seen the Ovillo & Co. demo shop and I'd like something similar for my business.\n\n",
+  },
+  fr: {
+    subject: 'Je voudrais une boutique comme Ovillo & Co.',
+    body: "Bonjour Paco,\n\nJ'ai vu la boutique de démonstration Ovillo & Co. et j'aimerais quelque chose de similaire pour mon activité.\n\n",
+  },
+  de: {
+    subject: 'Ich hätte gern einen Shop wie Ovillo & Co.',
+    body: 'Hallo Paco,\n\nich habe den Demo-Shop Ovillo & Co. gesehen und hätte gern etwas Ähnliches für mein Geschäft.\n\n',
+  },
 };
+
+const mailtoContratar = (idioma: Idioma) =>
+  `mailto:${CORREO_AUTOR}?${Object.entries(MENSAJE_CONTRATAR[idioma])
+    .map(([clave, valor]) => `${clave}=${encodeURIComponent(valor)}`)
+    .join('&')}`;
 
 /** La tienda es ficticia; el autor de la demo, no. `correo` es el de la
  *  tienda (dominio de ejemplo) y `contratar`, el de Paco Dev con el asunto
@@ -80,7 +100,6 @@ export const DEMO = {
   usuarioInstagram: '@soypacodev',
   correo: 'hola@ovilloandco.example',
   correoAutor: CORREO_AUTOR,
-  contratar: `mailto:${CORREO_AUTOR}?${Object.entries(MENSAJE_CONTRATAR)
-    .map(([clave, valor]) => `${clave}=${encodeURIComponent(valor)}`)
-    .join('&')}`,
+  /** Correo a Paco Dev con el asunto ya escrito, en el idioma de la página. */
+  contratar: mailtoContratar,
 } as const;

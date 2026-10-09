@@ -18,6 +18,8 @@ import {
   type ReactNode,
 } from 'react';
 import { useBrindis } from '@/componentes/brindis';
+import { textos } from '@/lib/i18n';
+import { useIdioma } from '@/lib/i18n/cliente';
 import { crearAlmacen } from './almacen';
 import { aplicarCupon as aplicarCuponPuro, quitarCupon as quitarCuponPuro } from './cupones';
 import { alternarFavorito as alternarFavoritoPuro, normalizarFavoritos } from './favoritos';
@@ -48,6 +50,53 @@ const SIN_FAVORITOS: string[] = [];
 const almacenFavoritos = crearAlmacen<string[]>('favoritos', SIN_FAVORITOS, normalizarFavoritos);
 
 const nadaQueEscuchar = () => () => {};
+
+const T = textos(
+  {
+    anadido: (nombre: string) => `«${nombre}» en la cesta`,
+    limitado: (nombre: string, uds: number) => `«${nombre}» en la cesta: ${uds} más, el máximo disponible`,
+    maximo: (nombre: string) => `Ya tienes el máximo disponible de «${nombre}»`,
+    agotado: 'Esa opción está agotada',
+    sinVariante: 'Elige una opción antes de añadirlo',
+    quitado: (nombre: string) => `«${nombre}» fuera de la cesta`,
+    favoritoGuardado: 'Guardado en tus favoritos',
+    favoritoQuitado: 'Quitado de tus favoritos',
+  },
+  {
+    en: {
+      anadido: (nombre: string) => `“${nombre}” added to your basket`,
+      limitado: (nombre: string, uds: number) => `“${nombre}” added to your basket: ${uds} more, all that’s available`,
+      maximo: (nombre: string) => `You already have all the available “${nombre}”`,
+      agotado: 'That option is sold out',
+      sinVariante: 'Choose an option before adding it',
+      quitado: (nombre: string) => `“${nombre}” removed from your basket`,
+      favoritoGuardado: 'Saved to your favourites',
+      favoritoQuitado: 'Removed from your favourites',
+    },
+    fr: {
+      anadido: (nombre: string) => `«\u00a0${nombre}\u00a0» ajouté au panier`,
+      limitado: (nombre: string, uds: number) =>
+        `«\u00a0${nombre}\u00a0» ajouté au panier\u00a0: ${uds} de plus, le maximum disponible`,
+      maximo: (nombre: string) => `Vous avez déjà le maximum disponible de «\u00a0${nombre}\u00a0»`,
+      agotado: 'Cette option est épuisée',
+      sinVariante: 'Choisissez une option avant de l’ajouter',
+      quitado: (nombre: string) => `«\u00a0${nombre}\u00a0» retiré du panier`,
+      favoritoGuardado: 'Ajouté à vos favoris',
+      favoritoQuitado: 'Retiré de vos favoris',
+    },
+    de: {
+      anadido: (nombre: string) => `„${nombre}“ liegt im Warenkorb`,
+      limitado: (nombre: string, uds: number) =>
+        `„${nombre}“ liegt im Warenkorb: ${uds} mehr, mehr ist nicht verfügbar`,
+      maximo: (nombre: string) => `Sie haben bereits alle verfügbaren „${nombre}“ im Warenkorb`,
+      agotado: 'Diese Option ist ausverkauft',
+      sinVariante: 'Wählen Sie zuerst eine Option aus',
+      quitado: (nombre: string) => `„${nombre}“ aus dem Warenkorb entfernt`,
+      favoritoGuardado: 'Zu Ihren Favoriten hinzugefügt',
+      favoritoQuitado: 'Aus Ihren Favoriten entfernt',
+    },
+  },
+);
 
 export interface ValorCesta {
   lineas: LineaCesta[];
@@ -91,6 +140,8 @@ const ContextoFavoritos = createContext<ValorFavoritos | null>(null);
 /** Proveedor de la cesta y los favoritos para toda la tienda. */
 export function ProveedorCesta({ children }: { children: ReactNode }) {
   const avisar = useBrindis();
+  const idioma = useIdioma();
+  const t = T[idioma];
   const [abierta, setAbierta] = useState(false);
 
   const estado = useSyncExternalStore(almacenCesta.suscribir, almacenCesta.leer, () => almacenCesta.inicial);
@@ -112,27 +163,25 @@ export function ProveedorCesta({ children }: { children: ReactNode }) {
       almacenCesta.escribir(nuevo);
       switch (resultado.tipo) {
         case 'anadido':
-          avisar(`«${producto.nombre}» en la cesta`);
+          avisar(t.anadido(producto.nombre));
           if (abrirCajon) setAbierta(true);
           break;
         case 'limitado':
           avisar(
-            resultado.uds > 0
-              ? `«${producto.nombre}» en la cesta: ${resultado.uds} más, el máximo disponible`
-              : `Ya tienes el máximo disponible de «${producto.nombre}»`,
+            resultado.uds > 0 ? t.limitado(producto.nombre, resultado.uds) : t.maximo(producto.nombre),
           );
           if (abrirCajon && resultado.uds > 0) setAbierta(true);
           break;
         case 'agotado':
-          avisar('Esa opción está agotada');
+          avisar(t.agotado);
           break;
         case 'sin-variante':
-          avisar('Elige una opción antes de añadirlo');
+          avisar(t.sinVariante);
           break;
       }
       return resultado;
     },
-    [avisar],
+    [avisar, t],
   );
 
   const cambiarUnidades = useCallback((id: string, delta: number) => {
@@ -148,9 +197,9 @@ export function ProveedorCesta({ children }: { children: ReactNode }) {
       const actual = almacenCesta.leer();
       const linea = actual.lineas.find((l) => l.id === id);
       almacenCesta.escribir(quitarLinea(actual, id));
-      if (linea) avisar(`«${linea.nombre}» fuera de la cesta`);
+      if (linea) avisar(t.quitado(linea.nombre));
     },
-    [avisar],
+    [avisar, t],
   );
 
   const vaciar = useCallback(() => almacenCesta.escribir(vaciarCesta()), []);
@@ -165,16 +214,23 @@ export function ProveedorCesta({ children }: { children: ReactNode }) {
     const actual = almacenCesta.leer();
     if (!actual.lineas.length) return false;
     const nuevo = sincronizarConCatalogo(actual, productos);
-    const cambio = JSON.stringify(nuevo.lineas) !== JSON.stringify(actual.lineas);
-    if (cambio) almacenCesta.escribir(nuevo);
-    return cambio;
+    if (JSON.stringify(nuevo.lineas) === JSON.stringify(actual.lineas)) return false;
+    almacenCesta.escribir(nuevo);
+    // Solo se avisa si cambia algo que importa: precio, stock o piezas.
+    // Los nombres cambian solos al ver la tienda en otro idioma.
+    const huella = (lineas: readonly LineaCesta[]) =>
+      JSON.stringify(lineas.map((l) => [l.id, l.precio, l.uds, l.stock, l.encargo, l.dias]));
+    return huella(nuevo.lineas) !== huella(actual.lineas);
   }, []);
 
-  const aplicarCupon = useCallback((codigo: string) => {
-    const { estado: nuevo, resultado } = aplicarCuponPuro(almacenCesta.leer(), codigo);
-    almacenCesta.escribir(nuevo);
-    return resultado;
-  }, []);
+  const aplicarCupon = useCallback(
+    (codigo: string) => {
+      const { estado: nuevo, resultado } = aplicarCuponPuro(almacenCesta.leer(), codigo, undefined, undefined, idioma);
+      almacenCesta.escribir(nuevo);
+      return resultado;
+    },
+    [idioma],
+  );
 
   const quitarCupon = useCallback(() => almacenCesta.escribir(quitarCuponPuro(almacenCesta.leer())), []);
 
@@ -207,10 +263,10 @@ export function ProveedorCesta({ children }: { children: ReactNode }) {
     (slug: string) => {
       const { favoritos: nuevos, guardado } = alternarFavoritoPuro(almacenFavoritos.leer(), slug);
       almacenFavoritos.escribir(nuevos);
-      avisar(guardado ? 'Guardado en tus favoritos' : 'Quitado de tus favoritos');
+      avisar(guardado ? t.favoritoGuardado : t.favoritoQuitado);
       return guardado;
     },
-    [avisar],
+    [avisar, t],
   );
 
   const reemplazar = useCallback((lista: readonly string[]) => {

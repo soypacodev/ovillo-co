@@ -11,12 +11,53 @@ import { hayClaveServicio } from '@/lib/datos/entorno-servidor';
 import { clientePublico } from '@/lib/datos/supabase/publico';
 import { clienteServicio } from '@/lib/datos/supabase/servicio';
 import { clienteServidor } from '@/lib/datos/supabase/servidor';
+import { conIdioma, textos } from '@/lib/i18n';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { rutas } from '@/lib/rutas';
 import { esquemaBorrarCuenta, esquemaDatos, esquemaDireccion, esquemaFavoritos } from './esquemas';
 import { fusionarFavoritos } from './favoritos';
-import { FALLO, error, ok, validar } from './respuestas';
+import { RESPUESTAS, error, ok, validar } from './respuestas';
 import { perfilActual, usuarioActual } from './sesion';
 import { MAX_DIRECCIONES, type EstadoAccion } from './tipos';
+
+const T = textos(
+  {
+    datosGuardados: 'Datos guardados.',
+    noSeBorran: 'Las cuentas del taller y la de demostración no se borran desde aquí.',
+    sinClave: 'Ahora mismo no podemos borrar la cuenta desde aquí. Escríbenos y la borramos nosotros.',
+    yaNoExiste: 'Esa dirección ya no existe. Recarga la página.',
+    maxDirecciones: (n: number) => `Puedes guardar hasta ${n} direcciones. Borra alguna que ya no uses.`,
+    sinPredeterminada: 'La dirección está guardada, pero no hemos podido hacerla la predeterminada. Prueba de nuevo.',
+  },
+  {
+    en: {
+      datosGuardados: 'Details saved.',
+      noSeBorran: "Workshop accounts and the demo account can't be deleted from here.",
+      sinClave: "We can't delete the account from here right now. Drop us a line and we'll delete it for you.",
+      yaNoExiste: 'That address no longer exists. Please reload the page.',
+      maxDirecciones: (n: number) => `You can save up to ${n} addresses. Delete one you no longer use.`,
+      sinPredeterminada: "The address is saved, but we couldn't make it your default. Please try again.",
+    },
+    fr: {
+      datosGuardados: 'Informations enregistrées.',
+      noSeBorran: 'Les comptes de l’atelier et celui de démonstration ne se suppriment pas ici.',
+      sinClave: 'Nous ne pouvons pas supprimer le compte d’ici pour le moment. Écrivez-nous et nous le supprimerons pour vous.',
+      yaNoExiste: 'Cette adresse n’existe plus. Rechargez la page.',
+      maxDirecciones: (n: number) =>
+        `Vous pouvez enregistrer jusqu’à ${n} adresses. Supprimez-en une que vous n’utilisez plus.`,
+      sinPredeterminada: 'L’adresse est enregistrée, mais nous n’avons pas pu en faire l’adresse par défaut. Réessayez.',
+    },
+    de: {
+      datosGuardados: 'Daten gespeichert.',
+      noSeBorran: 'Werkstatt-Konten und das Demo-Konto lassen sich hier nicht löschen.',
+      sinClave: 'Wir können das Konto gerade nicht hier löschen. Schreiben Sie uns, dann löschen wir es für Sie.',
+      yaNoExiste: 'Diese Adresse gibt es nicht mehr. Bitte laden Sie die Seite neu.',
+      maxDirecciones: (n: number) => `Sie können bis zu ${n} Adressen speichern. Löschen Sie eine, die Sie nicht mehr nutzen.`,
+      sinPredeterminada:
+        'Die Adresse ist gespeichert, konnte aber nicht als Standardadresse festgelegt werden. Bitte versuchen Sie es erneut.',
+    },
+  },
+);
 
 /* ------------------------------------------------------------------
    Datos personales y cuenta
@@ -26,9 +67,10 @@ type CampoDatos = 'nombre' | 'telefono' | 'boletin';
 
 /** Guarda nombre, teléfono y la suscripción al boletín de la cuenta. */
 export async function guardarDatos(_previo: EstadoAccion<CampoDatos>, formulario: FormData): Promise<EstadoAccion<CampoDatos>> {
+  const idioma = await idiomaActual();
   const perfil = await perfilActual();
-  if (!perfil) return error('Tu sesión ha caducado. Vuelve a entrar.');
-  const v = validar<typeof esquemaDatos, CampoDatos>(esquemaDatos, formulario);
+  if (!perfil) return error(RESPUESTAS[idioma].sesionCaducada);
+  const v = validar<ReturnType<typeof esquemaDatos>, CampoDatos>(esquemaDatos(idioma), formulario, idioma);
   if ('fallo' in v) return v.fallo;
   const { nombre, telefono, boletin } = v.datos;
 
@@ -39,12 +81,12 @@ export async function guardarDatos(_previo: EstadoAccion<CampoDatos>, formulario
     .eq('id', perfil.id);
   if (fallo) {
     console.error('No se pudieron guardar los datos:', fallo.code, fallo.message);
-    return error(FALLO, {}, { nombre, telefono });
+    return error(RESPUESTAS[idioma].fallo, {}, { nombre, telefono });
   }
 
   if (boletin !== perfil.aceptaBoletin) await cambiarBoletin(perfil.email, boletin);
   revalidatePath(rutas.cuenta, 'layout');
-  return ok('Datos guardados.');
+  return ok(T[idioma].datosGuardados);
 }
 
 /** El alta va por la función pública; la baja solo la puede marcar el
@@ -67,15 +109,17 @@ async function cambiarBoletin(email: string, alta: boolean): Promise<void> {
  * Necesita la clave de servicio; las cuentas admin y demo no se borran aquí.
  */
 export async function borrarCuenta(_previo: EstadoAccion<'confirmacion'>, formulario: FormData): Promise<EstadoAccion<'confirmacion'>> {
+  const idioma = await idiomaActual();
+  const t = T[idioma];
   const perfil = await perfilActual();
-  if (!perfil) return error('Tu sesión ha caducado. Vuelve a entrar.');
-  const v = validar<typeof esquemaBorrarCuenta, 'confirmacion'>(esquemaBorrarCuenta, formulario);
+  if (!perfil) return error(RESPUESTAS[idioma].sesionCaducada);
+  const v = validar<ReturnType<typeof esquemaBorrarCuenta>, 'confirmacion'>(esquemaBorrarCuenta(idioma), formulario, idioma);
   if ('fallo' in v) return v.fallo;
   if (perfil.rol !== 'cliente') {
-    return error('Las cuentas del taller y la de demostración no se borran desde aquí.');
+    return error(t.noSeBorran);
   }
   // Sin la clave de servicio no se puede borrar un usuario de Auth.
-  if (!hayClaveServicio()) return error('Ahora mismo no podemos borrar la cuenta desde aquí. Escríbenos y la borramos nosotros.');
+  if (!hayClaveServicio()) return error(t.sinClave);
 
   // Borrar el usuario de Auth arrastra perfil, direcciones y favoritos
   // (on delete cascade). Los pedidos se quedan, sin la cuenta, porque son
@@ -83,28 +127,30 @@ export async function borrarCuenta(_previo: EstadoAccion<'confirmacion'>, formul
   const { error: fallo } = await clienteServicio().auth.admin.deleteUser(perfil.id);
   if (fallo) {
     console.error('No se pudo borrar la cuenta:', fallo.code, fallo.message);
-    return error(FALLO);
+    return error(RESPUESTAS[idioma].fallo);
   }
   const supabase = await clienteServidor();
   await supabase.auth.signOut({ scope: 'local' });
   revalidatePath('/', 'layout');
-  redirect(`${rutas.entrar}?aviso=cuenta-borrada`);
+  redirect(conIdioma(`${rutas.entrar}?aviso=cuenta-borrada`, idioma));
 }
 
 /* ------------------------------------------------------------------
    Direcciones
    ------------------------------------------------------------------ */
 
-type CampoDireccion = keyof z.input<typeof esquemaDireccion>;
+type CampoDireccion = keyof z.input<ReturnType<typeof esquemaDireccion>>;
 
 /** Crea o edita una dirección propia, con un máximo de MAX_DIRECCIONES por cuenta. */
 export async function guardarDireccion(
   _previo: EstadoAccion<CampoDireccion>,
   formulario: FormData,
 ): Promise<EstadoAccion<CampoDireccion>> {
+  const idioma = await idiomaActual();
+  const t = T[idioma];
   const usuario = await usuarioActual();
-  if (!usuario) return error('Tu sesión ha caducado. Vuelve a entrar.');
-  const v = validar<typeof esquemaDireccion, CampoDireccion>(esquemaDireccion, formulario);
+  if (!usuario) return error(RESPUESTAS[idioma].sesionCaducada);
+  const v = validar<ReturnType<typeof esquemaDireccion>, CampoDireccion>(esquemaDireccion(idioma), formulario, idioma);
   if ('fallo' in v) return v.fallo;
   const { id, predeterminada, ...resto } = v.datos;
   const fila = {
@@ -120,10 +166,10 @@ export async function guardarDireccion(
   const propias = () => supabase.from('direcciones').select('id', { count: 'exact', head: true }).eq('usuario_id', usuario.id);
   if (id) {
     const { count } = await propias().eq('id', id);
-    if (!count) return error('Esa dirección ya no existe. Recarga la página.');
+    if (!count) return error(t.yaNoExiste);
   } else {
     const { count } = await propias();
-    if ((count ?? 0) >= MAX_DIRECCIONES) return error(`Puedes guardar hasta ${MAX_DIRECCIONES} direcciones. Borra alguna que ya no uses.`);
+    if ((count ?? 0) >= MAX_DIRECCIONES) return error(t.maxDirecciones(MAX_DIRECCIONES));
   }
 
   // Quitar la marca es una sola escritura; ponerla la hace después la
@@ -134,17 +180,17 @@ export async function guardarDireccion(
   const { data: guardada, error: fallo } = await consulta;
   if (fallo || !guardada) {
     console.error('No se pudo guardar la dirección:', fallo?.code, fallo?.message);
-    return error(FALLO);
+    return error(RESPUESTAS[idioma].fallo);
   }
   if (predeterminada) {
     const { error: falloPredeterminada } = await marcarPredeterminada(supabase, String(guardada.id));
     if (falloPredeterminada) {
       console.error('No se pudo marcar la dirección como predeterminada:', falloPredeterminada.message);
-      return error('La dirección está guardada, pero no hemos podido hacerla la predeterminada. Prueba de nuevo.');
+      return error(t.sinPredeterminada);
     }
   }
   revalidatePath(rutas.cuentaDirecciones);
-  redirect(`${rutas.cuentaDirecciones}?guardada=1`);
+  redirect(conIdioma(`${rutas.cuentaDirecciones}?guardada=1`, idioma));
 }
 
 const idDireccion = (formulario: FormData) => z.uuid().safeParse(formulario.get('id'));

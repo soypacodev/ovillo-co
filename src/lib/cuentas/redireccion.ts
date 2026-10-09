@@ -1,6 +1,9 @@
 // A dónde volver después de entrar. El destino llega en la URL
 // (?siguiente=…), así que se limita a rutas internas: si no, un enlace
 // trampa podría mandar a alguien a otra web justo después de identificarse.
+// La ruta puede llevar prefijo de idioma («/en/cuenta»).
+
+import { sinIdioma } from '@/lib/i18n/idiomas';
 
 const BASE = 'http://interno.invalid';
 
@@ -14,6 +17,8 @@ export function destinoSeguro(valor: unknown, porDefecto = '/cuenta'): string {
     // «/.//otra.web» o «/a/..//otra.web» se normalizan a «//otra.web»:
     // se vuelve a comprobar la ruta ya resuelta.
     if (url.origin !== BASE || url.pathname.startsWith('//')) return porDefecto;
+    // Sin el prefijo, «/en//otra.web» quedaría en «//otra.web» al pasarla a español.
+    if (sinIdioma(url.pathname).startsWith('//')) return porDefecto;
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return porDefecto;

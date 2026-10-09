@@ -8,6 +8,8 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { configuracionSupabase } from '@/lib/datos/entorno';
 import { clienteServidor } from '@/lib/datos/supabase/servidor';
+import { conIdioma } from '@/lib/i18n';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { rutas } from '@/lib/rutas';
 import { conSiguiente } from './redireccion';
 import type { Perfil, RolCuenta } from './tipos';
@@ -51,11 +53,15 @@ export const perfilActual = cache(async (): Promise<Perfil | null> => {
 /**
  * Para las páginas de la cuenta: null si la tienda no tiene base de datos
  * (la página enseña entonces el aviso de la demostración); si la hay y no
- * hay sesión, lleva a entrar y vuelve después a `ruta`.
+ * hay sesión, lleva a entrar y vuelve después a `ruta`, las dos en el
+ * idioma de la petición. `ruta` va sin idioma.
  */
 export async function exigirPerfil(ruta: string): Promise<Perfil | null> {
   if (!configuracionSupabase()) return null;
   const perfil = await perfilActual();
-  if (!perfil) redirect(conSiguiente(rutas.entrar, ruta));
+  if (!perfil) {
+    const idioma = await idiomaActual();
+    redirect(conSiguiente(conIdioma(rutas.entrar, idioma), conIdioma(ruta, idioma)));
+  }
   return perfil;
 }

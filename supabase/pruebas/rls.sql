@@ -345,6 +345,14 @@ select prueba.ok(
 );
 select prueba.ok((select count(*) from public.buscar_cupon('primera5')) = 1, 'anon comprueba un cupón concreto');
 select prueba.ok((select count(*) from public.buscar_cupon('NOEXISTE')) = 0, 'un cupón inventado no devuelve nada');
+select prueba.ok(
+  (select traducciones -> 'en' ->> 'nombre' from public.productos where slug = 'osita-vestido-lila') is not null,
+  'anon lee las traducciones del catálogo'
+);
+select prueba.ok(
+  (select traducciones -> 'de' ->> 'nombre' from public.buscar_cupon('primera5')) is not null,
+  'el cupón devuelve su nombre traducido'
+);
 
 select prueba.falla('select count(*) from public.pedidos', '42501', 'anon no puede leer pedidos');
 select prueba.falla('select count(*) from public.lineas_pedido', '42501', 'anon no puede leer líneas de pedido');

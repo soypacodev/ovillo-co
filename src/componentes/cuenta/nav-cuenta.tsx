@@ -1,31 +1,39 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { textos } from '@/lib/i18n';
+import { useRuta, useTextos } from '@/lib/i18n/cliente';
+import { Enlace } from '@/lib/i18n/enlace';
 import { rutas } from '@/lib/rutas';
 
-const SECCIONES = [
-  { href: rutas.cuenta, texto: 'Resumen' },
-  { href: rutas.cuentaPedidos, texto: 'Pedidos' },
-  { href: rutas.cuentaFavoritos, texto: 'Favoritos' },
-  { href: rutas.cuentaDirecciones, texto: 'Direcciones' },
-  { href: rutas.cuentaDatos, texto: 'Mis datos' },
-];
+const SECCIONES = [rutas.cuenta, rutas.cuentaPedidos, rutas.cuentaFavoritos, rutas.cuentaDirecciones, rutas.cuentaDatos];
+
+const T = textos(
+  {
+    secciones: ['Resumen', 'Pedidos', 'Favoritos', 'Direcciones', 'Mis datos'],
+    nav: 'Secciones de tu cuenta',
+  },
+  {
+    en: { secciones: ['Overview', 'Orders', 'Favourites', 'Addresses', 'My details'], nav: 'Sections of your account' },
+    fr: { secciones: ['Aperçu', 'Commandes', 'Favoris', 'Adresses', 'Mes informations'], nav: 'Rubriques de votre compte' },
+    de: { secciones: ['Übersicht', 'Bestellungen', 'Favoriten', 'Adressen', 'Meine Daten'], nav: 'Bereiche Ihres Kontos' },
+  },
+);
 
 /** Pestañas de la cuenta. «Resumen» solo se marca en su propia página;
  *  el resto también en sus páginas hijas (el detalle de un pedido). */
 export function NavCuenta() {
-  const ruta = usePathname();
+  const ruta = useRuta();
+  const t = useTextos(T);
   return (
-    <nav className="nav-cuenta" aria-label="Secciones de tu cuenta">
+    <nav className="nav-cuenta" aria-label={t.nav}>
       <ul>
-        {SECCIONES.map((s) => {
-          const actual = s.href === rutas.cuenta ? ruta === s.href : ruta === s.href || ruta.startsWith(`${s.href}/`);
+        {SECCIONES.map((href, i) => {
+          const actual = href === rutas.cuenta ? ruta === href : ruta === href || ruta.startsWith(`${href}/`);
           return (
-            <li key={s.href}>
-              <Link href={s.href} aria-current={actual ? 'page' : undefined}>
-                {s.texto}
-              </Link>
+            <li key={href}>
+              <Enlace href={href} aria-current={actual ? 'page' : undefined}>
+                {t.secciones[i]}
+              </Enlace>
             </li>
           );
         })}

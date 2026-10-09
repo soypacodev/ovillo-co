@@ -1,6 +1,50 @@
 // Tipos del catálogo. Los nombres coinciden con las columnas de la base de
 // datos (supabase/migrations) para que cambiar de origen no obligue a
 // reescribir componentes. Los importes van siempre en céntimos.
+//
+// Los textos están en español. Las traducciones viajan aparte, en
+// `traducciones`, y `catalogo(idioma)` las aplica antes de pintar
+// (src/lib/catalogo/localizar.ts). Lo que falte en un idioma sale en español.
+
+import type { Idioma } from '@/lib/i18n/idiomas';
+
+/** Idiomas a los que se traduce el catálogo (el español es el original). */
+export type IdiomaTraducido = Exclude<Idioma, 'es'>;
+export type Traducciones<T> = Partial<Record<IdiomaTraducido, T>>;
+
+export interface TraduccionCategoria {
+  nombre?: string;
+  texto?: string;
+  /** Texto alternativo de la foto. */
+  alt?: string;
+}
+
+export interface TraduccionProducto {
+  nombre?: string;
+  etiquetaVariante?: string;
+  etiqueta?: string;
+  corto?: string;
+  largo?: string;
+  historia?: string;
+  materiales?: string[];
+  cuidados?: string;
+  medidas?: string;
+  contenido?: string[];
+  personalizable?: { etiqueta?: string; ejemplo?: string; pista?: string };
+  /** Nombre visible de cada variante, por su nombre en español. */
+  variantes?: Record<string, string>;
+  /** Textos alternativos de las fotos, en el orden de la galería. */
+  fotos?: string[];
+}
+
+export interface TraduccionTexto {
+  nombre?: string;
+}
+
+export interface TraduccionEnvio {
+  nombre?: string;
+  plazo?: string;
+}
 
 export type SlugCategoria = 'amigurumis' | 'bebe' | 'accesorios' | 'hogar' | 'packs';
 
@@ -9,6 +53,7 @@ export interface Categoria {
   nombre: string;
   texto: string;
   foto: Foto;
+  traducciones?: Traducciones<TraduccionCategoria>;
 }
 
 export interface Foto {
@@ -18,7 +63,10 @@ export interface Foto {
 }
 
 export interface Variante {
+  /** Nombre en español: identifica la variante en la cesta, en Stripe y en la base de datos. */
   nombre: string;
+  /** Nombre que se enseña en el idioma de la página; sin él, `nombre`. */
+  rotulo?: string;
   /** Color de muestra para el selector. */
   color: string;
   stock: number;
@@ -30,6 +78,7 @@ export interface Variante {
 /** Rebaja automática de la categoría, ya aplicada al precio que se enseña. */
 export interface RebajaProducto {
   nombre: string;
+  traducciones?: Traducciones<TraduccionTexto>;
   porcentaje: number;
   /** Último día (AAAA-MM-DD), o null si no caduca. */
   hasta: string | null;
@@ -74,6 +123,7 @@ export interface Producto {
   personalizable?: Personalizacion;
   /** Solo en los packs: qué incluye. */
   contenido?: string[];
+  traducciones?: Traducciones<TraduccionProducto>;
 }
 
 export type TipoPromocion = 'porcentaje' | 'fijo' | 'envio';
@@ -90,6 +140,7 @@ export interface Promocion {
   categoria: SlugCategoria | null;
   /** Fecha de fin en ISO (AAAA-MM-DD), o null si no caduca. */
   hasta: string | null;
+  traducciones?: Traducciones<TraduccionTexto>;
 }
 
 export interface MetodoEnvio {
@@ -98,6 +149,7 @@ export interface MetodoEnvio {
   precio: number;
   gratisDesde: number | null;
   plazo: string;
+  traducciones?: Traducciones<TraduccionEnvio>;
 }
 
 export interface PreguntaFrecuente {

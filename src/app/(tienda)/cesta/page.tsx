@@ -5,18 +5,31 @@ import { VistaCesta } from '@/componentes/compra/vista-cesta';
 import { paraCesta, stockTotal, TarjetaProducto } from '@/componentes/producto/tarjeta-producto';
 import { catalogo } from '@/lib/datos';
 import { elegirRelacionados } from '@/lib/datos/filtros';
+import { textos } from '@/lib/i18n';
+import { idiomaActual } from '@/lib/i18n/servidor';
 
 import '@/componentes/compra/compra.css';
 
-export const metadata: Metadata = {
-  title: 'Tu cesta',
-  robots: { index: false, follow: true },
-};
+const T = textos(
+  { titulo: 'Tu cesta' },
+  { en: { titulo: 'Your basket' }, fr: { titulo: 'Votre panier' }, de: { titulo: 'Ihr Warenkorb' } },
+);
+
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaActual();
+  return {
+    title: T[idioma].titulo,
+    robots: { index: false, follow: true },
+  };
+}
 
 export default async function PaginaCesta() {
   // Precios y stock al día en cada visita: con ellos se corrige la cesta guardada.
   await connection();
-  const fuente = catalogo();
+  const idioma = await idiomaActual();
+  const t = T[idioma];
+  // Nombres y envíos en el idioma de la página; slugs, variantes y precios no cambian.
+  const fuente = catalogo(idioma);
   const [productos, metodos] = await Promise.all([fuente.productos(), fuente.metodosEnvio()]);
 
   // Las tarjetas se pintan aquí, en el servidor; el cliente solo elige
@@ -25,9 +38,9 @@ export default async function PaginaCesta() {
 
   return (
     <div className="wrap">
-      <Migas actual="Tu cesta" />
+      <Migas actual={t.titulo} />
       <header className="compra-cab">
-        <h1 className="ent ent-1">Tu cesta</h1>
+        <h1 className="ent ent-1">{t.titulo}</h1>
       </header>
       <VistaCesta
         productos={productos.map(paraCesta)}

@@ -12,6 +12,40 @@ import type {
   SlugCategoria,
 } from '@/lib/catalogo/tipos';
 
+// Traducciones: jsonb con un objeto por idioma ({ "en": { "nombre": … } }).
+// Se validan por encima; los idiomas o claves que no se conocen se ignoran.
+const textoOpcional = z.string().optional();
+const porIdioma = <T extends z.ZodType>(forma: T) =>
+  z
+    .object({ en: forma.optional(), fr: forma.optional(), de: forma.optional() })
+    .nullish()
+    .transform((t) => t ?? {});
+const tradCategoria = porIdioma(z.object({ nombre: textoOpcional, texto: textoOpcional, alt: textoOpcional }));
+const tradNombre = porIdioma(z.object({ nombre: textoOpcional }));
+const tradEnvio = porIdioma(z.object({ nombre: textoOpcional, plazo: textoOpcional }));
+const tradProducto = porIdioma(
+  z.object({
+    nombre: textoOpcional,
+    etiquetaVariante: textoOpcional,
+    etiqueta: textoOpcional,
+    corto: textoOpcional,
+    largo: textoOpcional,
+    historia: textoOpcional,
+    materiales: z.array(z.string()).optional(),
+    cuidados: textoOpcional,
+    medidas: textoOpcional,
+    contenido: z.array(z.string()).optional(),
+    personalizable: z
+      .object({ etiqueta: textoOpcional, ejemplo: textoOpcional, pista: textoOpcional })
+      .optional(),
+    variantes: z.record(z.string(), z.string()).optional(),
+    fotos: z.array(z.string()).optional(),
+  }),
+);
+
+/** Sin traducciones no se añade la clave: así las dos fuentes devuelven lo mismo. */
+const conTraducciones = <T extends object>(t: T) => (Object.keys(t).length ? { traducciones: t } : {});
+
 const slugCategoria = z.enum(['amigurumis', 'bebe', 'accesorios', 'hogar', 'packs']) satisfies z.ZodType<SlugCategoria>;
 const entero = z.number().int();
 const textoONulo = z.string().nullable();
@@ -23,22 +57,22 @@ const textoONulo = z.string().nullable();
  * no sabría por qué camino unir. supabase/pruebas/rls.sql comprueba que
  * esos nombres existen.
  */
-export const SELECT_CATEGORIA = 'slug, nombre, texto, foto_ruta, foto_alt';
+export const SELECT_CATEGORIA = 'slug, nombre, texto, foto_ruta, foto_alt, traducciones';
 
 export const SELECT_PRODUCTO = `
   slug, nombre, tipo, precio, antes, variante_etiqueta, destacado, novedad, encargo, dias, etiqueta,
   corto, largo, historia, materiales, cuidados, medidas,
   personalizacion_etiqueta, personalizacion_ejemplo, personalizacion_max, personalizacion_pista,
-  contenido, posicion,
+  contenido, posicion, traducciones,
   categoria:categorias!productos_categoria_id_fkey!inner(slug),
   variantes!variantes_producto_id_fkey(nombre, color, stock, foto_ruta, posicion),
   fotos:fotos_producto!fotos_producto_producto_id_fkey(ruta, alt, posicion)
 `;
 
 export const SELECT_PROMOCION =
-  'nombre, tipo, valor, codigo, minimo, hasta, categoria:categorias!promociones_categoria_id_fkey(slug)';
+  'nombre, tipo, valor, codigo, minimo, hasta, traducciones, categoria:categorias!promociones_categoria_id_fkey(slug)';
 
-export const SELECT_ENVIO = 'id, nombre, precio, gratis_desde, plazo';
+export const SELECT_ENVIO = 'id, nombre, precio, gratis_desde, plazo, traducciones';
 
 const filaCategoria = z.object({
   slug: slugCategoria,
@@ -46,6 +80,7 @@ const filaCategoria = z.object({
   texto: z.string(),
   foto_ruta: z.string(),
   foto_alt: z.string(),
+  traducciones: tradCategoria,
 });
 
 const filaProducto = z.object({
@@ -72,6 +107,7 @@ const filaProducto = z.object({
   personalizacion_pista: textoONulo,
   contenido: z.array(z.string()).nullable(),
   posicion: entero,
+  traducciones: tradProducto,
   categoria: z.object({ slug: slugCategoria }),
   variantes: z.array(
     z.object({ nombre: z.string(), color: z.string(), stock: entero, foto_ruta: textoONulo, posicion: entero }),
@@ -88,6 +124,7 @@ const filaPromocion = z.object({
   codigo: textoONulo,
   minimo: entero,
   hasta: textoONulo,
+  traducciones: tradNombre,
   categoria: z.object({ slug: slugCategoria }).nullable(),
 });
 
@@ -100,6 +137,7 @@ const filaCupon = z.object({
   minimo: entero,
   categoria: slugCategoria.nullable(),
   hasta: textoONulo,
+  traducciones: tradNombre,
 });
 
 const filaEnvio = z.object({
@@ -108,6 +146,7 @@ const filaEnvio = z.object({
   precio: entero,
   gratis_desde: entero.nullable(),
   plazo: z.string(),
+  traducciones: tradEnvio,
 });
 
 /**
@@ -130,6 +169,7 @@ export function aCategoria(fila: unknown, urlSupabase: string): Categoria {
     nombre: f.nombre,
     texto: f.texto,
     foto: { src: urlFoto(f.foto_ruta, urlSupabase), alt: f.foto_alt },
+    ...conTraducciones(f.traducciones),
   };
 }
 
@@ -174,6 +214,7 @@ export function aProducto(fila: unknown, urlSupabase: string): Producto {
         const foto = fotoVariante(v.foto_ruta, v.nombre);
         return { nombre: v.nombre, color: v.color, stock: v.stock, ...(foto && { foto }) };
       }),
+    ...conTraducciones(f.traducciones),
   };
 
   if (f.personalizacion_etiqueta !== null && f.personalizacion_max !== null) {
@@ -200,6 +241,7 @@ export function aPromocion(fila: unknown): Promocion {
     minimo: f.minimo,
     categoria: f.categoria?.slug ?? null,
     hasta: f.hasta,
+    ...conTraducciones(f.traducciones),
   };
 }
 
@@ -214,11 +256,19 @@ export function aCupon(fila: unknown): Promocion {
     minimo: f.minimo,
     categoria: f.categoria,
     hasta: f.hasta,
+    ...conTraducciones(f.traducciones),
   };
 }
 
 /** Fila de `metodos_envio` → MetodoEnvio. */
 export function aMetodoEnvio(fila: unknown): MetodoEnvio {
   const f = filaEnvio.parse(fila);
-  return { id: f.id, nombre: f.nombre, precio: f.precio, gratisDesde: f.gratis_desde, plazo: f.plazo };
+  return {
+    id: f.id,
+    nombre: f.nombre,
+    precio: f.precio,
+    gratisDesde: f.gratis_desde,
+    plazo: f.plazo,
+    ...conTraducciones(f.traducciones),
+  };
 }

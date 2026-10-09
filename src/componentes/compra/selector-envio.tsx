@@ -4,6 +4,8 @@ import type { MetodoEnvio } from '@/lib/catalogo/tipos';
 import type { LineaCesta } from '@/lib/cesta/tipos';
 import { totales } from '@/lib/cesta/totales';
 import { eur } from '@/lib/formato';
+import { textos } from '@/lib/i18n';
+import { useIdioma, useTextos } from '@/lib/i18n/cliente';
 import type { IdEnvio } from '@/lib/pagos/opciones';
 import { tipografia } from '@/lib/tipografia';
 
@@ -19,6 +21,11 @@ export interface PropsSelectorEnvio {
   compacto?: boolean;
 }
 
+const T = textos(
+  { gratis: 'Gratis' },
+  { en: { gratis: 'Free' }, fr: { gratis: 'Offerte' }, de: { gratis: 'Kostenlos' } },
+);
+
 /** Métodos de envío con su precio real para esta cesta (gratis si llega al umbral). */
 export function SelectorEnvio({
   metodos,
@@ -30,6 +37,8 @@ export function SelectorEnvio({
   leyendaOculta,
   compacto,
 }: PropsSelectorEnvio) {
+  const t = useTextos(T);
+  const idioma = useIdioma();
   return (
     <fieldset className={compacto ? 'envios envios-compacto' : 'envios'}>
       <legend className={leyendaOculta ? 'oculto-vis' : undefined}>{leyenda}</legend>
@@ -48,7 +57,7 @@ export function SelectorEnvio({
               <b>{m.nombre}</b>
               <span className="mini">{tipografia(m.plazo)}</span>
             </span>
-            <span className="precio">{envio === 0 ? 'Gratis' : eur(envio)}</span>
+            <span className="precio">{envio === 0 ? t.gratis : eur(envio, idioma)}</span>
           </label>
         );
       })}

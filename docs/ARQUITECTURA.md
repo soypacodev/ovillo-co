@@ -97,11 +97,12 @@ Agrupados por zona (`catalogo/`, `cesta/`, `compra/`, `cuenta/`, `panel/`, `marc
 
 ### Proxy: `src/proxy.ts`
 
-En Next 16, `proxy.ts` sustituye a `middleware.ts`. Se ejecuta antes de cada documento HTML (no en estáticos, imágenes, el webhook ni las precargas) y hace tres cosas:
+En Next 16, `proxy.ts` sustituye a `middleware.ts`. Se ejecuta antes de cada documento HTML (no en estáticos, imágenes, el webhook ni las precargas) y hace cuatro cosas:
 
-1. **Renueva la sesión** de Supabase si ha caducado, y copia las cookies nuevas a la respuesta.
-2. **Redirige a `/entrar`** si se pide `/cuenta` o `/panel` sin sesión. Es una comprobación optimista para ahorrarse pintar la página; la de verdad la hacen la propia página y RLS.
-3. **Genera un nonce** y la política CSP de esa petición ([`src/lib/seguridad/csp.ts`](../src/lib/seguridad/csp.ts)). Next lee el nonce de la cabecera y lo pone en sus `<script>`; el layout lo pone en el único script en línea propio.
+1. **Elige el idioma.** `/en/tienda` se sirve con la página de `/tienda` y la cabecera interna `x-idioma: en`; `/es/…` (lo que pide el selector) redirige a la ruta sin prefijo; y una ruta sin prefijo se queda en español salvo que la visita haya elegido otro idioma (cookie) o, la primera vez, su navegador prefiera uno de los nuestros. El panel, `/auth` y la API no se traducen. Ver *Cuatro idiomas sin librería*, más abajo.
+2. **Renueva la sesión** de Supabase si ha caducado, y copia las cookies nuevas a la respuesta.
+3. **Redirige a `/entrar`** si se pide `/cuenta` o `/panel` sin sesión. Es una comprobación optimista para ahorrarse pintar la página; la de verdad la hacen la propia página y RLS.
+4. **Genera un nonce** y la política CSP de esa petición ([`src/lib/seguridad/csp.ts`](../src/lib/seguridad/csp.ts)). Next lee el nonce de la cabecera y lo pone en sus `<script>`; el layout lo pone en el único script en línea propio.
 
 ---
 
@@ -285,6 +286,17 @@ No hay pedidos «pendientes de pago» en la base de datos: lo que necesita el we
 ### RLS como única fuente de verdad sobre permisos
 
 La interfaz desactiva botones y el servidor comprueba el rol antes de cada acción, pero la regla definitiva está en PostgreSQL. Las funciones que necesitan ver más que quien llama son `security definer` con `search_path = ''` (sin posibilidad de suplantar tablas con otro esquema) y comprueban el rol dentro. Las del rol `demo` son políticas **restrictivas**: se suman a las permisivas y ninguna otra puede abrir la puerta, y una prueba falla si se crea una tabla nueva sin ellas.
+
+### Cuatro idiomas sin librería
+
+La tienda está en español, inglés, francés y alemán; el panel, solo en español, que es el idioma del dueño.
+
+- **Una sola página por ruta.** No hay carpeta `[idioma]`: el proxy reescribe `/fr/taller` a `/taller` y pasa el idioma en una cabecera que leen las páginas ([`src/lib/i18n/servidor.ts`](../src/lib/i18n/servidor.ts)) y, a través de un contexto, los componentes de cliente ([`cliente.tsx`](../src/lib/i18n/cliente.tsx)). El español va sin prefijo, así que las URL de siempre no cambian.
+- **Los textos viven junto a su componente**, en los cuatro idiomas, con [`textos()`](../src/lib/i18n/textos.ts): el español marca la forma y TypeScript exige que los demás tengan las mismas claves. Los textos con datos son funciones, para que cada idioma ordene la frase y haga sus plurales. Las páginas largas (taller, cuidados, legal…) son componentes de servidor y sus textos no llegan al navegador.
+- **Enlaces sin pensar en el idioma.** `<Enlace href={rutas.tienda}>` añade el prefijo solo; las redirecciones del servidor pasan por `conIdioma()`.
+- **El catálogo se guarda en español con sus traducciones al lado** (columna `traducciones` en `jsonb`). [`catalogo(idioma)`](../src/lib/datos/index.ts) devuelve los textos ya traducidos y la búsqueda funciona en el idioma de la página; slugs, nombres de variante, precios y stock no cambian, así que la cesta, Stripe y los pedidos no se enteran. Lo que falte en un idioma sale en español.
+- **Stripe Checkout** se abre en el idioma de quien compra, con los nombres de las piezas traducidos; el pago lleva la descripción en español para el dueño.
+- **Buscadores:** cada página declara su canónica y sus versiones en los otros idiomas (`hreflang`, con el español como `x-default`), y el mapa del sitio también.
 
 ### Qué ven los buscadores
 

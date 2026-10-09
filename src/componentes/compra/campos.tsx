@@ -5,6 +5,23 @@
 // pantalla lo lea al enfocar el campo.
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { textos } from '@/lib/i18n';
+import { useTextos } from '@/lib/i18n/cliente';
+
+const T = textos(
+  {
+    opcional: ' (opcional)',
+    quedan: (n: number) => (n === 1 ? 'Queda 1 carácter' : `Quedan ${n} caracteres`),
+  },
+  {
+    en: { opcional: ' (optional)', quedan: (n: number) => (n === 1 ? '1 character left' : `${n} characters left`) },
+    fr: {
+      opcional: ' (facultatif)',
+      quedan: (n: number) => (n === 1 ? '1 caractère restant' : `${n} caractères restants`),
+    },
+    de: { opcional: ' (optional)', quedan: (n: number) => (n === 1 ? 'Noch 1 Zeichen' : `Noch ${n} Zeichen`) },
+  },
+);
 
 export const idCampo = (nombre: string) => `pago-${nombre}`;
 
@@ -24,11 +41,12 @@ function describir(nombre: string, error?: string, pista?: ReactNode): string | 
 
 function Envoltorio({ nombre, etiqueta, error, pista, opcional, className, children }: PropsBase & { children: ReactNode }) {
   const id = idCampo(nombre);
+  const t = useTextos(T);
   return (
     <div className={['campo', error && 'mal', className].filter(Boolean).join(' ')}>
       <label htmlFor={id}>
         {etiqueta}
-        {opcional && <span className="opcional"> (opcional)</span>}
+        {opcional && <span className="opcional">{t.opcional}</span>}
       </label>
       {children}
       {pista && (
@@ -77,6 +95,7 @@ type PropsArea = PropsBase & {
 
 export function CampoArea({ nombre, etiqueta, error, pista, opcional, className, valor, alCambiar, max, ...resto }: PropsArea) {
   const quedan = max - valor.length;
+  const t = useTextos(T);
   return (
     <Envoltorio
       {...{ nombre, error, opcional, className }}
@@ -85,7 +104,7 @@ export function CampoArea({ nombre, etiqueta, error, pista, opcional, className,
         <>
           {pista}
           <span className="contador-letras" aria-live={quedan <= 20 ? 'polite' : 'off'}>
-            {quedan === 1 ? 'Queda 1 carácter' : `Quedan ${quedan} caracteres`}
+            {t.quedan(quedan)}
           </span>
         </>
       }

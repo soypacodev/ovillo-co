@@ -1,6 +1,7 @@
 // Datos del formulario de pago: tipos, pasos, validación por paso y el
 // borrador que se guarda en la sesión del navegador mientras se rellena.
 
+import type { Idioma } from '@/lib/i18n';
 import { erroresDatos, type DatosPedido, type ErroresCampos, type IdEnvio } from '@/lib/pagos/opciones';
 import type { RefObject } from 'react';
 import { idCampo } from './campos';
@@ -24,11 +25,7 @@ export interface PropsPaso {
   titulo: RefObject<HTMLHeadingElement | null>;
 }
 
-export const PASOS: { n: Paso; nombre: string }[] = [
-  { n: 1, nombre: 'Tus datos' },
-  { n: 2, nombre: 'Entrega' },
-  { n: 3, nombre: 'Revisión y pago' },
-];
+export const PASOS: readonly Paso[] = [1, 2, 3];
 
 export const CAMPOS_PASO: Record<Paso, Campo[]> = {
   1: ['email', 'nombre', 'apellidos', 'telefono'],
@@ -95,8 +92,8 @@ export function borrarBorrador() {
   }
 }
 
-export function erroresDe(datos: Datos, campos: readonly Campo[]): ErroresCampos {
-  const todos = erroresDatos(datos);
+export function erroresDe(datos: Datos, campos: readonly Campo[], idioma: Idioma): ErroresCampos {
+  const todos = erroresDatos(datos, idioma);
   return Object.fromEntries(campos.filter((c) => todos[c]).map((c) => [c, todos[c]]));
 }
 

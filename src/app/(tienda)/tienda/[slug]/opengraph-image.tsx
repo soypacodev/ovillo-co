@@ -3,6 +3,8 @@ import { precioVenta } from '@/lib/catalogo/precio';
 import { catalogo, stockTotal } from '@/lib/datos';
 import { comoJpeg, fotoRecortada, fuenteTitulares, TAMANO_COMPARTIR, TIPO_COMPARTIR } from '@/lib/compartir/imagen';
 import { eur } from '@/lib/formato';
+import { textos } from '@/lib/i18n';
+import { idiomaActual } from '@/lib/i18n/servidor';
 
 // Tarjeta de cada pieza al compartir su enlace: foto, nombre y precio en
 // 1200 × 630, que es lo que WhatsApp, Telegram y las redes enseñan en grande.
@@ -11,6 +13,37 @@ export const alt = 'Pieza de crochet de Ovillo & Co. con su nombre y su precio';
 export const size = TAMANO_COMPARTIR;
 export const contentType = TIPO_COMPARTIR;
 
+// Next sirve esta imagen en la ruta sin prefijo de idioma: sale en el
+// idioma que decida el proxy para quien la pide (cookie o navegador).
+const T = textos(
+  {
+    porEncargo: (dias: number | null) => `Por encargo · ${dias ?? 'unos'} días de confección`,
+    listo: 'Listo para enviar en 24–48 h',
+    agotada: 'Agotada · avisamos cuando vuelva',
+    pie: 'Hecho a mano · Tienda de demostración',
+  },
+  {
+    en: {
+      porEncargo: (dias: number | null) => `Custom order · ${dias ?? 'a few'} days to make`,
+      listo: 'Ready to ship in 24–48 h',
+      agotada: 'Sold out · we’ll let you know when it’s back',
+      pie: 'Handmade · Demo shop',
+    },
+    fr: {
+      porEncargo: (dias: number | null) => `Sur mesure · ${dias ?? 'quelques'}\u00a0jours de confection`,
+      listo: 'Prêt à expédier sous 24–48 h',
+      agotada: 'Épuisé · nous vous prévenons de son retour',
+      pie: 'Fait main · Boutique de démonstration',
+    },
+    de: {
+      porEncargo: (dias: number | null) => `Auftragsarbeit · ${dias ?? 'einige'} Tage Fertigung`,
+      listo: 'Versandfertig in 24–48 h',
+      agotada: 'Ausverkauft · wir benachrichtigen Sie, wenn es wieder da ist',
+      pie: 'Handgemacht · Demo-Shop',
+    },
+  },
+);
+
 const FOTO = { ancho: 460, alto: 570 };
 const AZUL = '#28618F';
 const TINTA = '#152C41';
@@ -18,7 +51,9 @@ const GRIS = '#50687F';
 
 export default async function ImagenPieza({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [producto, fuente] = await Promise.all([catalogo().producto(slug), fuenteTitulares()]);
+  const idioma = await idiomaActual();
+  const t = T[idioma];
+  const [producto, fuente] = await Promise.all([catalogo(idioma).producto(slug), fuenteTitulares()]);
   if (!producto) return new Response(null, { status: 404 });
 
   const portada = producto.fotos[0];
@@ -27,10 +62,10 @@ export default async function ImagenPieza({ params }: { params: Promise<{ slug: 
   // El mismo precio que la ficha, con la rebaja automática ya aplicada.
   const precio = precioVenta(producto);
   const disponibilidad = producto.encargo
-      ? `Por encargo · ${producto.dias ?? 'unos'} días de confección`
-      : stockTotal(producto) > 0
-        ? 'Listo para enviar en 24–48 h'
-        : 'Agotada · avisamos cuando vuelva';
+    ? t.porEncargo(producto.dias)
+    : stockTotal(producto) > 0
+      ? t.listo
+      : t.agotada;
 
   const png = new ImageResponse(
     (
@@ -59,11 +94,11 @@ export default async function ImagenPieza({ params }: { params: Promise<{ slug: 
               {nombre}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 32 }}>
-              <div style={{ fontFamily: 'Fraunces', fontSize: 64, color: AZUL }}>{eur(precio.final)}</div>
+              <div style={{ fontFamily: 'Fraunces', fontSize: 64, color: AZUL }}>{eur(precio.final, idioma)}</div>
               {precio.anterior !== null && precio.porcentaje > 0 && (
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
                   <div style={{ fontSize: 30, color: GRIS, textDecoration: 'line-through', marginLeft: 24 }}>
-                    {eur(precio.anterior)}
+                    {eur(precio.anterior, idioma)}
                   </div>
                   <div
                     style={{
@@ -82,7 +117,7 @@ export default async function ImagenPieza({ params }: { params: Promise<{ slug: 
             </div>
             <div style={{ fontSize: 28, color: GRIS, marginTop: 18 }}>{disponibilidad}</div>
           </div>
-          <div style={{ fontSize: 22, color: GRIS }}>Hecho a mano · Tienda de demostración</div>
+          <div style={{ fontSize: 22, color: GRIS }}>{t.pie}</div>
         </div>
         <div style={{ width: FOTO.ancho + 70, display: 'flex', alignItems: 'flex-end', padding: '60px 70px 0 0' }}>
           {foto && (

@@ -4,6 +4,7 @@
 
 import { precioVenta } from '@/lib/catalogo/precio';
 import type { Categoria, Producto, SlugCategoria } from '@/lib/catalogo/tipos';
+import type { Idioma } from '@/lib/i18n/idiomas';
 
 export const ORDENES = [
   { id: 'destacados', texto: 'Destacados primero' },
@@ -38,6 +39,70 @@ export const EXTRAS = [
 ] as const;
 
 type FiltroExtra = (typeof EXTRAS)[number]['id'];
+
+/** Rótulos de órdenes y filtros en los demás idiomas; los ids no cambian. */
+const ROTULOS: Record<Exclude<Idioma, 'es'>, Record<Orden | RangoPrecio | FiltroExtra, string>> = {
+  en: {
+    destacados: 'Featured first',
+    nuevo: 'Newest first',
+    barato: 'Price: low to high',
+    caro: 'Price: high to low',
+    az: 'Name A–Z',
+    'hasta-20': 'Up to €20',
+    '20-30': '€20–30',
+    '30-50': '€30–50',
+    'desde-50': 'Over €50',
+    stock: 'Ready to ship',
+    encargo: 'Custom order',
+    ofertas: 'On sale',
+    novedades: 'New in',
+  },
+  fr: {
+    destacados: 'Coups de cœur d’abord',
+    nuevo: 'Nouveautés d’abord',
+    barato: 'Prix croissant',
+    caro: 'Prix décroissant',
+    az: 'Nom de A à Z',
+    'hasta-20': 'Jusqu’à 20 €',
+    '20-30': '20–30 €',
+    '30-50': '30–50 €',
+    'desde-50': 'Plus de 50 €',
+    stock: 'Prêt à expédier',
+    encargo: 'Sur mesure',
+    ofertas: 'En soldes',
+    novedades: 'Nouveautés',
+  },
+  de: {
+    destacados: 'Empfehlungen zuerst',
+    nuevo: 'Neuheiten zuerst',
+    barato: 'Preis: aufsteigend',
+    caro: 'Preis: absteigend',
+    az: 'Name A–Z',
+    'hasta-20': 'Bis 20 €',
+    '20-30': '20–30 €',
+    '30-50': '30–50 €',
+    'desde-50': 'Über 50 €',
+    stock: 'Versandfertig',
+    encargo: 'Auftragsarbeit',
+    ofertas: 'Reduziert',
+    novedades: 'Neuheiten',
+  },
+};
+
+interface Rotulado<I extends string> {
+  id: I;
+  texto: string;
+}
+
+const rotular =
+  <I extends Orden | RangoPrecio | FiltroExtra>(lista: readonly { id: I; texto: string }[]) =>
+  (idioma: Idioma): Rotulado<I>[] =>
+    lista.map(({ id, texto }) => ({ id, texto: idioma === 'es' ? texto : ROTULOS[idioma][id] }));
+
+/** ORDENES, RANGOS_PRECIO y EXTRAS con sus rótulos en ese idioma. */
+export const ordenesEn = rotular(ORDENES);
+export const rangosPrecioEn = rotular(RANGOS_PRECIO);
+export const extrasEn = rotular(EXTRAS);
 
 /** Todos los filtros son acumulables; una lista vacía no filtra. */
 export interface FiltrosCatalogo {

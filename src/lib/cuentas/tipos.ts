@@ -1,10 +1,14 @@
 // Tipos y límites de las cuentas que comparten servidor y cliente (sin zod).
 
+import type { Idioma } from '@/lib/i18n/idiomas';
+
 export const MIN_CONTRASENA = 8;
 export const MAX_DIRECCIONES = 10;
 
 /** Para borrar la cuenta hay que escribir esta palabra: un clic no basta. */
 export const PALABRA_BORRAR = 'BORRAR';
+/** La misma palabra en cada idioma de la tienda. */
+export const PALABRAS_BORRAR: Record<Idioma, string> = { es: PALABRA_BORRAR, en: 'DELETE', fr: 'SUPPRIMER', de: 'LÖSCHEN' };
 
 export type RolCuenta = 'cliente' | 'admin' | 'demo';
 

@@ -48,6 +48,7 @@ Todo lo que necesita un taller o una tienda pequeña para vender por internet si
 | **Pago seguro** con Stripe, cupones, rebajas automáticas y envío gratis a partir de un importe | **Encargos y mensajes** del formulario de contacto, con las fotos de referencia que manda la clientela |
 | **Cuenta** con pedidos, seguimiento, direcciones y favoritos | **Clientes** deducidos de los pedidos, también los que compran sin cuenta |
 | **Formulario de encargos** con fotos de referencia, y lista de espera para las piezas agotadas | **Modo demostración** del panel: cualquiera puede verlo entero, nadie puede cambiar nada |
+| **Cuatro idiomas**: español, inglés, francés y alemán, con el catálogo traducido y el pago de Stripe en el idioma de quien compra | **Un solo catálogo**: el dueño trabaja en español y las traducciones viajan al lado de cada producto |
 
 Y lo que no se ve, pero se nota: carga rápida en móvil, textos accesibles para lectores de pantalla, uso completo con teclado y páginas preparadas para buscadores y para compartir en redes.
 
@@ -92,6 +93,7 @@ Y lo que no se ve, pero se nota: carga rápida en móvil, textos accesibles para
 |---|---|---|
 | Aplicación | **Next.js 16** (App Router) y **React 19** | Componentes de servidor por defecto: casi todo se pinta en el servidor y al navegador solo llega el JavaScript de lo interactivo (cesta, filtros, formularios) |
 | Lenguaje | **TypeScript** en modo estricto, sin `any` | Los tipos del catálogo, la cesta y los pedidos son los mismos en la tienda, el pago y el panel |
+| Idiomas | **Rutas con prefijo** (`/en`, `/fr`, `/de`) y textos junto a cada componente | Sin librería: el proxy elige el idioma (enlace, elección guardada o navegador) y TypeScript obliga a que cada texto exista en los cuatro idiomas |
 | Validación | **Zod** | Todo lo que llega del navegador (formularios, cesta, pedido) se valida en el servidor antes de usarse |
 | Datos y cuentas | **Supabase**: PostgreSQL, Auth y Storage | La seguridad vive en la base de datos (RLS), no en el front, y los cálculos de dinero también |
 | Pagos | **Stripe Checkout** en modo prueba | El cobro ocurre en la página de Stripe: la tienda nunca ve una tarjeta |
@@ -240,12 +242,13 @@ La guía paso a paso, pensada para quien no lo ha hecho nunca, está en [**`docs
 
 ## In English
 
-**Ovillo &amp; Co.** is a fictional online shop for a small crochet workshop in Málaga, built end to end as a portfolio piece: storefront, checkout, customer accounts and an owner's dashboard. The shop itself is in Spanish because its customers would be; this section is for anyone reading the code from elsewhere.
+**Ovillo &amp; Co.** is a fictional online shop for a small crochet workshop in Málaga, built end to end as a portfolio piece: storefront, checkout, customer accounts and an owner's dashboard. The shop is available in Spanish, English, French and German: it follows the browser's language on the first visit and remembers the one you pick. The code and its comments are in Spanish.
 
 **[Live demo](https://ovillo-co.vercel.app)** · nothing is real: products, orders and reviews are sample data, and payments only ever run in Stripe **test mode** (card `4242 4242 4242 4242`, any future date and CVC). The *Ver el panel de demostración* button in the footer opens the owner's dashboard with a read-only account.
 
 **What it does**
 
+- **Four languages:** `/en`, `/fr` and `/de` prefixes (Spanish has none), browser-language detection on the first visit, a remembered language switcher, `hreflang` and canonical tags, a translated catalogue and Stripe Checkout in the buyer's language. The owner's dashboard stays in Spanish.
 - **Storefront:** catalogue with filters and search, product pages with colour variants and made-to-order items, a cart that survives reloads and syncs across tabs, coupons, free-shipping threshold, favourites and a custom-order form with reference photos.
 - **Checkout:** Stripe Checkout; prices are recalculated on the server and in the database, never trusted from the browser. A signed, idempotent webhook records paid orders and refunds automatically if an item sold out in the meantime.
 - **Owner's dashboard:** monthly sales, orders with status history and tracking, product editing with variants, stock and photos, custom orders, contact messages and customers.

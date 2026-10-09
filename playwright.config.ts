@@ -15,6 +15,9 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: url,
+    // Las pruebas leen los textos en español. Sin esto, el navegador de
+    // Playwright pide inglés y la tienda lo manda a /en (ver e2e/idiomas.spec.ts).
+    locale: 'es-ES',
     trace: 'retain-on-failure',
     launchOptions: {
       // Para usar un Chromium ya instalado (por ejemplo, en CI o en un contenedor).

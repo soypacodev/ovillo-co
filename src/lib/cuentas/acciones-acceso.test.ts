@@ -2,21 +2,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Perfil } from './tipos';
 
 const updateUser = vi.fn();
+const resetPasswordForEmail = vi.fn();
+const cabeceras = new Headers();
 const perfilActual = vi.fn<() => Promise<Perfil | null>>();
 
 vi.mock('server-only', () => ({}));
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }));
+vi.mock('next/headers', () => ({ headers: async () => cabeceras }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 vi.mock('@/lib/datos/entorno', () => ({
   configuracionSupabase: () => ({ url: 'https://proyecto.supabase.co', claveAnonima: 'anon' }),
 }));
-vi.mock('@/lib/datos/supabase/servidor', () => ({ clienteServidor: async () => ({ auth: { updateUser } }) }));
+vi.mock('@/lib/datos/supabase/servidor', () => ({ clienteServidor: async () => ({ auth: { updateUser, resetPasswordForEmail } }),
+}));
 vi.mock('@/lib/datos/supabase/publico', () => ({ clientePublico: vi.fn() }));
 vi.mock('@/lib/origen', () => ({ origenSitio: async () => 'https://tienda.example' }));
 vi.mock('./sesion', () => ({ perfilActual, usuarioActual: vi.fn() }));
 
-const { cambiarContrasena } = await import('./acciones-acceso');
+const { cambiarContrasena, recuperarContrasena } = await import('./acciones-acceso');
 const { ACCION_INICIAL } = await import('./tipos');
 
 const perfil = (rol: Perfil['rol']): Perfil => ({
@@ -37,6 +40,7 @@ function formulario(contrasena: string): FormData {
 
 describe('cambiar la contraseña', () => {
   beforeEach(() => {
+    cabeceras.delete('x-idioma');
     updateUser.mockReset().mockResolvedValue({ error: null });
     perfilActual.mockReset();
   });
@@ -60,5 +64,49 @@ describe('cambiar la contraseña', () => {
     const r = await cambiarContrasena(ACCION_INICIAL, formulario('una frase nueva y larga'));
     expect(r.estado).toBe('error');
     expect(updateUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('idioma de las respuestas', () => {
+  beforeEach(() => {
+    cabeceras.delete('x-idioma');
+    resetPasswordForEmail.mockReset().mockResolvedValue({ error: null });
+  });
+
+  it('el enlace de recuperación vuelve a la página en el idioma de la persona', async () => {
+    cabeceras.set('x-idioma', 'en');
+    const f = new FormData();
+    f.set('correo', 'Cuenta@Ovilloandco.example');
+    const r = await recuperarContrasena(ACCION_INICIAL, f);
+    expect(r.estado).toBe('ok');
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('cuenta@ovilloandco.example', {
+      redirectTo: 'https://tienda.example/auth/confirmar?siguiente=%2Fen%2Fnueva-contrasena',
+    });
+  });
+
+  it('en español el enlace sigue sin prefijo', async () => {
+    const f = new FormData();
+    f.set('correo', 'cuenta@ovilloandco.example');
+    await recuperarContrasena(ACCION_INICIAL, f);
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('cuenta@ovilloandco.example', {
+      redirectTo: 'https://tienda.example/auth/confirmar?siguiente=%2Fnueva-contrasena',
+    });
+  });
+
+  it('los errores de validación llegan traducidos y con las mismas reglas', async () => {
+    cabeceras.set('x-idioma', 'de');
+    const f = new FormData();
+    f.set('correo', 'sin-arroba');
+    const r = await recuperarContrasena(ACCION_INICIAL, f);
+    expect(r).toMatchObject({ estado: 'error', mensaje: 'Ein Feld muss noch geprüft werden.' });
+    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+
+    cabeceras.delete('x-idioma');
+    const es = await recuperarContrasena(ACCION_INICIAL, f);
+    expect(es).toMatchObject({
+      estado: 'error',
+      mensaje: 'Hay un campo que revisar.',
+      errores: { correo: 'Ese correo no parece válido. Revisa que tenga @ y un dominio.' },
+    });
   });
 });

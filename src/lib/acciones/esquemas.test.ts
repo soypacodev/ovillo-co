@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   LIMITES_FOTOS,
+  avisoRevisar,
   erroresPorCampo,
   esquemaContacto,
   esquemaEncargo,
@@ -33,7 +34,7 @@ function encargoValido(): FormData {
 }
 
 async function validarEncargo(f: FormData) {
-  return esquemaEncargo.safeParseAsync(formularioAObjeto(f, ['fotos']));
+  return esquemaEncargo().safeParseAsync(formularioAObjeto(f, ['fotos']));
 }
 
 async function erroresEncargo(f: FormData) {
@@ -149,13 +150,13 @@ function contactoValido(): FormData {
 }
 
 function erroresContacto(f: FormData) {
-  const r = esquemaContacto.safeParse(formularioAObjeto(f));
+  const r = esquemaContacto().safeParse(formularioAObjeto(f));
   return r.success ? {} : erroresPorCampo<CampoContacto>(r.error);
 }
 
 describe('esquema de contacto', () => {
   it('acepta un mensaje completo', () => {
-    expect(esquemaContacto.safeParse(formularioAObjeto(contactoValido())).success).toBe(true);
+    expect(esquemaContacto().safeParse(formularioAObjeto(contactoValido())).success).toBe(true);
   });
 
   it('pide motivo, nombre, correo, mensaje y consentimiento', () => {
@@ -171,7 +172,7 @@ describe('esquema de contacto', () => {
   it('normaliza el número de pedido y rechaza los que no tienen el formato', () => {
     const f = contactoValido();
     f.set('pedido', ' ov-2026-1042 ');
-    const r = esquemaContacto.safeParse(formularioAObjeto(f));
+    const r = esquemaContacto().safeParse(formularioAObjeto(f));
     expect(r.success && r.data.pedido).toBe('OV-2026-1042');
 
     f.set('pedido', '1042');
@@ -188,6 +189,38 @@ describe('esquema de contacto', () => {
     const f = contactoValido();
     f.set('mensaje', 'x'.repeat(3001));
     expect(erroresContacto(f).mensaje).toMatch(/3000/);
+  });
+});
+
+describe('mensajes en otros idiomas', () => {
+  it('traduce los errores sin cambiar lo que se valida', async () => {
+    const f = new FormData();
+    f.set('descripcion', 'muy corto');
+    const objeto = formularioAObjeto(f, ['fotos']);
+    const es = await esquemaEncargo('es').safeParseAsync(objeto);
+    const en = await esquemaEncargo('en').safeParseAsync(objeto);
+    expect(es.success || en.success).toBe(false);
+    if (es.success || en.success) return;
+    const erroresEs = erroresPorCampo<CampoEncargo>(es.error);
+    const erroresEn = erroresPorCampo<CampoEncargo>(en.error);
+    expect(Object.keys(erroresEn).sort()).toEqual(Object.keys(erroresEs).sort());
+    expect(erroresEn.descripcion).toMatch(/20 characters/);
+    expect(erroresEn.nombre).toBe('What’s your name?');
+  });
+
+  it('traduce el correo mal escrito y el aviso general', () => {
+    const f = contactoValido();
+    f.set('correo', 'sin-arroba.test');
+    const r = esquemaContacto('de').safeParse(formularioAObjeto(f));
+    expect(r.success).toBe(false);
+    if (!r.success) expect(erroresPorCampo<CampoContacto>(r.error).correo).toMatch(/nicht gültig/);
+    expect(avisoRevisar(1)).toBe('Hay un campo que revisar.');
+    expect(avisoRevisar(3, 'fr')).toBe('3\u00a0champs sont à vérifier.');
+  });
+
+  it('reutiliza el esquema de cada idioma', () => {
+    expect(esquemaContacto('fr')).toBe(esquemaContacto('fr'));
+    expect(esquemaContacto()).toBe(esquemaContacto('es'));
   });
 });
 

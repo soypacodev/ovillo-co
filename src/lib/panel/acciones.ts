@@ -7,6 +7,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { conIdioma } from '@/lib/i18n/idiomas';
+import { idiomaActual } from '@/lib/i18n/servidor';
 import { z } from 'zod';
 import { formularioAObjeto } from '@/lib/acciones/esquemas';
 import { EXTENSION_IMAGEN, tipoDeImagen } from '@/lib/acciones/fotos';
@@ -76,7 +78,7 @@ export async function entrarPanelDemo(): Promise<void> {
   if (!configuracionSupabase()) redirect(rutas.panel);
 
   const credenciales = credencialesDemoPanel();
-  if (!credenciales) redirect(`${rutas.entrar}?aviso=demo-no-disponible`);
+  if (!credenciales) redirect(conIdioma(`${rutas.entrar}?aviso=demo-no-disponible`, await idiomaActual()));
 
   const supabase = await clienteServidor();
   const { error: fallo } = await supabase.auth.signInWithPassword({
@@ -85,7 +87,7 @@ export async function entrarPanelDemo(): Promise<void> {
   });
   if (fallo) {
     console.error('No se pudo entrar con la cuenta de demostración:', fallo.code, fallo.message);
-    redirect(`${rutas.entrar}?aviso=demo-no-disponible`);
+    redirect(conIdioma(`${rutas.entrar}?aviso=demo-no-disponible`, await idiomaActual()));
   }
   revalidatePath('/', 'layout');
   redirect(rutas.panel);

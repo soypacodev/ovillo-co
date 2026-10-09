@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { erroresPorCampo, esquemaDatos } from './esquema';
+import { crearEsquemaDatos, erroresPorCampo, esquemaDatos } from './esquema';
 import { erroresDatos, type DatosPedido } from './opciones';
 
 const BASE: DatosPedido = {
@@ -34,6 +34,10 @@ describe('reglas de los datos de entrega', () => {
       { ...BASE, nota: 'x'.repeat(501), cp: '123456' },
     ];
     for (const caso of casos) expect(erroresDatos(caso)).toEqual(delServidor(caso));
+    const caso = { ...BASE, email: 'ana', cp: '28001', acepta: false };
+    const servidor = crearEsquemaDatos('fr').safeParse(caso);
+    expect(servidor.success).toBe(false);
+    if (!servidor.success) expect(erroresDatos(caso, 'fr')).toEqual(erroresPorCampo(servidor.error.issues));
   });
 
   it('marca cada campo con su primer error', () => {

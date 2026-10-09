@@ -4,7 +4,6 @@
 // tarjetas de producto; este componente decide qué enseñar según lo que
 // hay guardado en el navegador.
 
-import Link from 'next/link';
 import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { useBrindis } from '@/componentes/brindis';
 import { BarraEnvioGratis } from '@/componentes/cesta/barra-envio-gratis';
@@ -16,6 +15,9 @@ import { useCesta, useFavoritos } from '@/lib/cesta/contexto';
 import type { LineaCesta, ProductoCesta } from '@/lib/cesta/tipos';
 import { totales as calcularTotales } from '@/lib/cesta/totales';
 import { piezas } from '@/lib/formato';
+import { textos } from '@/lib/i18n';
+import { useIdioma, useTextos } from '@/lib/i18n/cliente';
+import { Enlace } from '@/lib/i18n/enlace';
 import type { IdEnvio } from '@/lib/pagos/opciones';
 import { rutas } from '@/lib/rutas';
 import { DialogoVaciar } from './dialogo-vaciar';
@@ -36,21 +38,112 @@ export interface PropsVistaCesta {
   afines: Record<string, string[]>;
 }
 
-function frasePlazo(lineas: readonly LineaCesta[], plazo: number | null): string {
+const T = textos(
+  {
+    todoHecho: 'Todo está hecho: sale del taller en 24–48 horas.',
+    encargos: (n: number) => (n === 1 ? 'Hay una pieza que se teje al pedir' : `Hay ${n} piezas que se tejen al pedir`),
+    plazo: (cuantas: string, dias: number) => `${cuantas}, así que el pedido saldrá completo en unos ${dias} días.`,
+    cargando: 'Cargando tu cesta…',
+    piezas: 'Piezas en la cesta',
+    seguir: 'Seguir comprando',
+    vaciada: 'Cesta vaciada',
+    resumen: 'Resumen',
+    envio: 'Envío',
+    pagar: 'Ir a pagar',
+    seguro: 'Pago seguro con Stripe · tienda de demostración, sin cobros reales',
+    combina: 'Se lleva bien con…',
+    nadaTodavia: 'Aquí no hay nada todavía',
+    favoritosEsperan: 'Lo que guardaste en favoritos sigue aquí esperándote.',
+    daUnaVuelta: 'Date una vuelta por la tienda o pídenos algo a medida.',
+    verTienda: 'Ver la tienda',
+    aMedida: 'Pedir algo a medida',
+    tusFavoritos: 'Tus favoritos',
+  },
+  {
+    en: {
+      todoHecho: 'Everything is ready: it leaves the workshop within 24–48 hours.',
+      encargos: (n: number) => (n === 1 ? 'One item is made to order' : `${n} items are made to order`),
+      plazo: (cuantas: string, dias: number) => `${cuantas}, so the full order will ship in about ${dias} days.`,
+      cargando: 'Loading your basket…',
+      piezas: 'Items in your basket',
+      seguir: 'Continue shopping',
+      vaciada: 'Basket emptied',
+      resumen: 'Summary',
+      envio: 'Delivery',
+      pagar: 'Go to checkout',
+      seguro: 'Secure payment with Stripe · demo shop, no real charges',
+      combina: 'Goes well with…',
+      nadaTodavia: 'Nothing here yet',
+      favoritosEsperan: 'What you saved to your favourites is still here waiting for you.',
+      daUnaVuelta: 'Have a browse around the shop or ask us for a custom order.',
+      verTienda: 'Browse the shop',
+      aMedida: 'Request a custom order',
+      tusFavoritos: 'Your favourites',
+    },
+    fr: {
+      todoHecho: 'Tout est déjà fait\u00a0: la commande quitte l’atelier sous 24 à 48 heures.',
+      encargos: (n: number) =>
+        n === 1 ? 'Une pièce est crochetée à la commande' : `${n} pièces sont crochetées à la commande`,
+      plazo: (cuantas: string, dias: number) =>
+        `${cuantas}, la commande complète partira donc dans ${dias} jours environ.`,
+      cargando: 'Chargement de votre panier…',
+      piezas: 'Articles du panier',
+      seguir: 'Continuer mes achats',
+      vaciada: 'Panier vidé',
+      resumen: 'Récapitulatif',
+      envio: 'Livraison',
+      pagar: 'Passer au paiement',
+      seguro: 'Paiement sécurisé avec Stripe · boutique de démonstration, aucun débit réel',
+      combina: 'Se marie bien avec…',
+      nadaTodavia: 'Il n’y a encore rien ici',
+      favoritosEsperan: 'Ce que vous avez mis en favoris vous attend toujours ici.',
+      daUnaVuelta: 'Faites un tour dans la boutique ou demandez-nous une commande sur mesure.',
+      verTienda: 'Voir la boutique',
+      aMedida: 'Demander une commande sur mesure',
+      tusFavoritos: 'Vos favoris',
+    },
+    de: {
+      todoHecho: 'Alles ist fertig: Ihre Bestellung verlässt die Werkstatt in 24–48 Stunden.',
+      encargos: (n: number) =>
+        n === 1 ? 'Ein Stück wird erst auf Bestellung gehäkelt' : `${n} Stücke werden erst auf Bestellung gehäkelt`,
+      plazo: (cuantas: string, dias: number) =>
+        `${cuantas}, daher wird die komplette Bestellung in etwa ${dias} Tagen verschickt.`,
+      cargando: 'Ihr Warenkorb wird geladen…',
+      piezas: 'Artikel im Warenkorb',
+      seguir: 'Weiter einkaufen',
+      vaciada: 'Warenkorb geleert',
+      resumen: 'Übersicht',
+      envio: 'Versand',
+      pagar: 'Zur Kasse',
+      seguro: 'Sichere Zahlung mit Stripe · Demo-Shop, keine echten Abbuchungen',
+      combina: 'Passt gut zu…',
+      nadaTodavia: 'Hier ist noch nichts',
+      favoritosEsperan: 'Was Sie in Ihren Favoriten gespeichert haben, wartet hier noch auf Sie.',
+      daUnaVuelta: 'Stöbern Sie im Shop oder fragen Sie uns nach einer Auftragsarbeit.',
+      verTienda: 'Zum Shop',
+      aMedida: 'Auftragsarbeit anfragen',
+      tusFavoritos: 'Ihre Favoriten',
+    },
+  },
+);
+
+type TextosCesta = (typeof T)[keyof typeof T];
+
+function frasePlazo(t: TextosCesta, lineas: readonly LineaCesta[], plazo: number | null): string {
   const encargos = lineas.filter((l) => l.encargo).length;
-  if (!plazo || !encargos) return 'Todo está hecho: sale del taller en 24–48 horas.';
-  const cuantas = encargos === 1 ? 'Hay una pieza que se teje al pedir' : `Hay ${encargos} piezas que se tejen al pedir`;
-  return `${cuantas}, así que el pedido saldrá completo en unos ${plazo} días.`;
+  if (!plazo || !encargos) return t.todoHecho;
+  return t.plazo(t.encargos(encargos), plazo);
 }
 
 export function VistaCesta({ productos, metodos, tarjetas, sugeribles, afines }: PropsVistaCesta) {
   const { lineas, cupon, hidratada, fijarUnidades, quitar, vaciar, maxUnidades } = useCesta();
+  const t = useTextos(T);
   useSincronizarCesta(productos);
 
   if (!hidratada) {
     return (
       <div className="esqueleto" aria-busy="true">
-        <p className="oculto-vis">Cargando tu cesta…</p>
+        <p className="oculto-vis">{t.cargando}</p>
         <div className="hueso" />
         <div className="hueso" />
       </div>
@@ -86,6 +179,8 @@ interface PropsConArticulos extends Pick<PropsVistaCesta, 'metodos' | 'tarjetas'
 
 function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fijarUnidades, quitar, vaciar, maxUnidades }: PropsConArticulos) {
   const avisar = useBrindis();
+  const x = useTextos(T);
+  const idioma = useIdioma();
   // Este bloque solo se monta en el navegador, así que puede leer lo guardado.
   const [envioId, setEnvioId] = useState<IdEnvio>(leerEnvioGuardado);
   const titulo = useRef<HTMLHeadingElement>(null);
@@ -112,13 +207,13 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fi
   return (
     <>
       <p className="lead plazo-cesta" aria-live="polite">
-        {piezas(t.unidades)}. {frasePlazo(lineas, t.plazoEncargo)}
+        {piezas(t.unidades, idioma)}. {frasePlazo(x, lineas, t.plazoEncargo)}
       </p>
 
       <div className="layout-compra">
         <div>
           <h2 ref={titulo} tabIndex={-1} className="oculto-vis">
-            Piezas en la cesta
+            {x.piezas}
           </h2>
           <ul className="filas-cesta">
             {lineas.map((l) => (
@@ -134,14 +229,14 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fi
           </ul>
 
           <div className="acciones-cesta">
-            <Link className="btn btn-2" href={rutas.tienda}>
-              Seguir comprando
-            </Link>
+            <Enlace className="btn btn-2" href={rutas.tienda}>
+              {x.seguir}
+            </Enlace>
             <DialogoVaciar
               unidades={t.unidades}
               alConfirmar={() => {
                 vaciar();
-                avisar('Cesta vaciada');
+                avisar(x.vaciada);
                 // El estado vacío aparece en el siguiente pintado.
                 requestAnimationFrame(() => document.getElementById('cesta-vacia')?.focus());
               }}
@@ -152,7 +247,7 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fi
 
         <aside className="resumen-lado" aria-labelledby="resumen-titulo">
           <div className="caja">
-            <h2 id="resumen-titulo">Resumen</h2>
+            <h2 id="resumen-titulo">{x.resumen}</h2>
             <BarraEnvioGratis totales={t} />
             <SelectorEnvio
               metodos={metodos}
@@ -160,17 +255,17 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fi
               cupon={cupon}
               valor={envioId}
               alCambiar={elegirEnvio}
-              leyenda="Envío"
+              leyenda={x.envio}
               compacto
             />
             <FormularioCupon abierto />
             <div className="totales-resumen">
               <ResumenTotales totales={t} cupon={cupon} etiquetaEnvio={t.metodo.nombre} />
             </div>
-            <Link className="btn btn-1 btn-bloque mt-3" href={rutas.pago}>
-              Ir a pagar
-            </Link>
-            <p className="mini-2 pago-seguro">Pago seguro con Stripe · tienda de demostración, sin cobros reales</p>
+            <Enlace className="btn btn-1 btn-bloque mt-3" href={rutas.pago}>
+              {x.pagar}
+            </Enlace>
+            <p className="mini-2 pago-seguro">{x.seguro}</p>
           </div>
           <Garantias en="cesta" />
         </aside>
@@ -180,7 +275,7 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fi
         <section className="sugerencias" aria-labelledby="sugerencias-titulo">
           <div className="cab-sec">
             <h2 id="sugerencias-titulo" className="tit-sugerencias">
-              Se lleva bien con…
+              {x.combina}
             </h2>
           </div>
           <div className="rejilla rejilla-4">
@@ -199,31 +294,28 @@ function ConArticulos({ lineas, cupon, metodos, tarjetas, sugeribles, afines, fi
 function CestaVacia({ tarjetas }: { tarjetas: Record<string, ReactNode> }) {
   const { favoritos } = useFavoritos();
   const guardados = favoritos.filter((slug) => tarjetas[slug]).slice(0, 4);
+  const t = useTextos(T);
 
   return (
     <div className="compra-vacia">
       <Ovillo width={64} height={64} className="flota ovillo-vacio" />
       <h2 id="cesta-vacia" tabIndex={-1}>
-        Aquí no hay nada todavía
+        {t.nadaTodavia}
       </h2>
-      <p className="lead">
-        {guardados.length
-          ? 'Lo que guardaste en favoritos sigue aquí esperándote.'
-          : 'Date una vuelta por la tienda o pídenos algo a medida.'}
-      </p>
+      <p className="lead">{guardados.length ? t.favoritosEsperan : t.daUnaVuelta}</p>
       <div className="botones-centro">
-        <Link className="btn btn-1" href={rutas.tienda}>
-          Ver la tienda
-        </Link>
-        <Link className="btn btn-2" href={rutas.encargos}>
-          Pedir algo a medida
-        </Link>
+        <Enlace className="btn btn-1" href={rutas.tienda}>
+          {t.verTienda}
+        </Enlace>
+        <Enlace className="btn btn-2" href={rutas.encargos}>
+          {t.aMedida}
+        </Enlace>
       </div>
       {guardados.length > 0 && (
         <section className="favoritos-vacia" aria-labelledby="favoritos-titulo">
           <div className="cab-sec">
             <h2 id="favoritos-titulo" className="tit-sugerencias">
-              Tus favoritos
+              {t.tusFavoritos}
             </h2>
           </div>
           <div className="rejilla rejilla-4">
