@@ -50,6 +50,11 @@ const recorta = (texto: string, max: number) => (texto.length > max ? `${texto.s
  * devuelve su URL. Caduca a los 45 minutos. Si Stripe calcula otro
  * total, la sesión se cancela y se lanza un error.
  */
+/** Descripción del pago en Stripe: así el dueño lo encuentra por el número de pedido. */
+export function descripcionPago(numero: string): string {
+  return `Pedido ${numero} · Ovillo & Co. (tienda de demostración)`;
+}
+
 export async function crearSesionPago(
   pedido: PedidoCalculado,
   datos: DatosSesion & { email: string },
@@ -119,7 +124,7 @@ export async function crearSesionPago(
     ],
     metadata: { ...aMetadatos(datos), ...(descuento > 0 && { descuento: rotulo }) },
     payment_intent_data: {
-      description: `Pedido ${datos.referencia} · Ovillo & Co. (tienda de demostración)`,
+      description: descripcionPago(datos.referencia),
       metadata: { referencia: datos.referencia },
     },
     success_url: `${origen}/gracias?session_id={CHECKOUT_SESSION_ID}`,

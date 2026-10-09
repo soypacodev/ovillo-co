@@ -7,7 +7,7 @@ import { configuracionSupabase } from '@/lib/datos/entorno';
 import { entornoStripe } from '@/lib/datos/entorno-servidor';
 import { clienteServicio } from '@/lib/datos/supabase/servicio';
 import { leerCuerpoLimitado } from './cuerpo-limitado';
-import { clienteStripe, stripeConfigurado } from './stripe';
+import { clienteStripe, descripcionPago, stripeConfigurado } from './stripe';
 import { procesarEvento, type DependenciasWebhook } from './webhook';
 
 function dependencias(): DependenciasWebhook {
@@ -55,6 +55,15 @@ function dependencias(): DependenciasWebhook {
         .select('id');
       if (error) throw new Error(error.message);
       return data.length;
+    },
+
+    async rotularPago(pagoId, pedidoId) {
+      const { data, error } = await bd().from('pedidos').select('numero').eq('id', pedidoId).single();
+      if (error) throw new Error(error.message);
+      await clienteStripe().paymentIntents.update(pagoId, {
+        description: descripcionPago(data.numero),
+        metadata: { numero_pedido: data.numero },
+      });
     },
   };
 }

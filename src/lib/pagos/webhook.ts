@@ -44,6 +44,8 @@ export interface DependenciasWebhook {
   anotar: (eventoId: string, tipo: string) => Promise<void>;
   /** Marca como reembolsado el pedido de ese pago; devuelve cuántos cambia. */
   marcarReembolsado: (pagoId: string) => Promise<number>;
+  /** Pone el número definitivo del pedido en el pago de Stripe. */
+  rotularPago: (pagoId: string, pedidoId: string) => Promise<void>;
 }
 
 export interface RespuestaWebhook {
@@ -117,8 +119,18 @@ export async function procesarEvento(evento: Stripe.Event, deps: DependenciasWeb
     return { estado: 200, mensaje: 'Evento ya procesado.' };
   }
 
-  const resultado = await deps.registrar(datosRegistro(evento, sesion, datos));
+  const registro = datosRegistro(evento, sesion, datos);
+  const resultado = await deps.registrar(registro);
   if (resultado.ok) {
+    // Al crear el pago aún no había pedido y Stripe lleva la referencia
+    // provisional. Si cambiarla falla, el pedido ya está guardado: no se reintenta.
+    if (registro.p_pago_stripe) {
+      try {
+        await deps.rotularPago(registro.p_pago_stripe, resultado.pedidoId);
+      } catch (error) {
+        console.warn(`No se pudo poner el número del pedido en el pago ${registro.p_pago_stripe}`, error);
+      }
+    }
     return { estado: 200, mensaje: `Pedido registrado (${resultado.pedidoId}).` };
   }
   if (!resultado.permanente) {
@@ -126,7 +138,7 @@ export async function procesarEvento(evento: Stripe.Event, deps: DependenciasWeb
     return { estado: 500, mensaje: 'Error temporal al registrar el pedido.' };
   }
 
-  const pago = datosRegistro(evento, sesion, datos).p_pago_stripe;
+  const pago = registro.p_pago_stripe;
   if (!pago) {
     console.error(`Pedido ${datos.referencia} cobrado sin pago asociado y sin poder registrarse: ${resultado.codigo}`);
     return { estado: 500, mensaje: 'Cobro sin identificador de pago.' };

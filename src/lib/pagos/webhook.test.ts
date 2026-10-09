@@ -57,6 +57,7 @@ function dependencias(registro: ResultadoRegistro = { ok: true, pedidoId: 'pedid
   const reembolsos: string[][] = [];
   const anotaciones: string[][] = [];
   const marcados: string[] = [];
+  const rotulados: string[][] = [];
   const deps: DependenciasWebhook = {
     hayBaseDeDatos: true,
     yaProcesado: vi.fn(async () => procesado),
@@ -74,8 +75,11 @@ function dependencias(registro: ResultadoRegistro = { ok: true, pedidoId: 'pedid
       marcados.push(pago);
       return 1;
     }),
+    rotularPago: vi.fn(async (pago: string, pedido: string) => {
+      rotulados.push([pago, pedido]);
+    }),
   };
-  return { deps, registros, reembolsos, anotaciones, marcados };
+  return { deps, registros, reembolsos, anotaciones, marcados, rotulados };
 }
 
 describe('metadatos de la sesión', () => {
@@ -127,6 +131,31 @@ describe('metadatos de la sesión', () => {
 });
 
 describe('procesar eventos de Stripe', () => {
+  it('pone el número definitivo del pedido en el pago de Stripe', async () => {
+    const { deps, rotulados } = dependencias();
+    const r = await procesarEvento(evento('checkout.session.completed'), deps);
+    expect(r.estado).toBe(200);
+    expect(rotulados).toEqual([['pi_prueba_1', 'pedido-1']]);
+  });
+
+  it('si no se puede rotular el pago, el pedido sigue registrado y no se reintenta', async () => {
+    const { deps } = dependencias();
+    deps.rotularPago = vi.fn(async () => {
+      throw new Error('Stripe no responde');
+    });
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const r = await procesarEvento(evento('checkout.session.completed'), deps);
+    expect(r.estado).toBe(200);
+    expect(aviso).toHaveBeenCalled();
+    aviso.mockRestore();
+  });
+
+  it('no rotula nada si el pedido no se registra', async () => {
+    const { deps, rotulados } = dependencias({ ok: false, permanente: true, codigo: 'sin_stock' });
+    await procesarEvento(evento('checkout.session.completed'), deps);
+    expect(rotulados).toEqual([]);
+  });
+
   it('registra el pedido con lo cobrado y los datos de la sesión', async () => {
     const { deps, registros } = dependencias();
     const r = await procesarEvento(evento('checkout.session.completed'), deps);
