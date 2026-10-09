@@ -407,13 +407,13 @@ select prueba.falla(
   '42501', 'las fotos de encargos solo las sube el servidor');
 -- Cancelar un pedido ficticio no inventa stock.
 select (select stock from public.variantes v join public.productos p on p.id = v.producto_id
-        where p.slug = 'cesta-ovillos' and v.nombre = 'Zigzag') as stock_antes \gset
+        where p.slug = 'cesta-organizadora' and v.nombre = 'Zigzag') as stock_antes \gset
 select prueba.ok(
   prueba.filas($$update public.pedidos set estado = 'cancelado' where stripe_sesion_id = 'cs_demo_024'$$) = 1,
   'admin cancela un pedido ficticio');
 select prueba.ok(
   (select stock from public.variantes v join public.productos p on p.id = v.producto_id
-   where p.slug = 'cesta-ovillos' and v.nombre = 'Zigzag') = :stock_antes,
+   where p.slug = 'cesta-organizadora' and v.nombre = 'Zigzag') = :stock_antes,
   'y el stock no sube, porque ese pedido nunca lo descontó');
 
 reset role;

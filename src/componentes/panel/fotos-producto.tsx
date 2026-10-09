@@ -117,7 +117,7 @@ export function FotosProducto({ productoId, fotos, bloqueado }: { productoId: st
             name="alt"
             type="text"
             maxLength={200}
-            placeholder="Pulpito gris perla sentado sobre una manta"
+            placeholder="Osita de ganchillo con vestido lila, sentada"
             aria-describedby="fotos-alt-ayuda"
             aria-invalid={errores.alt ? true : undefined}
           />

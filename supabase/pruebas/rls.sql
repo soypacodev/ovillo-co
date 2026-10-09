@@ -207,7 +207,7 @@ select prueba.ok(
 select prueba.ok(
   (public.calcular_pedido('[{"producto":"manta-estrella","variante":"Menta","cantidad":1},
                             {"producto":"cojin-relieve","variante":"Crudo y beis","cantidad":1},
-                            {"producto":"cesta-ovillos","variante":"Pareja blanca","cantidad":1}]', ' hola10 ')
+                            {"producto":"cesta-organizadora","variante":"Pareja blanca","cantidad":1}]', ' hola10 ')
    ->> 'descuento_cupon')::int = 1280,
   'cupón HOLA10 sin distinguir mayúsculas: −10 % sobre 128,00 €'
 );
@@ -318,13 +318,13 @@ select prueba.falla(
 select prueba.falla(
   $$select public.descontar_stock(jsonb_build_array(jsonb_build_object(
       'variante_id', (select v.id from public.variantes v join public.productos p on p.id = v.producto_id
-                      where p.slug = 'cesta-ovillos' and v.nombre = 'Zigzag'),
+                      where p.slug = 'cesta-organizadora' and v.nombre = 'Zigzag'),
       'cantidad', 3)))$$,
   'SIN_STOCK', 'descontar más de lo que hay falla en vez de dejar el stock en negativo'
 );
 select prueba.ok(
   (select stock from public.variantes v join public.productos p on p.id = v.producto_id
-   where p.slug = 'cesta-ovillos' and v.nombre = 'Zigzag') = 2,
+   where p.slug = 'cesta-organizadora' and v.nombre = 'Zigzag') = 2,
   'y el stock sigue intacto'
 );
 

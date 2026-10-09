@@ -213,7 +213,7 @@ insert into public.productos (
   personalizacion_etiqueta, personalizacion_ejemplo, personalizacion_max, personalizacion_pista,
   contenido, posicion, publicado_en
 ) values (
-  'cesta-ovillos', 'Cesta organizadora', (select id from public.categorias where slug = 'hogar'), 'simple', 'publicado', 2900, null, 'Modelo',
+  'cesta-organizadora', 'Cesta organizadora', (select id from public.categorias where slug = 'hogar'), 'simple', 'publicado', 2900, null, 'Modelo',
   false, true, false, null, null,
   'Se mantiene de pie sola. Para el baño o el rincón de tejer.',
   'Cestas de ganchillo con la base reforzada, que aguantan de pie sin ayuda. La pareja blanca, de algodón, ordena el baño; la de zigzag, de trapillo, es más grande y se traga los ovillos o lo que haga falta recoger.',
@@ -226,12 +226,12 @@ insert into public.productos (
 );
 
 insert into public.variantes (producto_id, nombre, color, stock, foto_ruta, posicion) values
-  ((select id from public.productos where slug = 'cesta-ovillos'), 'Pareja blanca', '#F2EFE9', 2, '/fotos/productos/cesta-ovillos-1.jpg', 0),
-  ((select id from public.productos where slug = 'cesta-ovillos'), 'Zigzag', '#3A3A3A', 2, '/fotos/productos/cesta-ovillos-2.jpg', 1);
+  ((select id from public.productos where slug = 'cesta-organizadora'), 'Pareja blanca', '#F2EFE9', 2, '/fotos/productos/cesta-organizadora-1.jpg', 0),
+  ((select id from public.productos where slug = 'cesta-organizadora'), 'Zigzag', '#3A3A3A', 2, '/fotos/productos/cesta-organizadora-2.jpg', 1);
 
 insert into public.fotos_producto (producto_id, ruta, alt, posicion) values
-  ((select id from public.productos where slug = 'cesta-ovillos'), '/fotos/productos/cesta-ovillos-1.jpg', 'Pareja de cestas de ganchillo blancas usadas como organizadores de baño', 0),
-  ((select id from public.productos where slug = 'cesta-ovillos'), '/fotos/productos/cesta-ovillos-2.jpg', 'Cesta de trapillo en zigzag blanco y negro llena de madejas', 1);
+  ((select id from public.productos where slug = 'cesta-organizadora'), '/fotos/productos/cesta-organizadora-1.jpg', 'Pareja de cestas de ganchillo blancas usadas como organizadores de baño', 0),
+  ((select id from public.productos where slug = 'cesta-organizadora'), '/fotos/productos/cesta-organizadora-2.jpg', 'Cesta de trapillo en zigzag blanco y negro llena de madejas', 1);
 
 -- Gorro con pompón
 insert into public.productos (

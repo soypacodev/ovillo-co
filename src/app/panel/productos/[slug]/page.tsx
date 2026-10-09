@@ -17,9 +17,7 @@ interface PropsProducto {
   searchParams: ParametrosUrl;
 }
 
-export async function generateMetadata({ params }: PropsProducto): Promise<Metadata> {
-  return { title: `Editar ${(await params).slug}` };
-}
+export const metadata: Metadata = { title: 'Editar producto' };
 
 export default async function ProductoPanel({ params, searchParams }: PropsProducto) {
   const { slug } = await params;
