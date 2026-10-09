@@ -24,7 +24,8 @@
   <a href="#seguridad">Seguridad</a> ·
   <a href="#ejecutarlo-en-local">Ejecutarlo en local</a> ·
   <a href="docs/ARQUITECTURA.md">Arquitectura</a> ·
-  <a href="docs/DESPLIEGUE.md">Despliegue</a>
+  <a href="docs/DESPLIEGUE.md">Despliegue</a> ·
+  <a href="#in-english">English</a>
 </p>
 
 <p align="center">
@@ -139,7 +140,7 @@ Para avisar de un fallo, sigue [`SECURITY.md`](SECURITY.md).
 
 | Qué | Cómo | Dónde |
 |---|---|---|
-| Lógica | Más de 170 pruebas de Vitest: totales, cupones, cesta guardada, recálculo del pedido, webhook, esquemas, permisos del panel | `src/**/*.test.ts` |
+| Lógica | Más de 220 pruebas de Vitest: totales, cupones, cesta guardada, recálculo del pedido, webhook, esquemas, permisos del panel | `src/**/*.test.ts` |
 | Base de datos | Migraciones, semilla y más de 200 comprobaciones de RLS, funciones y concurrencia sobre PostgreSQL 16 | [`supabase/pruebas/`](supabase/pruebas/) |
 | Extremo a extremo | Playwright en escritorio y en móvil contra la compilación de producción | [`e2e/`](e2e/) |
 | Accesibilidad | axe-core en las páginas de cuenta y en todas las del panel: ningún fallo grave o crítico permitido | [`e2e/`](e2e/) |
@@ -234,6 +235,32 @@ Para que los pedidos, las cuentas y el panel guarden datos hacen falta tres serv
 3. **Vercel**: la web publicada con su dominio.
 
 La guía paso a paso, pensada para quien no lo ha hecho nunca, está en [**`docs/DESPLIEGUE.md`**](docs/DESPLIEGUE.md). Cada variable de entorno está explicada también en [`.env.example`](.env.example).
+
+---
+
+## In English
+
+**Ovillo &amp; Co.** is a fictional online shop for a small crochet workshop in Málaga, built end to end as a portfolio piece: storefront, checkout, customer accounts and an owner's dashboard. The shop itself is in Spanish because its customers would be; this section is for anyone reading the code from elsewhere.
+
+**[Live demo](https://ovillo-co.vercel.app)** · nothing is real: products, orders and reviews are sample data, and payments only ever run in Stripe **test mode** (card `4242 4242 4242 4242`, any future date and CVC). The *Ver el panel de demostración* button in the footer opens the owner's dashboard with a read-only account.
+
+**What it does**
+
+- **Storefront:** catalogue with filters and search, product pages with colour variants and made-to-order items, a cart that survives reloads and syncs across tabs, coupons, free-shipping threshold, favourites and a custom-order form with reference photos.
+- **Checkout:** Stripe Checkout; prices are recalculated on the server and in the database, never trusted from the browser. A signed, idempotent webhook records paid orders and refunds automatically if an item sold out in the meantime.
+- **Owner's dashboard:** monthly sales, orders with status history and tracking, product editing with variants, stock and photos, custom orders, contact messages and customers.
+
+**How it's built**
+
+- **Next.js 16** (App Router, Server Components by default) and **React 19**, strict **TypeScript**, **Zod** validation on every server action.
+- **Supabase** (PostgreSQL, Auth, Storage) with **Row Level Security on every table**: orders can only be created by the server after Stripe confirms payment, stock is decremented with a row lock (tested with 8 concurrent buyers for the last item), roles can't be self-assigned, and the public demo role is read-only with personal data masked.
+- **Per-request CSP nonce** (`strict-dynamic`, no `unsafe-inline`), strict security headers, server-only secrets, rate limits and honeypots on public forms.
+- **Plain CSS** with design tokens and self-hosted, subset fonts. WCAG 2.1 AA: keyboard navigation, visible focus, `aria-live` announcements, 44 px touch targets, reduced motion.
+- **Tested on every push:** 220+ Vitest unit tests, 200+ SQL checks against a real PostgreSQL 16 (RLS, functions, race conditions), Playwright end-to-end tests on desktop and mobile with axe-core accessibility checks, strict `tsc`, ESLint and a production build.
+
+**Run it locally:** `npm ci && npm run dev` with Node.js 22.18+. No keys needed: without environment variables the whole shop runs in demo mode. To connect Supabase, Stripe and Vercel, see [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) (Spanish) and [`.env.example`](.env.example).
+
+**Want something like this for your business?** It's built by **Paco López (Paco Dev)**, a full-stack developer in Málaga, Spain. Write to [soypacodev@gmail.com](mailto:soypacodev@gmail.com?subject=A%20shop%20like%20Ovillo%20%26%20Co.).
 
 ---
 
