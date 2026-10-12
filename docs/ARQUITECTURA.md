@@ -52,7 +52,8 @@ La regla general: **la interfaz no sabe de dónde salen los datos.** Las página
 |---|---|---|
 | `(tienda)/` | Portada, catálogo, ficha, cesta, pago, gracias, cuenta, encargos, contenido | Grupo de rutas: comparte la cabecera, el pie y la cinta de demostración sin añadir un segmento a la URL |
 | `panel/` | Resumen, pedidos, productos, encargos, mensajes, clientes | Cada página comprueba el rol por sí misma: el layout no se vuelve a pintar al navegar entre páginas |
-| `api/stripe/webhook/` | Único endpoint de API | Lee el cuerpo como texto para verificar la firma |
+| `api/stripe/webhook/` | Webhook de Stripe | Lee el cuerpo como texto para verificar la firma |
+| `api/mantener-activo/` | Llamada diaria del cron de Vercel | Una consulta de solo lectura que evita que Supabase pause el proyecto gratuito; exige `CRON_SECRET` |
 | `auth/confirmar/` | Vuelta de los enlaces de los correos | Admite `?code=` (PKCE) y `?token_hash=&type=` |
 | `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx` | Metadatos generados | La imagen para redes se genera con la tipografía de la marca; cada ficha tiene la suya en `tienda/[slug]/opengraph-image.tsx` |
 

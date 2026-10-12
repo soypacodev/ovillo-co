@@ -284,11 +284,14 @@ No hace falta elegir región: [`vercel.json`](../vercel.json) pone las funciones
 | `DEMO_PANEL_PASSWORD` | Contraseña de esa cuenta | Paso 5 | **Sí** |
 | `STRIPE_SECRET_KEY` | Clave secreta de Stripe (`sk_test_…`). Vacía o incompleta, el pago funciona en modo demostración | Paso 6 | **Sí** |
 | `STRIPE_WEBHOOK_SECRET` | Secreto de firma del webhook de producción (`whsec_…`) | Paso 9 | **Sí** |
+| `CRON_SECRET` | Secreto con el que Vercel firma la llamada diaria que mantiene despierto el proyecto de Supabase gratuito (ver la nota de abajo). 16 caracteres o más | Invéntalo: `openssl rand -hex 24` | **Sí** |
 | `NEXT_PUBLIC_INDEXAR` | `si` para que los buscadores indexen toda la tienda; con cualquier otro valor solo se indexa la portada (ver [Arquitectura](ARQUITECTURA.md#qué-ven-los-buscadores)) | Tú decides | No |
 
 > **Las variables `NEXT_PUBLIC_*` se graban en la compilación.** Si cambias una, hay que volver a desplegar: **Deployments → ⋯ del último → Redeploy**.
 >
 > **`NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` van juntas.** Con una sola, la compilación falla con un mensaje que lo explica. Sin ninguna de las dos, la tienda vuelve al modo demostración.
+>
+> **Supabase gratuito se pausa solo.** Los proyectos del plan Free se pausan tras 7 días con poca actividad en la base de datos (se pueden restaurar desde el Dashboard con *Resume project*, pero la tienda deja de funcionar mientras tanto). [`vercel.json`](../vercel.json) programa una vez al día (el plan Hobby no admite más) una llamada a `/api/mantener-activo`, que hace una consulta de solo lectura al catálogo público. Para que funcione hay que definir `CRON_SECRET` en Vercel y volver a desplegar; sin él la ruta responde 503 y lo deja escrito en los registros de la función. Con el plan Pro de Supabase no hace falta: los proyectos de pago no se pausan.
 
 ### Dominio propio
 
