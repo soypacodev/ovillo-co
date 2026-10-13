@@ -8,7 +8,7 @@ export const T = textos(
     descripcionTienda:
       'Amigurumis, mantas y accesorios de crochet tejidos a mano en Málaga, de uno en uno. Piezas únicas y encargos personalizados.',
     descripcionDemo:
-      'Tienda online de demostración hecha por Paco Dev: crochet a mano en Málaga, con catálogo, pago, envíos, encargos y panel para el taller.',
+      'Tienda online de demostración hecha por Paco López: crochet a mano en Málaga, con catálogo, pago, envíos, encargos y panel para el taller.',
 
     eyebrow: 'Taller de crochet · Málaga',
     titulo: 'Cositas blanditas, ',
@@ -136,7 +136,7 @@ export const T = textos(
       descripcionTienda:
         'Amigurumi, blankets and crochet accessories made by hand in Málaga, one at a time. One-of-a-kind pieces and custom orders.',
       descripcionDemo:
-        'Online demo shop built by Paco Dev: handmade crochet from Málaga, with catalogue, checkout, shipping, custom orders and a workshop dashboard.',
+        'Online demo shop built by Paco López: handmade crochet from Málaga, with catalogue, checkout, shipping, custom orders and a workshop dashboard.',
 
       eyebrow: 'Crochet workshop · Málaga',
       titulo: 'Soft little things, ',
@@ -263,7 +263,7 @@ export const T = textos(
       descripcionTienda:
         'Amigurumis, couvertures et accessoires au crochet faits main à Málaga, pièce par pièce. Pièces uniques et commandes sur mesure.',
       descripcionDemo:
-        'Boutique en ligne de démonstration réalisée par Paco Dev : crochet fait main à Málaga, avec catalogue, paiement, livraisons, commandes sur mesure et tableau de bord pour l’atelier.',
+        'Boutique en ligne de démonstration réalisée par Paco López : crochet fait main à Málaga, avec catalogue, paiement, livraisons, commandes sur mesure et tableau de bord pour l’atelier.',
 
       eyebrow: 'Atelier de crochet · Málaga',
       titulo: 'De petites douceurs, ',
@@ -391,7 +391,7 @@ export const T = textos(
       descripcionTienda:
         'Amigurumis, Decken und Häkel-Accessoires, in Málaga von Hand gefertigt, Stück für Stück. Unikate und Auftragsarbeiten.',
       descripcionDemo:
-        'Demo-Onlineshop von Paco Dev: Handgehäkeltes aus Málaga, mit Katalog, Bezahlung, Versand, Auftragsarbeiten und Dashboard für die Werkstatt.',
+        'Demo-Onlineshop von Paco López: Handgehäkeltes aus Málaga, mit Katalog, Bezahlung, Versand, Auftragsarbeiten und Dashboard für die Werkstatt.',
 
       eyebrow: 'Häkelwerkstatt · Málaga',
       titulo: 'Weiche Kleinigkeiten, ',

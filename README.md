@@ -263,7 +263,7 @@ La guía paso a paso, pensada para quien no lo ha hecho nunca, está en [**`docs
 
 **Run it locally:** `npm ci && npm run dev` with Node.js 22.18+. No keys needed: without environment variables the whole shop runs in demo mode. To connect Supabase, Stripe and Vercel, see [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) (Spanish) and [`.env.example`](.env.example).
 
-**Want something like this for your business?** It's built by **Paco López (Paco Dev)**, a full-stack developer in Málaga, Spain. Write to [soypacodev@gmail.com](mailto:soypacodev@gmail.com?subject=A%20shop%20like%20Ovillo%20%26%20Co.).
+**Want something like this for your business?** It's built by **Paco López**, a full-stack developer in Málaga, Spain. Write to [soypacodev@gmail.com](mailto:soypacodev@gmail.com?subject=A%20shop%20like%20Ovillo%20%26%20Co.).
 
 ---
 
@@ -279,7 +279,7 @@ El código se publica bajo licencia [MIT](LICENSE): puedes usarlo, modificarlo y
 
 ## ¿Quieres algo así?
 
-Ovillo &amp; Co. es una demostración hecha por **Paco López · Paco Dev**, desarrollador full stack en Málaga, para enseñar lo que puede tener un negocio pequeño: esta misma tienda, con tu catálogo, tus fotos y tus envíos. La web publicada lo dice en una cinta discreta arriba y en el pie, sin estorbar a quien solo quiere ver la tienda.
+Ovillo &amp; Co. es una demostración hecha por **Paco López**, desarrollador full stack en Málaga, para enseñar lo que puede tener un negocio pequeño: esta misma tienda, con tu catálogo, tus fotos y tus envíos. La web publicada lo dice en una cinta discreta arriba y en el pie, sin estorbar a quien solo quiere ver la tienda.
 
 Escríbeme a **[soypacodev@gmail.com](mailto:soypacodev@gmail.com?subject=Quiero%20una%20tienda%20como%20Ovillo%20%26%20Co.)** y lo hablamos.
 

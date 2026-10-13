@@ -91,15 +91,15 @@ const mailtoContratar = (idioma: Idioma) =>
     .join('&')}`;
 
 /** La tienda es ficticia; el autor de la demo, no. `correo` es el de la
- *  tienda (dominio de ejemplo) y `contratar`, el de Paco Dev con el asunto
+ *  tienda (dominio de ejemplo) y `contratar`, el de Paco López con el asunto
  *  ya escrito para quien quiera una tienda así. */
 export const DEMO = {
-  autor: 'Paco Dev',
+  autor: 'Paco López',
   enlace: 'https://github.com/soypacodev',
   instagram: 'https://www.instagram.com/soypacodev/',
   usuarioInstagram: '@soypacodev',
   correo: 'hola@ovilloandco.example',
   correoAutor: CORREO_AUTOR,
-  /** Correo a Paco Dev con el asunto ya escrito, en el idioma de la página. */
+  /** Correo a Paco López con el asunto ya escrito, en el idioma de la página. */
   contratar: mailtoContratar,
 } as const;

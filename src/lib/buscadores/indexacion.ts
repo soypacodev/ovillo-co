@@ -3,7 +3,7 @@
 // La demo quiere que se la encuentre buscando a su autor, pero no competir
 // con talleres de crochet de verdad. Por eso, salvo NEXT_PUBLIC_INDEXAR=si
 // (una instalación para un negocio real), solo se indexa la portada, que se
-// presenta como demostración de Paco Dev. Fichas, catálogo y páginas de
+// presenta como demostración de Paco López. Fichas, catálogo y páginas de
 // contenido llevan noindex: se pueden rastrear (para leer los enlaces y los
 // datos estructurados), pero no aparecen como resultados.
 
