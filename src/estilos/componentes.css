@@ -78,7 +78,8 @@
 .rejilla-4 { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 .tarjeta { position: relative; display: flex; flex-direction: column; }
 .tarjeta .marco { position: relative; border-radius: var(--radio); overflow: hidden; background: var(--sup); aspect-ratio: 4 / 5; }
-.tarjeta .marco > a { position: absolute; inset: 0; display: block; }
+/* El enlace de la foto cubre la tarjeta; el botón rápido (que también es un enlace) no. */
+.tarjeta .marco > a:not(.rapido) { position: absolute; inset: 0; display: block; }
 .tarjeta .marco img { object-fit: cover; transition: transform var(--lento) var(--curva); }
 .tarjeta:hover .marco img { transform: scale(1.06); }
 .tarjeta .marco::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(21, 44, 65, .16), transparent 45%); opacity: 0; transition: opacity var(--medio); pointer-events: none; }
