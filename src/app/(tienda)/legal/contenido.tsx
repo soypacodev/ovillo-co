@@ -46,7 +46,7 @@ export const T = textos(
         {autor('(se abre en otra pestaña)')} para enseñar cómo se construye una tienda online. No se vende nada, los
         pedidos no son reales y el pago funciona siempre en modo de prueba. Los datos{' '}
         <span className="ficticio">resaltados</span> son inventados y los textos sirven de ejemplo: una tienda real debe
-        adaptarlos a su caso con asesoramiento profesional.
+        adaptarlos a su caso con asesoramiento profesional. Si creas una cuenta, usa datos de prueba: si introduces datos personales reales, el responsable de esos datos es el autor de la demo, Paco López (<a className="enlace" href={`mailto:${DEMO.correoAutor}`}>{DEMO.correoAutor}</a>), y puedes pedirle que los borre.
       </>
     ),
     secciones: 'Secciones',
@@ -208,7 +208,7 @@ export const T = textos(
           <b>This is a demo shop.</b> Ovillo &amp; Co. is a fictitious brand created by {autor('(opens in a new tab)')} to
           show how an online shop is built. Nothing is for sale, orders aren’t real and payments always run in test mode.
           The <span className="ficticio">highlighted</span> details are made up and the texts are examples: a real shop
-          must adapt them to its own case with professional advice.
+          must adapt them to its own case with professional advice. If you create an account, use test data: if you enter real personal data, the person responsible for it is the author of the demo, Paco López (<a className="enlace" href={`mailto:${DEMO.correoAutor}`}>{DEMO.correoAutor}</a>), and you can ask them to delete it.
         </>
       ),
       secciones: 'Sections',
@@ -370,7 +370,7 @@ export const T = textos(
           {autor('(s’ouvre dans un nouvel onglet)')} pour montrer comment se construit une boutique en ligne. Rien n’est
           vendu, les commandes ne sont pas réelles et le paiement fonctionne toujours en mode test. Les données{' '}
           <span className="ficticio">surlignées</span> sont inventées et les textes servent d’exemple{' '}: une vraie
-          boutique doit les adapter à sa situation avec l’aide d’un professionnel.
+          boutique doit les adapter à sa situation avec l’aide d’un professionnel. Si vous créez un compte, utilisez des données de test : si vous saisissez de vraies données personnelles, le responsable de ces données est l’auteur de la démo, Paco López (<a className="enlace" href={`mailto:${DEMO.correoAutor}`}>{DEMO.correoAutor}</a>), et vous pouvez lui demander de les supprimer.
         </>
       ),
       secciones: 'Sections',
@@ -546,7 +546,7 @@ export const T = textos(
           {autor('(öffnet in neuem Tab)')}, um zu zeigen, wie ein Onlineshop gebaut wird. Es wird nichts verkauft, die
           Bestellungen sind nicht echt, und die Zahlung läuft immer im Testmodus. Die{' '}
           <span className="ficticio">hervorgehobenen</span> Angaben sind erfunden, und die Texte dienen als Beispiel: Ein
-          echter Shop muss sie mit fachlicher Beratung an den eigenen Fall anpassen.
+          echter Shop muss sie mit fachlicher Beratung an den eigenen Fall anpassen. Wenn du ein Konto anlegst, nutze Testdaten: Gibst du echte personenbezogene Daten ein, ist der Autor der Demo, Paco López (<a className="enlace" href={`mailto:${DEMO.correoAutor}`}>{DEMO.correoAutor}</a>), dafür verantwortlich, und du kannst ihn bitten, sie zu löschen.
         </>
       ),
       secciones: 'Abschnitte',
